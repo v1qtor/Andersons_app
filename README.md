@@ -7,7 +7,7 @@
 
 - **Team**: LST-B
 - **Client**: Laurien Stroobants
-- **Subject**: Task Management App for The Andersons
+- **Subject**: Skills Integration Lab 2
 
 ## Team members:
 
