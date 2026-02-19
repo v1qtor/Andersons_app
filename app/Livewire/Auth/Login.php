@@ -70,6 +70,14 @@ class Login extends Component
             ]);
         }
 
+        if (! $user->isActive) {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => __('This account has been deactivated.'),
+            ]);
+        }
+
         return $user;
     }
 
