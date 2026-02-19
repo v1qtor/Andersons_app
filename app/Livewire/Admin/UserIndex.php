@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
 use Livewire\WithPagination;
+use App\Models\Role;
 
 class UserIndex extends Component
 {
@@ -67,6 +68,16 @@ class UserIndex extends Component
     public function deleteUser(int $userId): void
     {
         $user = User::findOrFail($userId);
+
+        $adminRole = Role::where('name', 'Admin')->first();
+        if ($adminRole && $user->roleId === $adminRole->roleId) {
+            $adminCount = User::where('roleId', $adminRole->roleId)->count();
+            if ($adminCount <= 1) {
+                session()->flash('error', __('Cannot delete the last admin user.'));
+                return;
+            }
+        }
+
         $user->delete();
 
         session()->flash('message', __('User deleted successfully.'));

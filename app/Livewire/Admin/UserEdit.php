@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use App\Models\Country;
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
@@ -21,6 +22,10 @@ class UserEdit extends Component
     public string $phoneNumber = '';
     public ?int $roleId = null;
     public ?int $countryId = null;
+
+    public bool $showDeleteModal = false;
+    public string $deletePassword = '';
+    public string $deletePasswordError = '';
 
     public function mount(User $user): void
     {
@@ -63,6 +68,42 @@ class UserEdit extends Component
         session()->flash('message', __('User updated successfully.'));
 
         $this->redirect(route('admin.users.index'), navigate: true);
+    }
+
+    public function confirmDelete(): void
+    {
+        $this->deletePassword = '';
+        $this->deletePasswordError = '';
+        $this->showDeleteModal = true;
+    }
+
+    public function deleteUser(): void
+    {
+        if (! Hash::check($this->deletePassword, Auth::user()->password)) {
+            $this->deletePasswordError = __('Incorrect password.');
+            return;
+        }
+
+        $adminRole = Role::where('name', 'Admin')->first();
+        if ($adminRole && $this->user->roleId === $adminRole->roleId) {
+            $adminCount = User::where('roleId', $adminRole->roleId)->count();
+            if ($adminCount <= 1) {
+                $this->deletePasswordError = __('Cannot delete the last admin user.');
+                return;
+            }
+        }
+
+        $this->user->delete();
+
+        session()->flash('message', __('User deleted successfully.'));
+        $this->redirect(route('admin.users.index'), navigate: true);
+    }
+
+    public function cancelDelete(): void
+    {
+        $this->showDeleteModal = false;
+        $this->deletePassword = '';
+        $this->deletePasswordError = '';
     }
 
     public function render()
