@@ -76,8 +76,17 @@
                                     <flux:button variant="ghost" size="sm" :href="route('admin.users.edit', $user->userId)" wire:navigate icon="pencil">
                                         {{ __('Edit') }}
                                     </flux:button>
-                                    <flux:button variant="ghost" size="sm" wire:click="deleteUser({{ $user->userId }})" wire:confirm="{{ __('Are you sure you want to deactivate this user?') }}" icon="trash" class="!text-red-600 hover:!text-red-700 dark:!text-red-400">
-                                        {{ __('Deactivate') }}
+                                    @if ($user->isActive)
+                                        <flux:button variant="ghost" size="sm" wire:click="toggleActive({{ $user->userId }})" wire:confirm="{{ __('Are you sure you want to deactivate this user?') }}" icon="pause-circle" class="!text-yellow-600 hover:!text-yellow-700 dark:!text-yellow-400">
+                                            {{ __('Deactivate') }}
+                                        </flux:button>
+                                    @else
+                                        <flux:button variant="ghost" size="sm" wire:click="toggleActive({{ $user->userId }})" wire:confirm="{{ __('Are you sure you want to reactivate this user?') }}" icon="play-circle" class="!text-green-600 hover:!text-green-700 dark:!text-green-400">
+                                            {{ __('Reactivate') }}
+                                        </flux:button>
+                                    @endif
+                                    <flux:button variant="ghost" size="sm" wire:click="deleteUser({{ $user->userId }})" wire:confirm="{{ __('Are you sure you want to delete this user?') }}" icon="trash" class="!text-red-600 hover:!text-red-700 dark:!text-red-400">
+                                        {{ __('Delete') }}
                                     </flux:button>
                                 </div>
                             </td>

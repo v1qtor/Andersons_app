@@ -25,6 +25,15 @@ class UserIndex extends Component
         session()->flash('message', __('User deleted successfully.'));
     }
 
+    public function toggleActive(int $userId): void
+    {
+        $user = User::findOrFail($userId);
+        $user->update(['isActive' => ! $user->isActive]);
+
+        $message = $user->isActive ? __('User activated successfully.') : __('User deactivated successfully.');
+        session()->flash('message', $message);
+    }
+
     public function render()
     {
         $users = User::with(['role', 'country'])
