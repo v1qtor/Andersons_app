@@ -32,6 +32,7 @@ class User extends Authenticatable
         'iban',
         'phoneNumber',
         'countryId',
+        'isActive',
     ];
 
     /**
@@ -54,6 +55,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'isActive' => 'boolean',
         ];
     }
 
