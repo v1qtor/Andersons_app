@@ -36,10 +36,13 @@ Route::middleware(['auth'])->group(function () {
         )
         ->name('two-factor.show');
 
+
     // Admin User Management
-    Route::get('admin/users', UserIndex::class)->name('admin.users.index');
-    Route::get('admin/users/create', UserCreate::class)->name('admin.users.create');
-    Route::get('admin/users/{user}/edit', UserEdit::class)->name('admin.users.edit');
+    Route::middleware(['admin'])->group(function () {
+        Route::get('admin/users', UserIndex::class)->name('admin.users.index');
+        Route::get('admin/users/create', UserCreate::class)->name('admin.users.create');
+        Route::get('admin/users/{user}/edit', UserEdit::class)->name('admin.users.edit');
+    });
 });
 
 require __DIR__.'/auth.php';

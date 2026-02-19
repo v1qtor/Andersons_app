@@ -69,8 +69,8 @@
                                     <flux:button variant="ghost" size="sm" :href="route('admin.users.edit', $user->userId)" wire:navigate icon="pencil">
                                         {{ __('Edit') }}
                                     </flux:button>
-                                    <flux:button variant="ghost" size="sm" wire:click="deleteUser({{ $user->userId }})" wire:confirm="{{ __('Are you sure you want to delete this user?') }}" icon="trash" class="!text-red-600 hover:!text-red-700 dark:!text-red-400">
-                                        {{ __('Delete') }}
+                                    <flux:button variant="ghost" size="sm" wire:click="deleteUser({{ $user->userId }})" wire:confirm="{{ __('Are you sure you want to deactivate this user?') }}" icon="trash" class="!text-red-600 hover:!text-red-700 dark:!text-red-400">
+                                        {{ __('Deactivate') }}
                                     </flux:button>
                                 </div>
                             </td>
