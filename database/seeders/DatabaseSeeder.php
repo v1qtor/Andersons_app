@@ -36,7 +36,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Tier 1: Independent lookup tables (no FK dependencies)
-        $roles = Role::factory(3)->create();
+        $roles = Role::factory(5)->create();
         $countries = Country::factory(5)->create();
         $categories = Category::factory(5)->create();
         $allergies = Allergy::factory(8)->create();
@@ -53,7 +53,7 @@ class DatabaseSeeder extends Seeder
         $notifications = Notification::factory(8)->create();
 
         // Tier 2: Tables depending on Tier 1
-        $users = User::factory(10)->create();
+        $users = User::factory(8)->create();
         $checkpoints = Checkpoint::factory(8)->create();
         $recurringTasks = RecurringTask::factory(5)->create();
 
