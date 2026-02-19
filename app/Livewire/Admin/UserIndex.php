@@ -3,6 +3,8 @@
 namespace App\Livewire\Admin;
 
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -12,9 +14,54 @@ class UserIndex extends Component
 
     public string $search = '';
 
+    public bool $showConfirmModal = false;
+    public string $pendingAction = '';
+    public int $pendingUserId = 0;
+    public string $confirmPassword = '';
+    public string $passwordError = '';
+
     public function updatingSearch(): void
     {
         $this->resetPage();
+    }
+
+    public function prepareAction(string $action, int $userId): void
+    {
+        $this->pendingAction = $action;
+        $this->pendingUserId = $userId;
+        $this->confirmPassword = '';
+        $this->passwordError = '';
+        $this->showConfirmModal = true;
+    }
+
+    public function executeAction(): void
+    {
+        if (! Hash::check($this->confirmPassword, Auth::user()->password)) {
+            $this->passwordError = __('Incorrect password.');
+            return;
+        }
+
+        match ($this->pendingAction) {
+            'delete' => $this->deleteUser($this->pendingUserId),
+            'toggle' => $this->toggleActive($this->pendingUserId),
+            'edit'   => $this->redirectToEdit($this->pendingUserId),
+        };
+
+        $this->cancelAction();
+    }
+
+    public function cancelAction(): void
+    {
+        $this->showConfirmModal = false;
+        $this->pendingAction = '';
+        $this->pendingUserId = 0;
+        $this->confirmPassword = '';
+        $this->passwordError = '';
+    }
+
+    private function redirectToEdit(int $userId): void
+    {
+        $this->redirect(route('admin.users.edit', $userId), navigate: true);
     }
 
     public function deleteUser(int $userId): void

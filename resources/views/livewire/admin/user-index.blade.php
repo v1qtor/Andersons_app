@@ -73,19 +73,19 @@
                             <td class="px-6 py-4 text-neutral-600 dark:text-neutral-400">{{ $user->phoneNumber ?? '—' }}</td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center justify-end gap-2">
-                                    <flux:button variant="ghost" size="sm" :href="route('admin.users.edit', $user->userId)" wire:navigate icon="pencil">
+                                    <flux:button variant="ghost" size="sm" wire:click="prepareAction('edit', {{ $user->userId }})" icon="pencil">
                                         {{ __('Edit') }}
                                     </flux:button>
                                     @if ($user->isActive)
-                                        <flux:button variant="ghost" size="sm" wire:click="toggleActive({{ $user->userId }})" wire:confirm="{{ __('Are you sure you want to deactivate this user?') }}" icon="pause-circle" class="!text-yellow-600 hover:!text-yellow-700 dark:!text-yellow-400">
+                                        <flux:button variant="ghost" size="sm" wire:click="prepareAction('toggle', {{ $user->userId }})" icon="pause-circle" class="!text-yellow-600 hover:!text-yellow-700 dark:!text-yellow-400">
                                             {{ __('Deactivate') }}
                                         </flux:button>
                                     @else
-                                        <flux:button variant="ghost" size="sm" wire:click="toggleActive({{ $user->userId }})" wire:confirm="{{ __('Are you sure you want to reactivate this user?') }}" icon="play-circle" class="!text-green-600 hover:!text-green-700 dark:!text-green-400">
+                                        <flux:button variant="ghost" size="sm" wire:click="prepareAction('toggle', {{ $user->userId }})" icon="play-circle" class="!text-green-600 hover:!text-green-700 dark:!text-green-400">
                                             {{ __('Reactivate') }}
                                         </flux:button>
                                     @endif
-                                    <flux:button variant="ghost" size="sm" wire:click="deleteUser({{ $user->userId }})" wire:confirm="{{ __('Are you sure you want to delete this user?') }}" icon="trash" class="!text-red-600 hover:!text-red-700 dark:!text-red-400">
+                                    <flux:button variant="ghost" size="sm" wire:click="prepareAction('delete', {{ $user->userId }})" icon="trash" class="!text-red-600 hover:!text-red-700 dark:!text-red-400">
                                         {{ __('Delete') }}
                                     </flux:button>
                                 </div>
@@ -107,5 +107,33 @@
             {{ $users->links() }}
         </div>
     </div>
+
+    {{-- Password Confirmation Modal --}}
+    <flux:modal name="confirm-action" :show="$showConfirmModal" wire:model="showConfirmModal">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('Confirm Action') }}</flux:heading>
+                <flux:subheading>{{ __('Please enter your admin password to continue.') }}</flux:subheading>
+            </div>
+
+            <flux:input
+                wire:model="confirmPassword"
+                type="password"
+                label="{{ __('Password') }}"
+                placeholder="{{ __('Enter your password') }}"
+                wire:keydown.enter="executeAction"
+                autofocus
+            />
+
+            @if ($passwordError)
+                <p class="text-sm text-red-600 dark:text-red-400">{{ $passwordError }}</p>
+            @endif
+
+            <div class="flex gap-2 justify-end">
+                <flux:button variant="ghost" wire:click="cancelAction">{{ __('Cancel') }}</flux:button>
+                <flux:button variant="primary" wire:click="executeAction">{{ __('Confirm') }}</flux:button>
+            </div>
+        </div>
+    </flux:modal>
 </section>
 
