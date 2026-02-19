@@ -13,7 +13,15 @@
 
         {{-- Flash Message --}}
         @if (session('message'))
-            <div class="mb-6 rounded-xl border border-green-200 bg-green-50 p-4 text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400">
+            <div
+                x-data="{ show: true }"
+                x-init="setTimeout(() => show = false, 5000)"
+                x-show="show"
+                x-transition:leave="transition ease-in duration-300"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="mb-6 rounded-xl border border-green-200 bg-green-50 p-4 text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400"
+            >
                 {{ session('message') }}
             </div>
         @endif
