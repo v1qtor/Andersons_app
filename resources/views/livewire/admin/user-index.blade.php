@@ -36,7 +36,7 @@
                         <th class="px-6 py-3 text-left font-medium text-neutral-600 dark:text-neutral-400">{{ __('Name') }}</th>
                         <th class="px-6 py-3 text-left font-medium text-neutral-600 dark:text-neutral-400">{{ __('Email') }}</th>
                         <th class="px-6 py-3 text-left font-medium text-neutral-600 dark:text-neutral-400">{{ __('Role') }}</th>
-                        <th class="px-6 py-3 text-left font-medium text-neutral-600 dark:text-neutral-400">{{ __('Country') }}</th>
+                        <th class="px-6 py-3 text-left font-medium text-neutral-600 dark:text-neutral-400">{{ __('Active') }}</th>
                         <th class="px-6 py-3 text-left font-medium text-neutral-600 dark:text-neutral-400">{{ __('Phone') }}</th>
                         <th class="px-6 py-3 text-right font-medium text-neutral-600 dark:text-neutral-400">{{ __('Actions') }}</th>
                     </tr>
@@ -63,7 +63,13 @@
                                     <span class="text-neutral-400">—</span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 text-neutral-600 dark:text-neutral-400">{{ $user->country?->name ?? '—' }}</td>
+                            <td class="px-6 py-4">
+                                @if ($user->isActive)
+                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400">true</span>
+                                @else
+                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400">false</span>
+                                @endif
+                            </td>
                             <td class="px-6 py-4 text-neutral-600 dark:text-neutral-400">{{ $user->phoneNumber ?? '—' }}</td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center justify-end gap-2">
