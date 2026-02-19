@@ -55,7 +55,8 @@
                             <td class="px-6 py-4 text-neutral-600 dark:text-neutral-400">{{ $user->email }}</td>
                             <td class="px-6 py-4">
                                 @if ($user->role)
-                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">
+                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                        style="background-color: {{ $user->role->color }}26; color: {{ $user->role->color }}; border: 1px solid {{ $user->role->color }}4d;">
                                         {{ $user->role->name }}
                                     </span>
                                 @else
