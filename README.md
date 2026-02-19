@@ -26,10 +26,10 @@
 
 ### Hosing credentials:
 
-| Role  | Email | Password |
-|:------|:------|:---------|
-| Admin | ....  | ...      |
-| ...   | ...   | ...      |
+| Role  | Email           | Password    |
+|:------|:----------------|:------------|
+| Admin | admin@admin.com | password123 |
+| ...   | ...             | ...         |
 
 
 
