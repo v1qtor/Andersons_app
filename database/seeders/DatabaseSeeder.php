@@ -53,7 +53,17 @@ class DatabaseSeeder extends Seeder
         $notifications = Notification::factory(8)->create();
 
         // Tier 2: Tables depending on Tier 1
+        // Fixed admin account for testing
+        $admin = User::factory()->create([
+            'name' => 'Admin User',
+            'email' => 'admin@admin.com',
+            'password' => bcrypt('password123'),
+            'roleId' => $roles->firstWhere('name', 'System Administrator')?->roleId ?? $roles->first()->roleId,
+            'countryId' => $countries->first()->countryId,
+        ]);
+
         $users = User::factory(10)->create();
+        $users->push($admin);
         $checkpoints = Checkpoint::factory(8)->create();
         $recurringTasks = RecurringTask::factory(5)->create();
 
