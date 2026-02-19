@@ -13,7 +13,7 @@ class IsAdmin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (! $request->user() || ! $request->user()->role || $request->user()->role->name !== 'System Administrator') {
+        if (! $request->user() || ! $request->user()->role || $request->user()->role->name !== 'Admin') {
             abort(403, __('Unauthorized. Admin access only.'));
         }
 
