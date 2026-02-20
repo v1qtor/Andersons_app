@@ -74,14 +74,12 @@
             {{-- ========== MONTH VIEW ========== --}}
             @if ($view === 'month')
                 <div class="grid grid-cols-7 gap-1.5">
-                    {{-- Day headers --}}
                     @foreach (['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as $dayName)
                         <div class="text-center text-xs font-semibold text-neutral-500 dark:text-neutral-400 py-2">
                             {{ __($dayName) }}
                         </div>
                     @endforeach
 
-                    {{-- Calendar cells --}}
                     @foreach ($calendarDays as $dayNum)
                         @if ($dayNum === null)
                             <div class="aspect-square"></div>
@@ -137,6 +135,51 @@
                                 </div>
                             </button>
                         @endif
+                    @endforeach
+                </div>
+
+                {{-- ========== WEEK VIEW ========== --}}
+            @elseif ($view === 'week')
+                <div class="grid grid-cols-7 gap-2">
+                    @foreach ($weekDays as $weekDay)
+                        @php
+                            $dateStr = $weekDay->format('Y-m-d');
+                            $dayEvents = $eventsByDate[$dateStr] ?? [];
+                            $isToday = $dateStr === $today;
+                        @endphp
+                        <div class="min-h-[200px]">
+                            <button
+                                wire:click="openDay('{{ $dateStr }}')"
+                                class="w-full text-center py-2 rounded-t-lg font-semibold text-sm cursor-pointer transition-colors
+                                    {{ $isToday
+                                        ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                                        : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200 dark:bg-zinc-700 dark:text-neutral-300 dark:hover:bg-zinc-600' }}"
+                            >
+                                {{ $weekDay->format('D j') }}
+                            </button>
+                            <div class="border border-t-0 border-neutral-200 dark:border-neutral-700 rounded-b-lg p-2 space-y-1.5 min-h-[170px]">
+                                @foreach ($dayEvents['trips'] ?? [] as $trip)
+                                    <div class="text-xs px-2 py-1.5 rounded-md bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300">
+                                        ⛺ {{ $trip->name }}
+                                    </div>
+                                @endforeach
+                                @foreach ($dayEvents['tasks'] ?? [] as $task)
+                                    <div class="text-xs px-2 py-1.5 rounded-md {{ $task->isComplete ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' }}">
+                                        {{ $task->isComplete ? '✓' : '○' }} {{ $task->title }}
+                                    </div>
+                                @endforeach
+                                @foreach ($dayEvents['meals'] ?? [] as $meal)
+                                    <div class="text-xs px-2 py-1.5 rounded-md bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300">
+                                        🍽️ {{ $meal->meal?->name }}
+                                    </div>
+                                @endforeach
+                                @if (empty($dayEvents))
+                                    <div class="text-xs text-neutral-400 dark:text-neutral-500 text-center pt-4">
+                                        {{ __('No events') }}
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
                     @endforeach
                 </div>
             @endif
