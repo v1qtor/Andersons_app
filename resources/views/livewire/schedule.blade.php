@@ -37,7 +37,39 @@
 
                 <flux:button variant="ghost" size="sm" wire:click="nextPeriod" icon="chevron-right" />
             </div>
+
+            {{-- People Filter --}}
+            <div class="mb-6">
+                <div class="flex items-center gap-2 mb-3">
+                    <flux:icon name="funnel" class="size-5 text-neutral-500" />
+                    <span class="font-semibold text-sm text-neutral-700 dark:text-neutral-300">{{ __('Filter by person:') }}</span>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    @foreach ($users as $user)
+                        @php
+                            $isSelected = in_array($user->userId, $selectedPeople);
+                            $roleColor = $user->role?->color ?? '#6366f1';
+                        @endphp
+                        <button
+                            wire:click="togglePerson({{ $user->userId }})"
+                            class="px-3 py-1.5 rounded-lg border-2 text-sm font-medium transition-all"
+                            style="
+                                border-color: {{ $roleColor }};
+                                background-color: {{ $isSelected ? $roleColor : 'transparent' }};
+                                color: {{ $isSelected ? '#fff' : $roleColor }};
+                            "
+                        >
+                            {{ $user->name }}
+                        </button>
+                    @endforeach
+
+                    @if (count($selectedPeople) > 0)
+                        <flux:button variant="ghost" size="sm" wire:click="clearFilters">
+                            {{ __('Clear Filters') }}
+                        </flux:button>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
 </section>
-
