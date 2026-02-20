@@ -74,12 +74,14 @@
             {{-- ========== MONTH VIEW ========== --}}
             @if ($view === 'month')
                 <div class="grid grid-cols-7 gap-1.5">
+                    {{-- Day headers --}}
                     @foreach (['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as $dayName)
                         <div class="text-center text-xs font-semibold text-neutral-500 dark:text-neutral-400 py-2">
                             {{ __($dayName) }}
                         </div>
                     @endforeach
 
+                    {{-- Calendar cells --}}
                     @foreach ($calendarDays as $dayNum)
                         @if ($dayNum === null)
                             <div class="aspect-square"></div>
@@ -190,6 +192,7 @@
                     $dayEvents = $eventsByDate[$dateStr] ?? [];
                 @endphp
                 <div class="space-y-4">
+                    {{-- Trips --}}
                     @foreach ($dayEvents['trips'] ?? [] as $trip)
                         <div class="p-4 rounded-lg border-2 border-orange-300 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-700">
                             <div class="flex items-center gap-2 mb-2">
@@ -215,6 +218,7 @@
                         </div>
                     @endforeach
 
+                    {{-- Tasks --}}
                     @foreach ($dayEvents['tasks'] ?? [] as $task)
                         <div class="p-4 rounded-lg border-2 {{ $task->isComplete ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700' : 'border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700' }}">
                             <div class="flex items-center gap-2 mb-1">
@@ -244,6 +248,7 @@
                         </div>
                     @endforeach
 
+                    {{-- Meals --}}
                     @foreach ($dayEvents['meals'] ?? [] as $meal)
                         <div class="p-4 rounded-lg border-2 border-purple-300 bg-purple-50 dark:bg-purple-900/20 dark:border-purple-700">
                             <div class="flex items-center gap-2 mb-1">
@@ -300,4 +305,120 @@
             </div>
         </div>
     </div>
+
+    {{-- Day Details Modal --}}
+    @if ($selectedDay && $dayDetails)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" wire:click.self="closeDay">
+            <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[80vh] overflow-y-auto">
+                {{-- Modal header --}}
+                <div class="sticky top-0 bg-white dark:bg-zinc-800 border-b border-neutral-200 dark:border-neutral-700 p-6 flex items-center justify-between z-10">
+                    <h3 class="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+                        {{ \Carbon\Carbon::parse($selectedDay)->format('l, j F Y') }}
+                    </h3>
+                    <flux:button variant="ghost" size="sm" wire:click="closeDay" icon="x-mark" />
+                </div>
+
+                <div class="p-6 space-y-6">
+                    {{-- Trips --}}
+                    @if (! empty($dayDetails['trips']))
+                        <div>
+                            <h4 class="font-bold text-neutral-900 dark:text-neutral-100 mb-3">🏕️ {{ __('Trips') }}</h4>
+                            <div class="space-y-3">
+                                @foreach ($dayDetails['trips'] as $trip)
+                                    <div class="p-4 rounded-lg border-2 border-orange-300 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-700">
+                                        <div class="font-semibold text-lg mb-2 text-neutral-900 dark:text-neutral-100">{{ $trip->name }}</div>
+                                        @if ($trip->description)
+                                            <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $trip->description }}</p>
+                                        @endif
+                                        <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-2">
+                                            {{ $trip->startDate->format('j M') }} → {{ $trip->endDate->format('j M Y') }}
+                                        </div>
+                                        <div class="flex flex-wrap gap-1.5">
+                                            @foreach ($trip->users as $u)
+                                                <span class="px-2.5 py-1 rounded-full text-white text-xs font-medium" style="background-color: {{ $u->role?->color ?? '#6366f1' }}">
+                                                    {{ $u->name }}
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Tasks --}}
+                    @if (! empty($dayDetails['tasks']))
+                        <div>
+                            <h4 class="font-bold text-neutral-900 dark:text-neutral-100 mb-3">✓ {{ __('Tasks') }}</h4>
+                            <div class="space-y-3">
+                                @foreach ($dayDetails['tasks'] as $task)
+                                    <div class="p-4 rounded-lg border-2 {{ $task->isComplete ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700' : 'border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700' }}">
+                                        <div class="font-semibold text-lg mb-1 text-neutral-900 dark:text-neutral-100">{{ $task->title }}</div>
+                                        @if ($task->description)
+                                            <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $task->description }}</p>
+                                        @endif
+                                        <div class="flex items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400 mb-2">
+                                            @if ($task->taskCategory)
+                                                <span>{{ $task->taskCategory->name }}</span>
+                                            @endif
+                                            @if ($task->locations->isNotEmpty())
+                                                <span>📍 {{ $task->locations->pluck('name')->join(', ') }}</span>
+                                            @endif
+                                            @if ($task->taskPriority)
+                                                <span>{{ $task->taskPriority->name }}</span>
+                                            @endif
+                                        </div>
+                                        <div class="flex flex-wrap gap-1.5">
+                                            @foreach ($task->users as $u)
+                                                <span class="px-2.5 py-1 rounded-full text-white text-xs font-medium" style="background-color: {{ $u->role?->color ?? '#6366f1' }}">
+                                                    {{ $u->name }}
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                        @if ($task->isComplete)
+                                            <div class="mt-2 text-green-700 dark:text-green-400 font-bold text-sm">✓ {{ __('Completed') }}</div>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Meals --}}
+                    @if (! empty($dayDetails['meals']))
+                        <div>
+                            <h4 class="font-bold text-neutral-900 dark:text-neutral-100 mb-3">🍽️ {{ __('Meals') }}</h4>
+                            <div class="space-y-3">
+                                @foreach ($dayDetails['meals'] as $meal)
+                                    <div class="p-4 rounded-lg border-2 border-purple-300 bg-purple-50 dark:bg-purple-900/20 dark:border-purple-700">
+                                        <div class="font-semibold text-lg mb-1 text-neutral-900 dark:text-neutral-100">
+                                            {{ $meal->meal?->name }}
+                                        </div>
+                                        <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-2">{{ $meal->dateTime->format('H:i') }}</div>
+                                        @if ($meal->notes)
+                                            <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $meal->notes }}</p>
+                                        @endif
+                                        <div class="flex flex-wrap gap-1.5">
+                                            @foreach ($meal->subscribers as $u)
+                                                <span class="px-2.5 py-1 rounded-full text-white text-xs font-medium" style="background-color: {{ $u->role?->color ?? '#6366f1' }}">
+                                                    {{ $u->name }}
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Empty state --}}
+                    @if (empty($dayDetails['tasks']) && empty($dayDetails['meals']) && empty($dayDetails['trips']))
+                        <div class="text-center py-12 text-neutral-500 dark:text-neutral-400">
+                            {{ __('No activities scheduled for this day.') }}
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    @endif
 </section>
