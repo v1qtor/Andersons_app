@@ -182,6 +182,94 @@
                         </div>
                     @endforeach
                 </div>
+
+                {{-- ========== DAY VIEW ========== --}}
+            @elseif ($view === 'day')
+                @php
+                    $dateStr = sprintf('%04d-%02d-%02d', $year, $month, $day);
+                    $dayEvents = $eventsByDate[$dateStr] ?? [];
+                @endphp
+                <div class="space-y-4">
+                    @foreach ($dayEvents['trips'] ?? [] as $trip)
+                        <div class="p-4 rounded-lg border-2 border-orange-300 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-700">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-lg">⛺</span>
+                                <span class="font-bold text-neutral-900 dark:text-neutral-100">{{ $trip->name }}</span>
+                                @if ($trip->tripCategory)
+                                    <span class="text-xs px-2 py-0.5 rounded-full bg-orange-200 text-orange-800 dark:bg-orange-800 dark:text-orange-200">{{ $trip->tripCategory->name }}</span>
+                                @endif
+                            </div>
+                            @if ($trip->description)
+                                <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $trip->description }}</p>
+                            @endif
+                            <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-2">
+                                {{ $trip->startDate->format('j M') }} → {{ $trip->endDate->format('j M Y') }}
+                            </div>
+                            <div class="flex flex-wrap gap-1.5">
+                                @foreach ($trip->users as $u)
+                                    <span class="px-2.5 py-1 rounded-full text-white text-xs font-medium" style="background-color: {{ $u->role?->color ?? '#6366f1' }}">
+                                        {{ $u->name }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
+
+                    @foreach ($dayEvents['tasks'] ?? [] as $task)
+                        <div class="p-4 rounded-lg border-2 {{ $task->isComplete ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700' : 'border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700' }}">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="font-bold text-neutral-900 dark:text-neutral-100">{{ $task->isComplete ? '✓' : '○' }} {{ $task->title }}</span>
+                                @if ($task->taskPriority)
+                                    <span class="text-xs px-2 py-0.5 rounded-full bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-300">{{ $task->taskPriority->name }}</span>
+                                @endif
+                            </div>
+                            @if ($task->description)
+                                <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $task->description }}</p>
+                            @endif
+                            <div class="flex items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400 mb-2">
+                                @if ($task->taskCategory)
+                                    <span>{{ $task->taskCategory->name }}</span>
+                                @endif
+                                @if ($task->locations->isNotEmpty())
+                                    <span>📍 {{ $task->locations->pluck('name')->join(', ') }}</span>
+                                @endif
+                            </div>
+                            <div class="flex flex-wrap gap-1.5">
+                                @foreach ($task->users as $u)
+                                    <span class="px-2.5 py-1 rounded-full text-white text-xs font-medium" style="background-color: {{ $u->role?->color ?? '#6366f1' }}">
+                                        {{ $u->name }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
+
+                    @foreach ($dayEvents['meals'] ?? [] as $meal)
+                        <div class="p-4 rounded-lg border-2 border-purple-300 bg-purple-50 dark:bg-purple-900/20 dark:border-purple-700">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-lg">🍽️</span>
+                                <span class="font-bold text-neutral-900 dark:text-neutral-100">{{ $meal->meal?->name }}</span>
+                                <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ $meal->dateTime->format('H:i') }}</span>
+                            </div>
+                            @if ($meal->notes)
+                                <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $meal->notes }}</p>
+                            @endif
+                            <div class="flex flex-wrap gap-1.5">
+                                @foreach ($meal->subscribers as $u)
+                                    <span class="px-2.5 py-1 rounded-full text-white text-xs font-medium" style="background-color: {{ $u->role?->color ?? '#6366f1' }}">
+                                        {{ $u->name }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
+
+                    @if (empty($dayEvents))
+                        <div class="text-center py-16 text-neutral-500 dark:text-neutral-400">
+                            {{ __('No activities scheduled for this day.') }}
+                        </div>
+                    @endif
+                </div>
             @endif
         </div>
     </div>
