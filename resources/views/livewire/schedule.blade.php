@@ -272,5 +272,32 @@
                 </div>
             @endif
         </div>
+
+        {{-- Legend --}}
+        <div class="rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-zinc-800 p-6">
+            <h3 class="font-semibold text-neutral-900 dark:text-neutral-100 mb-3">{{ __('Legend') }}</h3>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                <div class="flex items-center gap-2">
+                    <div class="w-5 h-5 rounded border-2 border-indigo-500 bg-indigo-50 dark:bg-indigo-950"></div>
+                    <span class="text-sm text-neutral-600 dark:text-neutral-400">{{ __('Today') }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-5 h-5 rounded bg-orange-100 dark:bg-orange-900/40"></div>
+                    <span class="text-sm text-neutral-600 dark:text-neutral-400">{{ __('Trip') }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-5 h-5 rounded bg-blue-100 dark:bg-blue-900/40"></div>
+                    <span class="text-sm text-neutral-600 dark:text-neutral-400">{{ __('Task') }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-5 h-5 rounded bg-green-100 dark:bg-green-900/40"></div>
+                    <span class="text-sm text-neutral-600 dark:text-neutral-400">{{ __('Completed') }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-5 h-5 rounded bg-purple-100 dark:bg-purple-900/40"></div>
+                    <span class="text-sm text-neutral-600 dark:text-neutral-400">{{ __('Meal') }}</span>
+                </div>
+            </div>
+        </div>
     </div>
 </section>
