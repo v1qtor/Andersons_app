@@ -69,7 +69,7 @@
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
                                     <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-xs font-bold text-neutral-700 dark:bg-neutral-700 dark:text-neutral-300">
-                                        {{ $user->initials() }}
+                                        {{ $user->initials }}
                                     </div>
                                     <span class="font-medium text-neutral-900 dark:text-neutral-100">{{ $user->name }}</span>
                                 </div>
@@ -86,29 +86,29 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4">
-                                @if ($user->isActive)
+                                @if ($user->is_active)
                                     <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400">true</span>
                                 @else
                                     <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400">false</span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 text-neutral-600 dark:text-neutral-400">{{ $user->phoneNumber ?? '—' }}</td>
+                            <td class="px-6 py-4 text-neutral-600 dark:text-neutral-400">{{ $user->phone_number ?? '—' }}</td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center justify-end gap-1">
                                     <flux:tooltip content="{{ __('Edit') }}" position="top">
-                                        <flux:button variant="ghost" size="sm" wire:click="prepareAction('edit', {{ $user->userId }})" icon="pencil" />
+                                        <flux:button variant="ghost" size="sm" wire:click="prepareAction('edit', {{ $user->id }})" icon="pencil" />
                                     </flux:tooltip>
-                                    @if ($user->isActive)
-                                        <flux:tooltip wire:key="toggle-{{ $user->userId }}-active" content="{{ __('Deactivate') }}" position="top">
-                                            <flux:button variant="ghost" size="sm" wire:click="prepareAction('toggle', {{ $user->userId }})" icon="pause-circle" class="!text-yellow-600 hover:!text-yellow-700 dark:!text-yellow-400" />
+                                    @if ($user->is_active)
+                                        <flux:tooltip wire:key="toggle-{{ $user->id }}-active" content="{{ __('Deactivate') }}" position="top">
+                                            <flux:button variant="ghost" size="sm" wire:click="prepareAction('toggle', {{ $user->id }})" icon="pause-circle" class="!text-yellow-600 hover:!text-yellow-700 dark:!text-yellow-400" />
                                         </flux:tooltip>
                                     @else
-                                        <flux:tooltip wire:key="toggle-{{ $user->userId }}-inactive" content="{{ __('Reactivate') }}" position="top">
-                                            <flux:button variant="ghost" size="sm" wire:click="prepareAction('toggle', {{ $user->userId }})" icon="play-circle" class="!text-green-600 hover:!text-green-700 dark:!text-green-400" />
+                                        <flux:tooltip wire:key="toggle-{{ $user->id }}-inactive" content="{{ __('Reactivate') }}" position="top">
+                                            <flux:button variant="ghost" size="sm" wire:click="prepareAction('toggle', {{ $user->id }})" icon="play-circle" class="!text-green-600 hover:!text-green-700 dark:!text-green-400" />
                                         </flux:tooltip>
                                     @endif
                                     <flux:tooltip content="{{ __('Delete') }}" position="top">
-                                        <flux:button variant="ghost" size="sm" wire:click="prepareAction('delete', {{ $user->userId }})" icon="trash" class="!text-red-600 hover:!text-red-700 dark:!text-red-400" />
+                                        <flux:button variant="ghost" size="sm" wire:click="prepareAction('delete', {{ $user->id }})" icon="trash" class="!text-red-600 hover:!text-red-700 dark:!text-red-400" />
                                     </flux:tooltip>
                                 </div>
                             </td>

@@ -143,14 +143,14 @@ class Schedule extends Component
             ->where(function ($q) use ($start, $end) {
                 $q->whereBetween('date', [$start, $end])
                     ->orWhere(function ($q2) use ($start, $end) {
-                        $q2->where('startDate', '<=', $end)
-                            ->where('endDate', '>=', $start);
+                        $q2->where('start_date', '<=', $end)
+                            ->where('end_date', '>=', $start);
                     });
             });
 
         if (! empty($this->selectedPeople)) {
             $query->whereHas('users', function ($q) {
-                $q->whereIn('users.userId', $this->selectedPeople);
+                $q->whereIn('users.id', $this->selectedPeople);
             });
         }
 
@@ -160,30 +160,30 @@ class Schedule extends Component
     private function getFilteredMeals(Carbon $start, Carbon $end)
     {
         $query = PlannedMeal::with(['meal', 'subscribers'])
-            ->whereBetween('dateTime', [$start, $end]);
+            ->whereBetween('date_time', [$start, $end]);
 
         if (! empty($this->selectedPeople)) {
             $query->whereHas('subscribers', function ($q) {
-                $q->whereIn('users.userId', $this->selectedPeople);
+                $q->whereIn('users.id', $this->selectedPeople);
             });
         }
 
-        return $query->orderBy('dateTime')->get();
+        return $query->orderBy('date_time')->get();
     }
 
     private function getFilteredTrips(Carbon $start, Carbon $end)
     {
         $query = Trip::with(['users', 'tripCategory', 'status'])
-            ->where('startDate', '<=', $end)
-            ->where('endDate', '>=', $start);
+            ->where('start_date', '<=', $end)
+            ->where('end_date', '>=', $start);
 
         if (! empty($this->selectedPeople)) {
             $query->whereHas('users', function ($q) {
-                $q->whereIn('users.userId', $this->selectedPeople);
+                $q->whereIn('users.id', $this->selectedPeople);
             });
         }
 
-        return $query->orderBy('startDate')->get();
+        return $query->orderBy('start_date')->get();
     }
 
     /**
@@ -194,18 +194,18 @@ class Schedule extends Component
         $events = [];
 
         foreach ($tasks as $task) {
-            $dateKey = $task->date ? $task->date->format('Y-m-d') : $task->startDate->format('Y-m-d');
+            $dateKey = $task->date ? $task->date->format('Y-m-d') : $task->start_date->format('Y-m-d');
             $events[$dateKey]['tasks'][] = $task;
         }
 
         foreach ($meals as $meal) {
-            $dateKey = $meal->dateTime->format('Y-m-d');
+            $dateKey = $meal->date_time->format('Y-m-d');
             $events[$dateKey]['meals'][] = $meal;
         }
 
         foreach ($trips as $trip) {
-            $current = $trip->startDate->copy()->max($start);
-            $tripEnd = $trip->endDate->copy()->min($end);
+            $current = $trip->start_date->copy()->max($start);
+            $tripEnd = $trip->end_date->copy()->min($end);
 
             while ($current->lte($tripEnd)) {
                 $dateKey = $current->format('Y-m-d');

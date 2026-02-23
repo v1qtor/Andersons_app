@@ -10,8 +10,6 @@ class Meal extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'mealId';
-
     protected $fillable = [
         'name',
         'description',
@@ -19,6 +17,6 @@ class Meal extends Model
 
     public function plannedMeals(): HasMany
     {
-        return $this->hasMany(PlannedMeal::class, 'mealId', 'mealId');
+        return $this->hasMany(PlannedMeal::class);
     }
 }

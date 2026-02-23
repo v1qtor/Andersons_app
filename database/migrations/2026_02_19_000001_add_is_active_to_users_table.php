@@ -11,9 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->boolean('isActive')->default(true)->after('countryId');
-        });
+        // Column is_active is now defined in the initial users table migration.
     }
 
     /**
@@ -21,8 +19,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('isActive');
-        });
+        // No-op: column managed by initial migration.
     }
 };

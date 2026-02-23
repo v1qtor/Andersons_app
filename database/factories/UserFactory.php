@@ -45,14 +45,14 @@ class UserFactory extends Factory
         $country = Country::first(); // use the first seeded country
 
         return [
-            'roleId' => $role?->roleId,
+            'role_id' => $role?->id,
             'name' => $user['name'],
             'email' => $user['email'],
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'iban' => fake()->iban(),
-            'phoneNumber' => fake()->phoneNumber(),
-            'countryId' => $country?->countryId,
+            'phone_number' => fake()->phoneNumber(),
+            'country_id' => $country?->id,
             'remember_token' => Str::random(10),
         ];
     }

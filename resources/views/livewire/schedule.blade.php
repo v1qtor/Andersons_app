@@ -47,11 +47,11 @@
                 <div class="flex flex-wrap gap-2">
                     @foreach ($users as $user)
                         @php
-                            $isSelected = in_array($user->userId, $selectedPeople);
+                            $isSelected = in_array($user->id, $selectedPeople);
                             $roleColor = $user->role?->color ?? '#6366f1';
                         @endphp
                         <button
-                            wire:click="togglePerson({{ $user->userId }})"
+                            wire:click="togglePerson({{ $user->id }})"
                             class="px-3 py-1.5 rounded-lg border-2 text-sm font-medium transition-all"
                             style="
                                 border-color: {{ $roleColor }};
@@ -117,7 +117,7 @@
                                     @endif
                                     @if ($hasTasks)
                                         @foreach (array_slice($dayEvents['tasks'], 0, 2) as $task)
-                                            <div class="text-[10px] leading-tight px-1 py-0.5 rounded truncate {{ $task->isComplete ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' }}">
+                                            <div class="text-[10px] leading-tight px-1 py-0.5 rounded truncate {{ $task->is_complete ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' }}">
                                                 {{ $task->title }}
                                             </div>
                                         @endforeach
@@ -166,8 +166,8 @@
                                     </div>
                                 @endforeach
                                 @foreach ($dayEvents['tasks'] ?? [] as $task)
-                                    <div class="text-xs px-2 py-1.5 rounded-md {{ $task->isComplete ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' }}">
-                                        {{ $task->isComplete ? '✓' : '○' }} {{ $task->title }}
+                                    <div class="text-xs px-2 py-1.5 rounded-md {{ $task->is_complete ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' }}">
+                                        {{ $task->is_complete ? '✓' : '○' }} {{ $task->title }}
                                     </div>
                                 @endforeach
                                 @foreach ($dayEvents['meals'] ?? [] as $meal)
@@ -206,7 +206,7 @@
                                 <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $trip->description }}</p>
                             @endif
                             <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-2">
-                                {{ $trip->startDate->format('j M') }} → {{ $trip->endDate->format('j M Y') }}
+                                {{ $trip->start_date->format('j M') }} → {{ $trip->end_date->format('j M Y') }}
                             </div>
                             <div class="flex flex-wrap gap-1.5">
                                 @foreach ($trip->users as $u)
@@ -220,9 +220,9 @@
 
                     {{-- Tasks --}}
                     @foreach ($dayEvents['tasks'] ?? [] as $task)
-                        <div class="p-4 rounded-lg border-2 {{ $task->isComplete ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700' : 'border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700' }}">
+                        <div class="p-4 rounded-lg border-2 {{ $task->is_complete ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700' : 'border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700' }}">
                             <div class="flex items-center gap-2 mb-1">
-                                <span class="font-bold text-neutral-900 dark:text-neutral-100">{{ $task->isComplete ? '✓' : '○' }} {{ $task->title }}</span>
+                                <span class="font-bold text-neutral-900 dark:text-neutral-100">{{ $task->is_complete ? '✓' : '○' }} {{ $task->title }}</span>
                                 @if ($task->taskPriority)
                                     <span class="text-xs px-2 py-0.5 rounded-full bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-300">{{ $task->taskPriority->name }}</span>
                                 @endif
@@ -254,7 +254,7 @@
                             <div class="flex items-center gap-2 mb-1">
                                 <span class="text-lg">🍽️</span>
                                 <span class="font-bold text-neutral-900 dark:text-neutral-100">{{ $meal->meal?->name }}</span>
-                                <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ $meal->dateTime->format('H:i') }}</span>
+                                <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ $meal->date_time->format('H:i') }}</span>
                             </div>
                             @if ($meal->notes)
                                 <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $meal->notes }}</p>
@@ -331,7 +331,7 @@
                                             <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $trip->description }}</p>
                                         @endif
                                         <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-2">
-                                            {{ $trip->startDate->format('j M') }} → {{ $trip->endDate->format('j M Y') }}
+                                            {{ $trip->start_date->format('j M') }} → {{ $trip->end_date->format('j M Y') }}
                                         </div>
                                         <div class="flex flex-wrap gap-1.5">
                                             @foreach ($trip->users as $u)
@@ -352,7 +352,7 @@
                             <h4 class="font-bold text-neutral-900 dark:text-neutral-100 mb-3">✓ {{ __('Tasks') }}</h4>
                             <div class="space-y-3">
                                 @foreach ($dayDetails['tasks'] as $task)
-                                    <div class="p-4 rounded-lg border-2 {{ $task->isComplete ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700' : 'border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700' }}">
+                                    <div class="p-4 rounded-lg border-2 {{ $task->is_complete ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700' : 'border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700' }}">
                                         <div class="font-semibold text-lg mb-1 text-neutral-900 dark:text-neutral-100">{{ $task->title }}</div>
                                         @if ($task->description)
                                             <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $task->description }}</p>
@@ -375,7 +375,7 @@
                                                 </span>
                                             @endforeach
                                         </div>
-                                        @if ($task->isComplete)
+                                        @if ($task->is_complete)
                                             <div class="mt-2 text-green-700 dark:text-green-400 font-bold text-sm">✓ {{ __('Completed') }}</div>
                                         @endif
                                     </div>
@@ -394,7 +394,7 @@
                                         <div class="font-semibold text-lg mb-1 text-neutral-900 dark:text-neutral-100">
                                             {{ $meal->meal?->name }}
                                         </div>
-                                        <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-2">{{ $meal->dateTime->format('H:i') }}</div>
+                                        <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-2">{{ $meal->date_time->format('H:i') }}</div>
                                         @if ($meal->notes)
                                             <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $meal->notes }}</p>
                                         @endif

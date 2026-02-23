@@ -11,7 +11,7 @@ class Settings extends Component
 {
     public string $name = '';
     public string $email = '';
-    public string $phoneNumber = '';
+    public string $phone_number = '';
     public string $iban = '';
     public string $bankCountry = 'United Kingdom';
 
@@ -31,13 +31,13 @@ class Settings extends Component
 
         $this->name = $user->name;
         $this->email = $user->email;
-        $this->phoneNumber = $user->phoneNumber ?? '';
+        $this->phone_number = $user->phone_number ?? '';
         $this->iban = $user->iban ?? '';
 
         // Load notification settings from database
         $notificationSettings = $user->notificationSettings()->get();
         foreach ($notificationSettings as $setting) {
-            $typeId = $setting->pivot->notificationTypeId;
+            $typeId = $setting->pivot->notification_type_id;
             $value = $setting->pivot->value;
 
             // Parse stored notification settings
@@ -69,8 +69,8 @@ class Settings extends Component
     {
         $this->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . Auth::id() . ',userId',
-            'phoneNumber' => 'nullable|string|max:20',
+            'email' => 'required|email|max:255|unique:users,email,' . Auth::id(),
+            'phone_number' => 'nullable|string|max:20',
             'iban' => 'nullable|string|max:50',
             'bankCountry' => 'required|string|max:255',
         ]);
@@ -79,7 +79,7 @@ class Settings extends Component
         $user->update([
             'name' => $this->name,
             'email' => $this->email,
-            'phoneNumber' => $this->phoneNumber,
+            'phone_number' => $this->phone_number,
             'iban' => $this->iban,
         ]);
 

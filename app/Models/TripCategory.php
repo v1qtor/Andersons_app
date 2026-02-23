@@ -10,14 +10,12 @@ class TripCategory extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'tripCategoryId';
-
     protected $fillable = [
         'name',
     ];
 
     public function trips(): HasMany
     {
-        return $this->hasMany(Trip::class, 'tripCategoryId', 'tripCategoryId');
+        return $this->hasMany(Trip::class);
     }
 }

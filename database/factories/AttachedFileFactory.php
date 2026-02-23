@@ -15,7 +15,7 @@ class AttachedFileFactory extends Factory
     public function definition(): array
     {
         return [
-            'filePath' => 'attachments/' . fake()->uuid() . '.' . fake()->fileExtension(),
+            'file_path' => 'attachments/' . fake()->uuid() . '.' . fake()->fileExtension(),
         ];
     }
 }

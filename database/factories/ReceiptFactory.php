@@ -19,15 +19,15 @@ class ReceiptFactory extends Factory
         $isPaid = fake()->boolean();
 
         return [
-            'categoryId' => Category::inRandomOrder()->first()?->categoryId ?? Category::factory(),
-            'userId' => User::inRandomOrder()->first()?->userId ?? User::factory(),
+            'category_id' => Category::inRandomOrder()->first()?->id ?? Category::factory(),
+            'user_id' => User::inRandomOrder()->first()?->id ?? User::factory(),
             'amount' => fake()->randomFloat(2, 5, 5000),
-            'billDate' => fake()->dateTimeBetween('-6 months', 'now'),
+            'bill_date' => fake()->dateTimeBetween('-6 months', 'now'),
             'description' => fake()->optional()->sentence(),
-            'isPaid' => $isPaid,
-            'filePath' => 'receipts/' . fake()->uuid() . '.pdf',
-            'uploadDate' => fake()->dateTimeBetween('-6 months', 'now'),
-            'paidDate' => $isPaid ? fake()->dateTimeBetween('-3 months', 'now') : null,
+            'is_paid' => $isPaid,
+            'file_path' => 'receipts/' . fake()->uuid() . '.pdf',
+            'upload_date' => fake()->dateTimeBetween('-6 months', 'now'),
+            'paid_date' => $isPaid ? fake()->dateTimeBetween('-3 months', 'now') : null,
             'name' => fake()->words(3, true),
         ];
     }
