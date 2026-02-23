@@ -86,6 +86,18 @@ class UserIndex extends Component
     public function toggleActive(int $userId): void
     {
         $user = User::findOrFail($userId);
+
+        if ($user->isActive) {
+            $adminRole = Role::where('name', 'Admin')->first();
+            if ($adminRole && $user->roleId === $adminRole->roleId) {
+                $activeAdminCount = User::where('roleId', $adminRole->roleId)->where('isActive', true)->count();
+                if ($activeAdminCount <= 1) {
+                    session()->flash('error', __('Cannot deactivate the last active admin user.'));
+                    return;
+                }
+            }
+        }
+
         $user->update(['isActive' => ! $user->isActive]);
 
         $message = $user->isActive ? __('User activated successfully.') : __('User deactivated successfully.');
