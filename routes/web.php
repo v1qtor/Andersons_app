@@ -4,6 +4,7 @@ use App\Livewire\Admin\UserCreate;
 use App\Livewire\Admin\UserEdit;
 use App\Livewire\Admin\UserIndex;
 use App\Livewire\Schedule;
+use App\Livewire\Settings;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
 use App\Livewire\Settings\Profile;
@@ -23,6 +24,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('schedule', Schedule::class)->name('schedule');
 
     Route::redirect('settings', 'settings/profile');
+    Route::get('settings', Settings::class)->name('settings');
+    Route::redirect('settings/redirect', 'settings/profile');
 
     Route::get('settings/profile', Profile::class)->name('settings.profile');
     Route::get('settings/password', Password::class)->name('settings.password');
