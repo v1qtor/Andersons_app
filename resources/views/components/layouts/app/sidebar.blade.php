@@ -17,8 +17,9 @@
                     <flux:navlist.item icon="calendar-days" :href="route('schedule')" :current="request()->routeIs('schedule')" wire:navigate>{{ __('Schedule') }}</flux:navlist.item>
                     <flux:navlist.item icon="cog" :href="route('settings')" :current="request()->routeIs('settings')" wire:navigate>{{ __('Settings') }}</flux:navlist.item>
                     @if(auth()->user()->role && auth()->user()->role->name === 'Admin')
-                <flux:navlist.item icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>{{ __('Users') }}</flux:navlist.item>
-            @endif
+                        <flux:navlist.item icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>{{ __('Users') }}</flux:navlist.item>
+                    @endif
+                </flux:navlist.group>
     </flux:navlist>
 
     <flux:spacer />
