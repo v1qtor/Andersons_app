@@ -9,17 +9,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('receipts', function (Blueprint $table) {
-            $table->id('receiptId');
-            $table->foreignId('categoryId')->constrained('categories', 'categoryId')->onUpdate('cascade')->onDelete('set null');
-            $table->foreignId('userId')->constrained('users', 'userId')->onUpdate('cascade')->onDelete('set null');
+            $table->id();
+            $table->foreignId('category_id')->constrained()->onUpdate('cascade')->onDelete('set null');
+            $table->foreignId('user_id')->constrained()->onUpdate('cascade')->onDelete('set null');
             $table->float('amount');
-            $table->dateTime('billDate');
-            $table->string('description')->nullable();
-            $table->boolean('isPaid');
-            $table->string('filePath');
-            $table->dateTime('uploadDate');
-            $table->dateTime('paidDate')->nullable();
-            $table->string('name');
+            $table->dateTime('bill_date');
+            $table->string('description')->nullable()->collation('nocase');
+            $table->boolean('is_paid');
+            $table->string('file_path');
+            $table->dateTime('upload_date');
+            $table->dateTime('paid_date')->nullable();
+            $table->string('name')->collation('nocase');
             $table->timestamps();
         });
     }

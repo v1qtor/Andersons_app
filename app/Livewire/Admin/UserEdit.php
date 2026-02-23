@@ -19,9 +19,9 @@ class UserEdit extends Component
     public string $password = '';
     public string $password_confirmation = '';
     public string $iban = '';
-    public string $phoneNumber = '';
-    public ?int $roleId = null;
-    public ?int $countryId = null;
+    public string $phone_number = '';
+    public ?int $role_id = null;
+    public ?int $country_id = null;
 
     public bool $showDeleteModal = false;
     public string $deletePassword = '';
@@ -33,21 +33,21 @@ class UserEdit extends Component
         $this->name = $user->name;
         $this->email = $user->email;
         $this->iban = $user->iban ?? '';
-        $this->phoneNumber = $user->phoneNumber ?? '';
-        $this->roleId = $user->roleId;
-        $this->countryId = $user->countryId;
+        $this->phone_number = $user->phone_number ?? '';
+        $this->role_id = $user->role_id;
+        $this->country_id = $user->country_id;
     }
 
     public function rules(): array
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->user->userId, 'userId')],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->user->id)],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'iban' => ['required', 'string', 'max:255'],
-            'phoneNumber' => ['required', 'string', 'max:255'],
-            'roleId' => ['nullable', 'exists:roles,roleId'],
-            'countryId' => ['nullable', 'exists:countries,countryId'],
+            'phone_number' => ['required', 'string', 'max:255'],
+            'role_id' => ['nullable', 'exists:roles,id'],
+            'country_id' => ['nullable', 'exists:countries,id'],
         ];
     }
 
@@ -85,8 +85,8 @@ class UserEdit extends Component
         }
 
         $adminRole = Role::where('name', 'Admin')->first();
-        if ($adminRole && $this->user->roleId === $adminRole->roleId) {
-            $adminCount = User::where('roleId', $adminRole->roleId)->count();
+        if ($adminRole && $this->user->role_id === $adminRole->id) {
+            $adminCount = User::where('role_id', $adminRole->id)->count();
             if ($adminCount <= 1) {
                 $this->deletePasswordError = __('Cannot delete the last admin user.');
                 return;

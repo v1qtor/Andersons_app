@@ -10,14 +10,12 @@ class Allergy extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'allergyId';
-
     protected $fillable = [
         'name',
     ];
 
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'user_allergies', 'allergyId', 'userId');
+        return $this->belongsToMany(User::class, 'user_allergies');
     }
 }

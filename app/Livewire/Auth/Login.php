@@ -70,7 +70,7 @@ class Login extends Component
             ]);
         }
 
-        if (! $user->isActive) {
+        if (! $user->is_active) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

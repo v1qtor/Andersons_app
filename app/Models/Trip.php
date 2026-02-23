@@ -11,51 +11,49 @@ class Trip extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'tripId';
-
     protected $fillable = [
         'name',
         'description',
-        'startDate',
-        'endDate',
-        'tripCategoryId',
-        'bufferAlert',
-        'statusId',
-        'attachedFileId',
+        'start_date',
+        'end_date',
+        'trip_category_id',
+        'buffer_alert',
+        'status_id',
+        'attached_file_id',
         'notes',
     ];
 
     protected function casts(): array
     {
         return [
-            'startDate' => 'datetime',
-            'endDate' => 'datetime',
-            'bufferAlert' => 'datetime',
+            'start_date' => 'datetime',
+            'end_date' => 'datetime',
+            'buffer_alert' => 'datetime',
         ];
     }
 
     public function tripCategory(): BelongsTo
     {
-        return $this->belongsTo(TripCategory::class, 'tripCategoryId', 'tripCategoryId');
+        return $this->belongsTo(TripCategory::class);
     }
 
     public function status(): BelongsTo
     {
-        return $this->belongsTo(Status::class, 'statusId', 'statusId');
+        return $this->belongsTo(Status::class);
     }
 
     public function attachedFile(): BelongsTo
     {
-        return $this->belongsTo(AttachedFile::class, 'attachedFileId', 'attachedFileId');
+        return $this->belongsTo(AttachedFile::class);
     }
 
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'user_trips', 'tripId', 'userId')->withPivot('isOrganizer');
+        return $this->belongsToMany(User::class, 'user_trips')->withPivot('is_organizer');
     }
 
     public function checkpoints(): BelongsToMany
     {
-        return $this->belongsToMany(Checkpoint::class, 'trip_checkpoints', 'tripId', 'checkpointId')->withPivot('arrivalDate', 'isConfirmed', 'order');
+        return $this->belongsToMany(Checkpoint::class, 'trip_checkpoints')->withPivot('arrival_date', 'is_confirmed', 'order');
     }
 }

@@ -70,8 +70,8 @@ class UserIndex extends Component
         $user = User::findOrFail($userId);
 
         $adminRole = Role::where('name', 'Admin')->first();
-        if ($adminRole && $user->roleId === $adminRole->roleId) {
-            $adminCount = User::where('roleId', $adminRole->roleId)->count();
+        if ($adminRole && $user->role_id === $adminRole->id) {
+            $adminCount = User::where('role_id', $adminRole->id)->count();
             if ($adminCount <= 1) {
                 session()->flash('error', __('Cannot delete the last admin user.'));
                 return;
@@ -87,10 +87,10 @@ class UserIndex extends Component
     {
         $user = User::findOrFail($userId);
 
-        if ($user->isActive) {
+        if ($user->is_active) {
             $adminRole = Role::where('name', 'Admin')->first();
-            if ($adminRole && $user->roleId === $adminRole->roleId) {
-                $activeAdminCount = User::where('roleId', $adminRole->roleId)->where('isActive', true)->count();
+            if ($adminRole && $user->role_id === $adminRole->id) {
+                $activeAdminCount = User::where('role_id', $adminRole->id)->where('is_active', true)->count();
                 if ($activeAdminCount <= 1) {
                     session()->flash('error', __('Cannot deactivate the last active admin user.'));
                     return;
@@ -98,9 +98,9 @@ class UserIndex extends Component
             }
         }
 
-        $user->update(['isActive' => ! $user->isActive]);
+        $user->update(['is_active' => ! $user->is_active]);
 
-        $message = $user->isActive ? __('User activated successfully.') : __('User deactivated successfully.');
+        $message = $user->is_active ? __('User activated successfully.') : __('User deactivated successfully.');
         session()->flash('message', $message);
     }
 

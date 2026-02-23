@@ -10,15 +10,13 @@ class Preference extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'preferenceId';
-
     protected $fillable = [
-        'userId',
+        'user_id',
         'name',
     ];
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'userId', 'userId');
+        return $this->belongsTo(User::class);
     }
 }

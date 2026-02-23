@@ -11,18 +11,16 @@ class Notification extends Model
 
     protected $table = 'notifications_custom';
 
-    protected $primaryKey = 'notificationId';
-
     protected $fillable = [
         'title',
         'description',
-        'isMail',
+        'is_mail',
     ];
 
     protected function casts(): array
     {
         return [
-            'isMail' => 'boolean',
+            'is_mail' => 'boolean',
         ];
     }
 }

@@ -10,14 +10,12 @@ class Folder extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'folderId';
-
     protected $fillable = [
         'name',
     ];
 
     public function checkpoints(): HasMany
     {
-        return $this->hasMany(Checkpoint::class, 'folderId', 'folderId');
+        return $this->hasMany(Checkpoint::class);
     }
 }

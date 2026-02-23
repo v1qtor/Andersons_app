@@ -9,10 +9,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('user_trips', function (Blueprint $table) {
-            $table->foreignId('tripId')->constrained('trips', 'tripId')->onUpdate('cascade')->onDelete('cascade');
-            $table->foreignId('userId')->constrained('users', 'userId')->onUpdate('cascade')->onDelete('cascade');
-            $table->boolean('isOrganizer');
-            $table->primary(['tripId', 'userId']);
+            $table->foreignId('trip_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->boolean('is_organizer');
+            $table->primary(['trip_id', 'user_id']);
             $table->timestamps();
         });
     }

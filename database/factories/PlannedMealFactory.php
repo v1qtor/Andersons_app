@@ -16,8 +16,8 @@ class PlannedMealFactory extends Factory
     public function definition(): array
     {
         return [
-            'mealId' => Meal::inRandomOrder()->first()?->mealId ?? Meal::factory(),
-            'dateTime' => fake()->dateTimeBetween('now', '+2 weeks'),
+            'meal_id' => Meal::inRandomOrder()->first()?->id ?? Meal::factory(),
+            'date_time' => fake()->dateTimeBetween('now', '+2 weeks'),
             'notes' => fake()->optional()->sentence(),
         ];
     }

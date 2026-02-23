@@ -28,7 +28,7 @@
     {{-- Phone Number & IBAN --}}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <flux:input
-            wire:model="phoneNumber"
+            wire:model="phone_number"
             :label="__('Phone Number')"
             type="tel"
             required
@@ -46,15 +46,15 @@
 
     {{-- Role & Country --}}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <flux:select wire:model="roleId" :label="__('Role')" placeholder="{{ __('Select a role') }}">
+        <flux:select wire:model="role_id" :label="__('Role')" placeholder="{{ __('Select a role') }}">
             @foreach ($roles as $role)
-                <flux:select.option value="{{ $role->roleId }}">{{ $role->name }}</flux:select.option>
+                <flux:select.option value="{{ $role->id }}">{{ $role->name }}</flux:select.option>
             @endforeach
         </flux:select>
 
-        <flux:select wire:model="countryId" :label="__('Country')" placeholder="{{ __('Select a country') }}">
+        <flux:select wire:model="country_id" :label="__('Country')" placeholder="{{ __('Select a country') }}">
             @foreach ($countries as $country)
-                <flux:select.option value="{{ $country->countryId }}">{{ $country->name }}</flux:select.option>
+                <flux:select.option value="{{ $country->id }}">{{ $country->name }}</flux:select.option>
             @endforeach
         </flux:select>
     </div>

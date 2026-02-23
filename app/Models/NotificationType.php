@@ -10,14 +10,12 @@ class NotificationType extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'notificationTypeId';
-
     protected $fillable = [
         'name',
     ];
 
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'notification_settings', 'notificationTypeId', 'userId')->withPivot('value');
+        return $this->belongsToMany(User::class, 'notification_settings')->withPivot('value');
     }
 }

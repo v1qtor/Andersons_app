@@ -10,14 +10,12 @@ class RepeatabilityType extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'repeatabilityTypeId';
-
     protected $fillable = [
         'name',
     ];
 
     public function recurringTasks(): HasMany
     {
-        return $this->hasMany(RecurringTask::class, 'repeatabilityTypeId', 'repeatabilityTypeId');
+        return $this->hasMany(RecurringTask::class);
     }
 }
