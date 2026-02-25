@@ -1,15 +1,15 @@
 <div class="w-full max-w-6xl mx-auto">
     <!-- Success Message Toast -->
     @if (session('status') || session('message'))
-        <script>
-            setTimeout(() => {
-                const toast = document.getElementById('success-toast');
-                if (toast) {
-                    toast.style.animation = 'slideOut 0.3s ease-out forwards';
-                }
-            }, 3000);
-        </script>
-        <div id="success-toast" class="fixed top-4 right-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg shadow-lg p-4 max-w-md z-50" style="animation: slideIn 0.3s ease-out;">
+        <div
+            x-data="{ show: true }"
+            x-init="setTimeout(() => show = false, 5000)"
+            x-show="show"
+            x-transition:leave="transition ease-in duration-500"
+            x-transition:leave-start="opacity-100 translate-x-0"
+            x-transition:leave-end="opacity-0 translate-x-24"
+            class="fixed top-4 right-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg shadow-lg p-4 max-w-md z-50"
+        >
             <div class="flex items-center gap-3">
                 <svg class="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
@@ -17,28 +17,6 @@
                 <p class="text-green-800 dark:text-green-300 font-medium">{{ session('status') ?? session('message') }}</p>
             </div>
         </div>
-        <style>
-            @keyframes slideIn {
-                from {
-                    transform: translateX(400px);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-            }
-            @keyframes slideOut {
-                from {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-                to {
-                    transform: translateX(400px);
-                    opacity: 0;
-                }
-            }
-        </style>
     @endif
 
     <div class="space-y-8">

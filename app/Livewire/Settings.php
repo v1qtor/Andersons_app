@@ -112,8 +112,6 @@ class Settings extends Component
                     $notificationTypeId => ['value' => $settingValue]
                 ]);
         }
-
-        session()->flash('message', 'Notification preferences updated!');
     }
 
     public function render()
