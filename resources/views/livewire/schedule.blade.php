@@ -97,17 +97,19 @@
                             @endphp
                             <button
                                 wire:click="openDay('{{ $dateStr }}')"
-                                class="aspect-square rounded-lg border p-1.5 text-left transition-all hover:shadow-md cursor-pointer
+                                class="aspect-square rounded-lg border p-1.5 text-left transition-all hover:shadow-md cursor-pointer flex flex-col
                                     {{ $isToday
                                         ? 'bg-indigo-50 border-indigo-500 border-2 dark:bg-indigo-950 dark:border-indigo-400'
                                         : ($hasAny
                                             ? 'bg-neutral-50 border-neutral-300 dark:bg-zinc-700/50 dark:border-neutral-600'
                                             : 'bg-white border-neutral-200 dark:bg-zinc-800 dark:border-neutral-700') }}"
                             >
-                                <div class="text-xs font-semibold mb-0.5 {{ $isToday ? 'text-indigo-600 dark:text-indigo-400' : 'text-neutral-900 dark:text-neutral-100' }}">
-                                    {{ $dayNum }}
+                                <div class="flex items-start justify-start w-full">
+                                    <span class="inline-flex items-center justify-center text-xs font-bold w-6 h-6 rounded-full {{ $isToday ? 'bg-indigo-600 text-white dark:bg-indigo-500' : 'text-neutral-900 dark:text-neutral-100' }}">
+                                        {{ $dayNum }}
+                                    </span>
                                 </div>
-                                <div class="space-y-0.5 overflow-hidden">
+                                <div class="space-y-0.5 overflow-hidden flex-1 w-full">
                                     @if ($hasTrips)
                                         @foreach (array_slice($dayEvents['trips'], 0, 1) as $trip)
                                             <div class="text-[10px] leading-tight px-1 py-0.5 rounded bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300 truncate">
@@ -118,7 +120,7 @@
                                     @if ($hasTasks)
                                         @foreach (array_slice($dayEvents['tasks'], 0, 2) as $task)
                                             <div class="text-[10px] leading-tight px-1 py-0.5 rounded truncate {{ $task->is_complete ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' }}">
-                                                {{ $task->title }}
+                                                <span class="font-medium">{{ $task->date ? $task->date->format('H:i') : $task->start_date->format('H:i') }}</span> {{ $task->title }}
                                             </div>
                                         @endforeach
                                         @if (count($dayEvents['tasks']) > 2)
@@ -130,7 +132,7 @@
                                     @if ($hasMeals)
                                         @foreach (array_slice($dayEvents['meals'], 0, 1) as $meal)
                                             <div class="text-[10px] leading-tight px-1 py-0.5 rounded bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300 truncate">
-                                                🍽️ {{ $meal->meal?->name }}
+                                                🍽️ {{ $meal->date_time->format('H:i') }} {{ $meal->meal?->name }}
                                             </div>
                                         @endforeach
                                     @endif
@@ -140,49 +142,137 @@
                     @endforeach
                 </div>
 
-                {{-- ========== WEEK VIEW ========== --}}
+                {{-- ========== WEEK VIEW (Outlook-style) ========== --}}
             @elseif ($view === 'week')
-                <div class="grid grid-cols-7 gap-2">
-                    @foreach ($weekDays as $weekDay)
-                        @php
-                            $dateStr = $weekDay->format('Y-m-d');
-                            $dayEvents = $eventsByDate[$dateStr] ?? [];
-                            $isToday = $dateStr === $today;
-                        @endphp
-                        <div class="min-h-[200px]">
-                            <button
-                                wire:click="openDay('{{ $dateStr }}')"
-                                class="w-full text-center py-2 rounded-t-lg font-semibold text-sm cursor-pointer transition-colors
-                                    {{ $isToday
-                                        ? 'bg-indigo-600 text-white dark:bg-indigo-500'
-                                        : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200 dark:bg-zinc-700 dark:text-neutral-300 dark:hover:bg-zinc-600' }}"
-                            >
-                                {{ $weekDay->format('D j') }}
-                            </button>
-                            <div class="border border-t-0 border-neutral-200 dark:border-neutral-700 rounded-b-lg p-2 space-y-1.5 min-h-[170px]">
-                                @foreach ($dayEvents['trips'] ?? [] as $trip)
-                                    <div class="text-xs px-2 py-1.5 rounded-md bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300">
-                                        ⛺ {{ $trip->name }}
-                                    </div>
-                                @endforeach
-                                @foreach ($dayEvents['tasks'] ?? [] as $task)
-                                    <div class="text-xs px-2 py-1.5 rounded-md {{ $task->is_complete ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' }}">
-                                        {{ $task->is_complete ? '✓' : '○' }} {{ $task->title }}
-                                    </div>
-                                @endforeach
-                                @foreach ($dayEvents['meals'] ?? [] as $meal)
-                                    <div class="text-xs px-2 py-1.5 rounded-md bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300">
-                                        🍽️ {{ $meal->meal?->name }}
-                                    </div>
-                                @endforeach
-                                @if (empty($dayEvents))
-                                    <div class="text-xs text-neutral-400 dark:text-neutral-500 text-center pt-4">
-                                        {{ __('No events') }}
-                                    </div>
-                                @endif
-                            </div>
+                @php
+                    $hasAnyAllDay = collect($weekViewData)->filter(fn($d) => !empty($d['allDay']))->isNotEmpty();
+                    $hours = range(0, 23);
+                @endphp
+                <div class="overflow-x-auto">
+                    <div class="min-w-[800px]">
+                        {{-- Day headers --}}
+                        <div class="grid grid-cols-[48px_repeat(7,1fr)]">
+                            <div></div>
+                            @foreach ($weekDays as $weekDay)
+                                @php
+                                    $dateStr = $weekDay->format('Y-m-d');
+                                    $isToday = $dateStr === $today;
+                                @endphp
+                                <button
+                                    wire:click="openDay('{{ $dateStr }}')"
+                                    class="py-1.5 text-center font-semibold text-sm cursor-pointer transition-colors border-l border-neutral-200 dark:border-neutral-700
+                                        {{ $isToday
+                                            ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                                            : 'bg-neutral-50 text-neutral-700 hover:bg-neutral-100 dark:bg-zinc-700 dark:text-neutral-300 dark:hover:bg-zinc-600' }}"
+                                >
+                                    <div class="text-[10px] uppercase leading-none">{{ $weekDay->format('D') }}</div>
+                                    <div class="text-base leading-tight {{ $isToday ? 'font-bold' : '' }}">{{ $weekDay->format('j') }}</div>
+                                </button>
+                            @endforeach
                         </div>
-                    @endforeach
+
+                        {{-- All-day events row --}}
+                        @if ($hasAnyAllDay)
+                            <div class="grid grid-cols-[48px_repeat(7,1fr)] border-t border-neutral-200 dark:border-neutral-700">
+                                <div class="text-[9px] text-neutral-400 dark:text-neutral-500 text-right pr-1 flex items-center justify-end">
+                                    {{ __('All day') }}
+                                </div>
+                                @foreach ($weekDays as $weekDay)
+                                    @php $dateStr = $weekDay->format('Y-m-d'); @endphp
+                                    <button
+                                        wire:click="openDay('{{ $dateStr }}')"
+                                        class="border-l border-neutral-200 dark:border-neutral-700 px-0.5 py-0.5 min-h-[24px] cursor-pointer hover:bg-neutral-50 dark:hover:bg-zinc-700/50 transition-colors"
+                                    >
+                                        @foreach ($weekViewData[$dateStr]['allDay'] ?? [] as $item)
+                                            <div class="text-[9px] px-1 py-0.5 rounded bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300 truncate">
+                                                ⛺ {{ $item['model']->name }}
+                                            </div>
+                                        @endforeach
+                                    </button>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        {{-- Time grid - all hours fit on screen --}}
+                        <div class="grid grid-cols-[48px_repeat(7,1fr)] border-t border-neutral-200 dark:border-neutral-700">
+                            {{-- Hour labels column --}}
+                            <div class="relative" style="height: 600px;">
+                                @foreach ($hours as $h)
+                                    <div class="absolute right-0 pr-1 text-[9px] text-neutral-400 dark:text-neutral-500 leading-none select-none"
+                                         style="top: {{ round(($h / 24) * 100, 4) }}%; transform: translateY(-50%);">
+                                        {{ sprintf('%02d', $h) }}
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            {{-- Day columns --}}
+                            @foreach ($weekDays as $weekDay)
+                                @php
+                                    $dateStr = $weekDay->format('Y-m-d');
+                                    $dayData = $weekViewData[$dateStr] ?? ['allDay' => [], 'timed' => []];
+                                    $isToday = $dateStr === $today;
+                                @endphp
+                                <div
+                                    wire:click="openDay('{{ $dateStr }}')"
+                                    class="relative border-l border-neutral-200 dark:border-neutral-700 cursor-pointer transition-colors
+                                        {{ $isToday ? 'bg-indigo-50/40 dark:bg-indigo-950/20' : 'hover:bg-neutral-50/50 dark:hover:bg-zinc-700/20' }}"
+                                    style="height: 600px;"
+                                >
+                                    {{-- Hour grid lines --}}
+                                    @foreach ($hours as $h)
+                                        <div class="absolute w-full border-t {{ $h % 6 === 0 ? 'border-neutral-200 dark:border-neutral-600' : 'border-neutral-100 dark:border-neutral-700/40' }}"
+                                             style="top: {{ round(($h / 24) * 100, 4) }}%;"></div>
+                                    @endforeach
+
+                                    {{-- Current time indicator --}}
+                                    @if ($isToday)
+                                        @php
+                                            $now = \Carbon\Carbon::now();
+                                            $nowMinutes = $now->hour * 60 + $now->minute;
+                                            $nowPercent = round(($nowMinutes / 1440) * 100, 4);
+                                        @endphp
+                                        <div class="absolute w-full z-20 flex items-center" style="top: {{ $nowPercent }}%;">
+                                            <div class="w-2 h-2 rounded-full bg-red-500 -ml-1"></div>
+                                            <div class="flex-1 border-t border-red-500"></div>
+                                        </div>
+                                    @endif
+
+                                    {{-- Events --}}
+                                    @foreach ($dayData['timed'] as $event)
+                                        @php
+                                            $isTask = $event['type'] === 'task';
+                                            $isMeal = $event['type'] === 'meal';
+                                            $model = $event['model'];
+                                        @endphp
+                                        <div class="absolute z-10 px-px overflow-hidden"
+                                             style="top: {{ $event['topPercent'] }}%; height: {{ $event['heightPercent'] }}%; left: {{ $event['leftPercent'] }}%; width: {{ $event['widthPercent'] }}%;">
+                                            @if ($isTask)
+                                                <div class="h-full rounded-sm px-1 py-0.5 overflow-hidden border-l-2
+                                                    {{ $model->is_complete
+                                                        ? 'bg-green-100 border-green-500 text-green-800 dark:bg-green-900/50 dark:border-green-400 dark:text-green-300'
+                                                        : 'bg-blue-100 border-blue-500 text-blue-800 dark:bg-blue-900/50 dark:border-blue-400 dark:text-blue-300' }}">
+                                                    <div class="text-[9px] font-semibold leading-tight truncate">
+                                                        {{ $model->start_date->format('H:i') }} {{ $model->title }}
+                                                    </div>
+                                                    @if ($event['heightPercent'] > 3)
+                                                        <div class="text-[8px] opacity-70 leading-tight truncate">
+                                                            {{ $model->start_date->format('H:i') }}–{{ ($model->end_date ?? $model->start_date->copy()->addHour())->format('H:i') }}
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            @elseif ($isMeal)
+                                                <div class="h-full rounded-sm px-1 py-0.5 overflow-hidden border-l-2 bg-purple-100 border-purple-500 text-purple-800 dark:bg-purple-900/50 dark:border-purple-400 dark:text-purple-300">
+                                                    <div class="text-[9px] font-semibold leading-tight truncate">
+                                                        {{ $model->date_time->format('H:i') }} 🍽️ {{ $model->meal?->name }}
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
                 </div>
 
                 {{-- ========== DAY VIEW ========== --}}
@@ -223,6 +313,7 @@
                         <div class="p-4 rounded-lg border-2 {{ $task->is_complete ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700' : 'border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700' }}">
                             <div class="flex items-center gap-2 mb-1">
                                 <span class="font-bold text-neutral-900 dark:text-neutral-100">{{ $task->is_complete ? '✓' : '○' }} {{ $task->title }}</span>
+                                <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ ($task->date ?? $task->start_date)->format('H:i') }}</span>
                                 @if ($task->taskPriority)
                                     <span class="text-xs px-2 py-0.5 rounded-full bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-300">{{ $task->taskPriority->name }}</span>
                                 @endif
@@ -308,7 +399,15 @@
 
     {{-- Day Details Modal --}}
     @if ($selectedDay && $dayDetails)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" wire:click.self="closeDay">
+        <div
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+            wire:click.self="closeDay"
+            x-data="{
+                init() { document.body.style.overflow = 'hidden' },
+                destroy() { document.body.style.overflow = '' }
+            }"
+            @keydown.escape.window="$wire.closeDay()"
+        >
             <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[80vh] overflow-y-auto">
                 {{-- Modal header --}}
                 <div class="sticky top-0 bg-white dark:bg-zinc-800 border-b border-neutral-200 dark:border-neutral-700 p-6 flex items-center justify-between z-10">
@@ -354,6 +453,9 @@
                                 @foreach ($dayDetails['tasks'] as $task)
                                     <div class="p-4 rounded-lg border-2 {{ $task->is_complete ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700' : 'border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700' }}">
                                         <div class="font-semibold text-lg mb-1 text-neutral-900 dark:text-neutral-100">{{ $task->title }}</div>
+                                        <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-2">
+                                            🕐 {{ $task->start_date->format('j M Y, H:i') }}@if($task->end_date) – {{ $task->end_date->format('j M Y, H:i') }}@endif
+                                        </div>
                                         @if ($task->description)
                                             <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $task->description }}</p>
                                         @endif
