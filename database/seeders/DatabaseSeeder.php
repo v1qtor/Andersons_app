@@ -53,6 +53,7 @@ class DatabaseSeeder extends Seeder
             TaskSeeder::class,
             TripSeeder::class,
             PreferenceSeeder::class,
+            TestInvoicesSeeder::class,
         ]);
 
         // Tier 4: Pivot / associative tables

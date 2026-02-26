@@ -3,6 +3,8 @@
 use App\Livewire\Admin\UserCreate;
 use App\Livewire\Admin\UserEdit;
 use App\Livewire\Admin\UserIndex;
+use App\Livewire\InvoiceForm;
+use App\Livewire\Invoices;
 use App\Livewire\Schedule;
 use App\Livewire\Settings;
 use App\Livewire\Settings\Appearance;
@@ -41,6 +43,11 @@ Route::middleware(['auth'])->group(function () {
             ),
         )
         ->name('two-factor.show');
+
+    // Invoices/Expenses
+    Route::get('invoices', Invoices::class)->name('invoices');
+    Route::get('invoices/create', InvoiceForm::class)->name('invoices.create');
+    Route::get('invoices/{id}', InvoiceForm::class)->where('id', '[0-9]+')->name('invoices.edit');
 
 
     // Admin User Management

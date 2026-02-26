@@ -1,0 +1,273 @@
+<div class="w-full max-w-7xl mx-auto">
+    <!-- Success Message Toast -->
+    @if (session('status') || session('message') || session('error'))
+        <script>
+            setTimeout(() => {
+                const toast = document.getElementById('success-toast');
+                if (toast) {
+                    toast.style.animation = 'slideOut 0.3s ease-out forwards';
+                }
+            }, 3000);
+        </script>
+        <div id="success-toast" class="fixed top-4 right-4 @if(session('error')) bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 @else bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 @endif border rounded-lg shadow-lg p-4 max-w-md z-50" style="animation: slideIn 0.3s ease-out;">
+            <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 @if(session('error')) text-red-600 dark:text-red-400 @else text-green-600 dark:text-green-400 @endif flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+                <p class="@if(session('error')) text-red-800 dark:text-red-300 @else text-green-800 dark:text-green-300 @endif font-medium">{{ session('status') ?? session('message') ?? session('error') }}</p>
+            </div>
+        </div>
+        <style>
+            @keyframes slideIn {
+                from {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+            }
+        </style>
+    @endif
+
+    <!-- Delete Confirmation Modal -->
+    @if($deleteInvoiceId)
+        <div class="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-neutral-800 rounded-xl max-w-md w-full">
+                <div class="p-6 border-b border-gray-200 dark:border-neutral-700">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">Delete Invoice</h2>
+                </div>
+
+                <div class="p-6">
+                    <p class="text-gray-700 dark:text-gray-300 mb-6">Are you sure you want to delete this invoice? This action cannot be undone.</p>
+                </div>
+
+                <div class="flex gap-3 p-6 border-t border-gray-200 dark:border-neutral-700">
+                    <button wire:click="$set('deleteInvoiceId', null)" class="flex-1 px-4 py-2 border border-gray-300 dark:border-neutral-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors font-medium">
+                        Cancel
+                    </button>
+                    <button wire:click="deleteInvoice({{ $deleteInvoiceId }})" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- View Invoice Modal -->
+    @if($viewInvoice)
+        <div class="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-neutral-800 rounded-xl max-w-2xl w-full max-h-96 overflow-y-auto">
+                <div class="sticky top-0 bg-white dark:bg-neutral-800 border-b border-gray-200 dark:border-neutral-700 p-6 flex justify-between items-center">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Expense Report Details</h2>
+                    <button wire:click="closeView" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="p-6 space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Submission Date</p>
+                            <p class="font-semibold text-gray-900 dark:text-white">{{ $viewInvoice->bill_date->format('M d, Y') }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Amount</p>
+                            <p class="font-semibold text-gray-900 dark:text-white">€{{ number_format($viewInvoice->amount, 2, ',', '.') }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Category</p>
+                            <p class="font-semibold text-gray-900 dark:text-white">
+                                @if($viewInvoice->category)
+                                    {{ $viewInvoice->category->name }}
+                                @elseif($viewInvoice->name)
+                                    {{ $viewInvoice->name }}
+                                @else
+                                    Other
+                                @endif
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Status</p>
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium @if($viewInvoice->is_paid) bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 @else bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 @endif">
+                                @if($viewInvoice->is_paid)
+                                    ✓ Paid
+                                @else
+                                    Pending
+                                @endif
+                            </span>
+                        </div>
+                    </div>
+
+                    @if($viewInvoice->description)
+                        <div>
+                            <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Description</p>
+                            <p class="text-gray-700 dark:text-gray-300">{{ $viewInvoice->description }}</p>
+                        </div>
+                    @endif
+
+                    @if($viewInvoice->receipt_file_path)
+                        <div>
+                            <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Receipt / Proof of Purchase</p>
+                            <a href="{{ Storage::disk('public')->url($viewInvoice->receipt_file_path) }}" target="_blank" class="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 underline">
+                                View Receipt
+                            </a>
+                        </div>
+                    @else
+                        <div>
+                            <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Receipt / Proof of Purchase</p>
+                            <p class="text-gray-500 dark:text-gray-400 italic">No attached receipt</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <div class="space-y-8">
+        <!-- Page Header with Action Button -->
+        <div class="flex justify-between items-start mb-8">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Invoices</h1>
+                <p class="text-gray-600 dark:text-gray-400">Track your submitted invoices and reimbursement status</p>
+            </div>
+            <a href="{{ route('invoices.create') }}" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-semibold">
+                + Submit Invoices
+            </a>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Filter by Status</label>
+                    <select wire:model.live="filterStatus" class="w-full px-4 py-2 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="paid">Paid</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Filter by Date</label>
+                    <input type="date" wire:model.live="filterDate" class="w-full px-4 py-2 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <div class="flex items-end">
+                    <button wire:click="$set('filterDate', ''); $set('filterStatus', '')" class="w-full px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-neutral-700 rounded-lg hover:bg-gray-200 dark:hover:bg-neutral-600 transition-colors">
+                        Clear Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        @if($invoices->isEmpty())
+            <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 p-12 text-center">
+                <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No expense reports found</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-6">Get started by submitting your first expense report for reimbursement.</p>
+                <a href="{{ route('invoices.create') }}" class="inline-block px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-semibold">
+                    Submit First Expense Report
+                </a>
+            </div>
+        @else
+            <!-- Invoices Table -->
+            <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50 dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-700">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Submission Date</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Category</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Description</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Amount</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Status</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
+                            @foreach($invoices as $invoice)
+                                <tr class="hover:bg-gray-50 dark:hover:bg-neutral-700/50 transition-colors">
+                                    <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-300">
+                                        {{ $invoice->bill_date->format('M d, Y') }}
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-300">
+                                        @if($invoice->category)
+                                            {{ $invoice->category->name }}
+                                        @elseif($invoice->name)
+                                            <span class="italic">{{ $invoice->name }}</span>
+                                        @else
+                                            <span class="text-gray-500">Other</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate">
+                                        {{ $invoice->description ?? '-' }}
+                                    </td>
+                                    <td class="px-6 py-4 text-sm font-semibold text-gray-900 dark:text-gray-300">
+                                        €{{ number_format($invoice->amount, 2, ',', '.') }}
+                                    </td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium @if($invoice->is_paid) bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 @else bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 @endif">
+                                            @if($invoice->is_paid)
+                                                ✓ Paid
+                                            @else
+                                                Pending
+                                            @endif
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <div class="flex items-center gap-3">
+                                            <button wire:click="viewInvoice({{ $invoice->id }})" class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium">
+                                                View
+                                            </button>
+                                            @if(!$invoice->is_paid)
+                                                <a href="{{ route('invoices.edit', $invoice->id) }}" class="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium">
+                                                    Edit
+                                                </a>
+                                            <button wire:click="$set('deleteInvoiceId', {{ $invoice->id }})" class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium">
+                                                Delete
+                                            </button>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 p-6">
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Total Reports</p>
+                    <p class="text-3xl font-bold text-gray-900 dark:text-white">{{ $invoices->count() }}</p>
+                </div>
+                <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 p-6">
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Pending Total</p>
+                    <p class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">€{{ number_format($invoices->where('is_paid', false)->sum('amount'), 2, ',', '.') }}</p>
+                </div>
+                <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 p-6">
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Paid Amount</p>
+                    <p class="text-3xl font-bold text-green-600 dark:text-green-400">€{{ number_format($invoices->where('is_paid', true)->sum('amount'), 2, ',', '.') }}</p>
+                </div>
+            </div>
+        @endif
+    </div>
+</div>
