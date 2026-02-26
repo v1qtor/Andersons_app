@@ -399,7 +399,15 @@
 
     {{-- Day Details Modal --}}
     @if ($selectedDay && $dayDetails)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" wire:click.self="closeDay">
+        <div
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+            wire:click.self="closeDay"
+            x-data="{
+                init() { document.body.style.overflow = 'hidden' },
+                destroy() { document.body.style.overflow = '' }
+            }"
+            @keydown.escape.window="$wire.closeDay()"
+        >
             <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[80vh] overflow-y-auto">
                 {{-- Modal header --}}
                 <div class="sticky top-0 bg-white dark:bg-zinc-800 border-b border-neutral-200 dark:border-neutral-700 p-6 flex items-center justify-between z-10">
@@ -445,6 +453,9 @@
                                 @foreach ($dayDetails['tasks'] as $task)
                                     <div class="p-4 rounded-lg border-2 {{ $task->is_complete ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700' : 'border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700' }}">
                                         <div class="font-semibold text-lg mb-1 text-neutral-900 dark:text-neutral-100">{{ $task->title }}</div>
+                                        <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-2">
+                                            🕐 {{ $task->start_date->format('j M Y, H:i') }}@if($task->end_date) – {{ $task->end_date->format('j M Y, H:i') }}@endif
+                                        </div>
                                         @if ($task->description)
                                             <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $task->description }}</p>
                                         @endif
