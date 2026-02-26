@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Allergy;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -14,6 +15,8 @@ class Settings extends Component
     public string $phone_number = '';
     public string $iban = '';
     public string $bankCountry = 'United Kingdom';
+
+    public string $newAllergy = '';
 
     public array $notifications = [
         'tripDelayAlerts' => ['email' => true, 'popup' => true],
@@ -114,8 +117,29 @@ class Settings extends Component
         }
     }
 
+    public function addAllergy(): void
+    {
+        $this->validate(['newAllergy' => 'required|string|max:100']);
+
+        $user = Auth::user();
+        $allergy = Allergy::firstOrCreate(['name' => trim($this->newAllergy)]);
+
+        if (! $user->allergies()->where('allergies.id', $allergy->id)->exists()) {
+            $user->allergies()->attach($allergy->id);
+        }
+
+        $this->newAllergy = '';
+    }
+
+    public function removeAllergy(int $allergyId): void
+    {
+        Auth::user()->allergies()->detach($allergyId);
+    }
+
     public function render()
     {
-        return view('livewire.settings');
+        return view('livewire.settings', [
+            'userAllergies' => Auth::user()->allergies()->get(),
+        ]);
     }
 }
