@@ -238,7 +238,7 @@
                                     {{ $allergy->name }}
                                     <button
                                         wire:click="removeAllergy({{ $allergy->id }})"
-                                        class="flex items-center justify-center w-4 h-4 rounded-full hover:bg-indigo-200 dark:hover:bg-indigo-700 transition-colors"
+                                        class="flex items-center justify-center w-6 h-6 rounded-full hover:bg-indigo-200 dark:hover:bg-indigo-700 transition-colors"
                                         aria-label="Remove {{ $allergy->name }}"
                                     >&times;</button>
                                 </span>
