@@ -224,6 +224,127 @@ class Schedule extends Component
         return $events;
     }
 
+    /**
+     * Build structured data for the week view with overlap detection.
+     * Each event gets: topPercent, heightPercent, leftPercent, widthPercent
+     */
+    private function buildWeekViewData(array $weekDays, array $eventsByDate): array
+    {
+        $data = [];
+
+        foreach ($weekDays as $weekDay) {
+            $dateStr = $weekDay->format('Y-m-d');
+            $dayEvents = $eventsByDate[$dateStr] ?? [];
+            $allDayItems = [];
+            $timedItems = [];
+
+            // Trips = all-day
+            foreach ($dayEvents['trips'] ?? [] as $trip) {
+                $allDayItems[] = [
+                    'type' => 'trip',
+                    'model' => $trip,
+                ];
+            }
+
+            // Tasks with start/end times
+            foreach ($dayEvents['tasks'] ?? [] as $task) {
+                $startTime = $task->start_date;
+                $endTime = $task->end_date ?? $startTime->copy()->addHour();
+                // Clamp to same day
+                $dayStart = $weekDay->copy()->startOfDay();
+                $dayEnd = $weekDay->copy()->endOfDay();
+                if ($startTime->lt($dayStart)) {
+                    $startTime = $dayStart->copy();
+                }
+                if ($endTime->gt($dayEnd)) {
+                    $endTime = $dayEnd->copy();
+                }
+
+                $startMinutes = $startTime->hour * 60 + $startTime->minute;
+                $endMinutes = $endTime->hour * 60 + $endTime->minute;
+                // Minimum 30 min display
+                if ($endMinutes - $startMinutes < 30) {
+                    $endMinutes = $startMinutes + 30;
+                }
+
+                $timedItems[] = [
+                    'type' => 'task',
+                    'model' => $task,
+                    'startMin' => $startMinutes,
+                    'endMin' => min($endMinutes, 1440),
+                ];
+            }
+
+            // Meals (treat as 30-min blocks)
+            foreach ($dayEvents['meals'] ?? [] as $meal) {
+                $startMinutes = $meal->date_time->hour * 60 + $meal->date_time->minute;
+                $endMinutes = $startMinutes + 30;
+
+                $timedItems[] = [
+                    'type' => 'meal',
+                    'model' => $meal,
+                    'startMin' => $startMinutes,
+                    'endMin' => min($endMinutes, 1440),
+                ];
+            }
+
+            // Sort by start time
+            usort($timedItems, fn ($a, $b) => $a['startMin'] <=> $b['startMin']);
+
+            // Overlap detection: assign columns
+            $positionedItems = $this->assignOverlapColumns($timedItems);
+
+            $data[$dateStr] = [
+                'allDay' => $allDayItems,
+                'timed' => $positionedItems,
+            ];
+        }
+
+        return $data;
+    }
+
+    /**
+     * Assign column positions to overlapping events (Outlook-style side by side).
+     */
+    private function assignOverlapColumns(array $items): array
+    {
+        if (empty($items)) {
+            return [];
+        }
+
+        // Group overlapping events into clusters
+        $clusters = [];
+        $currentCluster = [$items[0]];
+
+        for ($i = 1; $i < count($items); $i++) {
+            $clusterEnd = max(array_column($currentCluster, 'endMin'));
+            if ($items[$i]['startMin'] < $clusterEnd) {
+                $currentCluster[] = $items[$i];
+            } else {
+                $clusters[] = $currentCluster;
+                $currentCluster = [$items[$i]];
+            }
+        }
+        $clusters[] = $currentCluster;
+
+        $result = [];
+
+        foreach ($clusters as $cluster) {
+            $totalCols = count($cluster);
+            foreach ($cluster as $colIndex => $item) {
+                $item['col'] = $colIndex;
+                $item['totalCols'] = $totalCols;
+                $item['topPercent'] = round(($item['startMin'] / 1440) * 100, 4);
+                $item['heightPercent'] = round((($item['endMin'] - $item['startMin']) / 1440) * 100, 4);
+                $item['leftPercent'] = round(($colIndex / $totalCols) * 100, 4);
+                $item['widthPercent'] = round((1 / $totalCols) * 100, 4);
+                $result[] = $item;
+            }
+        }
+
+        return $result;
+    }
+
     public function render()
     {
         [$start, $end] = $this->getDateRange();
@@ -255,11 +376,13 @@ class Schedule extends Component
 
         // Build week days for week view
         $weekDays = [];
+        $weekViewData = [];
         if ($this->view === 'week') {
             $weekStart = Carbon::create($this->year, $this->month, $this->day)->startOfWeek(Carbon::MONDAY);
             for ($i = 0; $i < 7; $i++) {
                 $weekDays[] = $weekStart->copy()->addDays($i);
             }
+            $weekViewData = $this->buildWeekViewData($weekDays, $eventsByDate);
         }
 
         // Day details
@@ -281,6 +404,7 @@ class Schedule extends Component
             'users' => $users,
             'calendarDays' => $calendarDays,
             'weekDays' => $weekDays,
+            'weekViewData' => $weekViewData,
             'dayDetails' => $dayDetails,
             'today' => Carbon::today()->format('Y-m-d'),
         ]);
