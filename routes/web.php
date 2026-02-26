@@ -48,6 +48,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('invoices', Invoices::class)->name('invoices');
     Route::get('invoices/create', InvoiceForm::class)->name('invoices.create');
     Route::get('invoices/{id}', InvoiceForm::class)->where('id', '[0-9]+')->name('invoices.edit');
+    Route::get('receipts/{path}', 'App\Http\Controllers\ReceiptController@show')->where('path', '.*')->name('receipts.show');
 
 
     // Admin User Management
