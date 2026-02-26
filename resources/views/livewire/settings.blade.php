@@ -220,5 +220,55 @@
                 </div>
             </div>
         </div>
+
+        <!-- Allergies Section -->
+        <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 p-8">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Allergies</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Current Allergies -->
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Current Allergies</h3>
+                    @if ($userAllergies->isEmpty())
+                        <p class="text-sm text-gray-400 dark:text-gray-500">No allergies added yet.</p>
+                    @else
+                        <div class="flex flex-wrap gap-2">
+                            @foreach ($userAllergies as $allergy)
+                                <span class="inline-flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-700 dark:border-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
+                                    {{ $allergy->name }}
+                                    <button
+                                        wire:click="removeAllergy({{ $allergy->id }})"
+                                        class="flex items-center justify-center w-4 h-4 rounded-full hover:bg-indigo-200 dark:hover:bg-indigo-700 transition-colors"
+                                        aria-label="Remove {{ $allergy->name }}"
+                                    >&times;</button>
+                                </span>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Add New Allergy -->
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Add New Allergy</h3>
+                    <div class="flex gap-2">
+                        <input
+                            wire:model="newAllergy"
+                            wire:keydown.enter.prevent="addAllergy"
+                            type="text"
+                            placeholder="Enter allergy name"
+                            class="flex-1 px-4 py-2.5 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors text-sm"
+                        >
+                        <button
+                            wire:click="addAllergy"
+                            type="button"
+                            class="px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-semibold text-sm whitespace-nowrap"
+                        >+ Add</button>
+                    </div>
+                    @error('newAllergy')
+                        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+        </div>
     </div>
 </div>
