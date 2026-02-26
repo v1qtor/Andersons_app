@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Allergy;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -14,6 +15,8 @@ class Settings extends Component
     public string $phone_number = '';
     public string $iban = '';
     public string $bankCountry = 'United Kingdom';
+
+    public string $newAllergy = '';
 
     public array $notifications = [
         'tripDelayAlerts' => ['email' => true, 'popup' => true],
@@ -83,7 +86,7 @@ class Settings extends Component
             'iban' => $this->iban,
         ]);
 
-        session()->flash('status', 'Personal information updated successfully!');
+        $this->dispatch('toast', message: 'Personal information updated successfully!', type: 'success');
     }
 
     /**
@@ -114,8 +117,34 @@ class Settings extends Component
         }
     }
 
+    public function addAllergy(): void
+    {
+        $this->validate(['newAllergy' => 'required|string|max:100']);
+
+        $user = Auth::user();
+        $allergy = Allergy::firstOrCreate(['name' => trim($this->newAllergy)]);
+
+        if ($user->allergies()->where('allergies.id', $allergy->id)->exists()) {
+            $this->dispatch('toast', message: "'" . $allergy->name . "' is already in your allergies list.", type: 'error');
+        } else {
+            $user->allergies()->attach($allergy->id);
+            $this->dispatch('toast', message: "'" . $allergy->name . "' has been added to your allergies.", type: 'success');
+        }
+
+        $this->newAllergy = '';
+    }
+
+    public function removeAllergy(int $allergyId): void
+    {
+        $allergy = \App\Models\Allergy::find($allergyId);
+        Auth::user()->allergies()->detach($allergyId);
+        $this->dispatch('toast', message: "'" . ($allergy?->name ?? 'Allergy') . "' has been removed from your allergies.", type: 'error');
+    }
+
     public function render()
     {
-        return view('livewire.settings');
+        return view('livewire.settings', [
+            'userAllergies' => Auth::user()->allergies()->get(),
+        ]);
     }
 }
