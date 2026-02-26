@@ -86,7 +86,7 @@ class Settings extends Component
             'iban' => $this->iban,
         ]);
 
-        session()->flash('status', 'Personal information updated successfully!');
+        $this->dispatch('toast', message: 'Personal information updated successfully!', type: 'success');
     }
 
     /**
@@ -124,8 +124,11 @@ class Settings extends Component
         $user = Auth::user();
         $allergy = Allergy::firstOrCreate(['name' => trim($this->newAllergy)]);
 
-        if (! $user->allergies()->where('allergies.id', $allergy->id)->exists()) {
+        if ($user->allergies()->where('allergies.id', $allergy->id)->exists()) {
+            $this->dispatch('toast', message: "'" . $allergy->name . "' is already in your allergies list.", type: 'error');
+        } else {
             $user->allergies()->attach($allergy->id);
+            $this->dispatch('toast', message: "'" . $allergy->name . "' has been added to your allergies.", type: 'success');
         }
 
         $this->newAllergy = '';
@@ -133,7 +136,9 @@ class Settings extends Component
 
     public function removeAllergy(int $allergyId): void
     {
+        $allergy = \App\Models\Allergy::find($allergyId);
         Auth::user()->allergies()->detach($allergyId);
+        $this->dispatch('toast', message: "'" . ($allergy?->name ?? 'Allergy') . "' has been removed from your allergies.", type: 'error');
     }
 
     public function render()
