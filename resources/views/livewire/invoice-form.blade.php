@@ -88,6 +88,7 @@
                         <input
                             wire:model="billDate"
                             type="date"
+                            max="{{ now()->format('Y-m-d') }}"
                             class="w-full px-4 py-3 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                         >
                         @error('billDate') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
@@ -96,17 +97,17 @@
                     <!-- Amount -->
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                            Amount (€) <span class="text-red-600">*</span>
+                            Amount (£) <span class="text-red-600">*</span>
                         </label>
                         <input
                             wire:model="amount"
                             type="text"
                             inputmode="decimal"
-                            placeholder="0,00"
-                            @input="$event.target.value = $event.target.value.replace('.', ',')"
+                            placeholder="0.00"
+                            @input="$event.target.value = $event.target.value.replace(/[^0-9.]/g, '')"
                             @blur="
-                                let val = $event.target.value.replace(',', '.');
-                                $event.target.value = Number(val).toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                                let val = $event.target.value;
+                                $event.target.value = Number(val).toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2});
                                 @this.set('amount', val);
                             "
                             class="w-full px-4 py-3 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"

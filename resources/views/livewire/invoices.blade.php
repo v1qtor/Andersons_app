@@ -1,15 +1,10 @@
 <div class="w-full max-w-7xl mx-auto">
-    <!-- Success Message Toast -->
+    <!-- Success Message Toast with Alpine.js for auto-dismiss -->
     @if (session('status') || session('message') || session('error'))
-        <script>
-            setTimeout(() => {
-                const toast = document.getElementById('success-toast');
-                if (toast) {
-                    toast.style.animation = 'slideOut 0.3s ease-out forwards';
-                }
-            }, 3000);
-        </script>
-        <div id="success-toast" class="fixed top-4 right-4 @if(session('error')) bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 @else bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 @endif border rounded-lg shadow-lg p-4 max-w-md z-50" style="animation: slideIn 0.3s ease-out;">
+        <div x-data="{ show: true }" x-init="setTimeout(() => { show = false }, 3000)" x-show="show"
+             class="fixed top-4 right-4 @if(session('error')) bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 @else bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 @endif border rounded-lg shadow-lg p-4 max-w-md z-50"
+             style="animation: slideIn 0.3s ease-out;"
+             @change="show = true; setTimeout(() => { show = false }, 3000)">
             <div class="flex items-center gap-3">
                 <svg class="w-5 h-5 @if(session('error')) text-red-600 dark:text-red-400 @else text-green-600 dark:text-green-400 @endif flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
@@ -38,6 +33,7 @@
                     opacity: 0;
                 }
             }
+            [x-cloak] { display: none; }
         </style>
     @endif
 
@@ -86,7 +82,7 @@
                         </div>
                         <div>
                             <p class="text-sm text-gray-600 dark:text-gray-400">Amount</p>
-                            <p class="font-semibold text-gray-900 dark:text-white">€{{ number_format($viewInvoice->amount, 2, ',', '.') }}</p>
+                            <p class="font-semibold text-gray-900 dark:text-white">£{{ number_format($viewInvoice->amount, 2) }}</p>
                         </div>
                         <div>
                             <p class="text-sm text-gray-600 dark:text-gray-400">Category</p>
@@ -122,7 +118,7 @@
                     @if($viewInvoice->receipt_file_path)
                         <div>
                             <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Receipt / Proof of Purchase</p>
-                            <a href="{{ Storage::disk('public')->url($viewInvoice->receipt_file_path) }}" target="_blank" class="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 underline">
+                            <a href="{{ route('receipts.show', ['path' => str_replace('receipts/', '', $viewInvoice->receipt_file_path)]) }}" target="_blank" class="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 underline">
                                 View Receipt
                             </a>
                         </div>
@@ -220,7 +216,7 @@
                                         {{ $invoice->description ?? '-' }}
                                     </td>
                                     <td class="px-6 py-4 text-sm font-semibold text-gray-900 dark:text-gray-300">
-                                        €{{ number_format($invoice->amount, 2, ',', '.') }}
+                                        £{{ number_format($invoice->amount, 2) }}
                                     </td>
                                     <td class="px-6 py-4 text-sm">
                                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium @if($invoice->is_paid) bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 @else bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 @endif">
@@ -261,11 +257,11 @@
                 </div>
                 <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 p-6">
                     <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Pending Total</p>
-                    <p class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">€{{ number_format($invoices->where('is_paid', false)->sum('amount'), 2, ',', '.') }}</p>
+                    <p class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">£{{ number_format($invoices->where('is_paid', false)->sum('amount'), 2) }}</p>
                 </div>
                 <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 p-6">
                     <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Paid Amount</p>
-                    <p class="text-3xl font-bold text-green-600 dark:text-green-400">€{{ number_format($invoices->where('is_paid', true)->sum('amount'), 2, ',', '.') }}</p>
+                    <p class="text-3xl font-bold text-green-600 dark:text-green-400">£{{ number_format($invoices->where('is_paid', true)->sum('amount'), 2) }}</p>
                 </div>
             </div>
         @endif

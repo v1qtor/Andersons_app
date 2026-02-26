@@ -51,7 +51,7 @@ class InvoiceForm extends Component
             $this->category = $invoice->category_id ? (string) $invoice->category_id : 'other';
             $this->customCategory = $invoice->name ?? '';
             $this->description = $invoice->description ?? '';
-            $this->amount = number_format($invoice->amount, 2, ',', '.');
+            $this->amount = number_format($invoice->amount, 2);
         }
     }
 
@@ -74,8 +74,8 @@ class InvoiceForm extends Component
 
     public function saveInvoice()
     {
-        // Convert comma-decimal format to dot-decimal for storage
-        $amountValue = str_replace(',', '.', $this->amount);
+        // Convert British format to dot-decimal for storage (e.g., "1,234.56" -> 1234.56)
+        $amountValue = str_replace(',', '', $this->amount);
         
         // Validate amount is numeric
         if (!is_numeric($amountValue) || floatval($amountValue) < 0.01 || floatval($amountValue) > 999999.99) {
@@ -85,7 +85,7 @@ class InvoiceForm extends Component
         
         $this->validate([
             'receiptFile' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
-            'billDate' => 'required|date',
+            'billDate' => 'required|date|before_or_equal:today',
             'category' => 'required|string',
             'description' => 'nullable|string|max:1000',
             'customCategory' => 'required_if:category,other|string|max:255',
