@@ -36,13 +36,15 @@ class Schedule extends Component
 
     public function previousPeriod(): void
     {
-        $date = Carbon::create($this->year, $this->month, $this->day);
-
-        match ($this->view) {
-            'day' => $date->subDay(),
-            'week' => $date->subWeek(),
-            'month' => $date->subMonth(),
-        };
+        if ($this->view === 'month') {
+            $date = Carbon::create($this->year, $this->month, 1)->subMonth();
+        } else {
+            $date = Carbon::create($this->year, $this->month, $this->day);
+            match ($this->view) {
+                'day' => $date->subDay(),
+                'week' => $date->subWeek(),
+            };
+        }
 
         $this->year = $date->year;
         $this->month = $date->month;
@@ -52,13 +54,15 @@ class Schedule extends Component
 
     public function nextPeriod(): void
     {
-        $date = Carbon::create($this->year, $this->month, $this->day);
-
-        match ($this->view) {
-            'day' => $date->addDay(),
-            'week' => $date->addWeek(),
-            'month' => $date->addMonth(),
-        };
+        if ($this->view === 'month') {
+            $date = Carbon::create($this->year, $this->month, 1)->addMonth();
+        } else {
+            $date = Carbon::create($this->year, $this->month, $this->day);
+            match ($this->view) {
+                'day' => $date->addDay(),
+                'week' => $date->addWeek(),
+            };
+        }
 
         $this->year = $date->year;
         $this->month = $date->month;
@@ -72,6 +76,9 @@ class Schedule extends Component
         $this->year = $today->year;
         $this->month = $today->month;
         $this->day = $today->day;
+        $this->view = match ($this->view) {
+            'day', 'week', 'month' => $this->view,
+        };
         $this->selectedDay = null;
     }
 
