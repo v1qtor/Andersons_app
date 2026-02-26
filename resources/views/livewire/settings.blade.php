@@ -1,4 +1,4 @@
-<div class="w-full max-w-6xl mx-auto" x-data="{ showAllergyModal: false, allergyId: null, allergyName: '' }">
+<div class="w-full max-w-6xl mx-auto" x-data="{ showAllergyModal: false, allergyId: null, allergyName: '' }" x-effect="document.body.style.overflow = showAllergyModal ? 'hidden' : ''">
 
     <!-- Allergy Remove Confirmation Modal -->
     <div
