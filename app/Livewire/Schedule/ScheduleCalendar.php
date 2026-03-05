@@ -391,6 +391,7 @@ class ScheduleCalendar extends Component
         }
 
         return view('components.schedule-calendar', [
+            'mode' => 'schedule',
             'tasks' => $tasks,
             'meals' => $meals,
             'trips' => $trips,
@@ -401,6 +402,9 @@ class ScheduleCalendar extends Component
             'weekViewData' => $weekViewData,
             'dayDetails' => $dayDetails,
             'today' => Carbon::today()->format('Y-m-d'),
+            'taskCategories' => collect(),
+            'taskPriorities' => collect(),
+            'isAdmin' => false,
         ]);
     }
 }
