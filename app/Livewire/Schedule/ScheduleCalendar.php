@@ -22,6 +22,8 @@ class ScheduleCalendar extends Component
 
     public array $selectedPeople = [];
 
+    public bool $showMyTasksOnly = false;
+
     public ?string $selectedDay = null;
 
     // ─── Task CRUD ────────────────────────────────────────────
@@ -107,6 +109,11 @@ class ScheduleCalendar extends Component
     public function clearFilters(): void
     {
         $this->selectedPeople = [];
+    }
+
+    public function setMyTasksOnly(bool $value): void
+    {
+        $this->showMyTasksOnly = $value;
     }
 
     public function openDay(string $date): void
@@ -300,6 +307,12 @@ class ScheduleCalendar extends Component
                     });
             });
 
+        if ($this->showMyTasksOnly) {
+            $query->whereHas('users', function ($q) {
+                $q->where('users.id', Auth::id());
+            });
+        }
+
         if (! empty($this->selectedPeople)) {
             $query->whereHas('users', function ($q) {
                 $q->whereIn('users.id', $this->selectedPeople);
@@ -313,6 +326,12 @@ class ScheduleCalendar extends Component
     {
         $query = PlannedMeal::with(['meal', 'subscribers'])
             ->whereBetween('date_time', [$start, $end]);
+
+        if ($this->showMyTasksOnly) {
+            $query->whereHas('subscribers', function ($q) {
+                $q->where('users.id', Auth::id());
+            });
+        }
 
         if (! empty($this->selectedPeople)) {
             $query->whereHas('subscribers', function ($q) {
@@ -328,6 +347,12 @@ class ScheduleCalendar extends Component
         $query = Trip::with(['users', 'tripCategory', 'status'])
             ->where('start_date', '<=', $end)
             ->where('end_date', '>=', $start);
+
+        if ($this->showMyTasksOnly) {
+            $query->whereHas('users', function ($q) {
+                $q->where('users.id', Auth::id());
+            });
+        }
 
         if (! empty($this->selectedPeople)) {
             $query->whereHas('users', function ($q) {

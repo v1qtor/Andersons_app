@@ -12,9 +12,31 @@
                 {{ __('Month') }}
             </flux:button>
         </div>
-        <flux:button size="sm" variant="primary" wire:click="openCreateModal" icon="plus">
-            {{ __('New Task') }}
-        </flux:button>
+        <div class="flex items-center gap-2">
+            <div class="inline-flex rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden">
+                <button
+                    wire:click="setMyTasksOnly(true)"
+                    class="px-3 py-1.5 text-sm font-medium transition-colors
+                        {{ $showMyTasksOnly
+                            ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                            : 'bg-white text-neutral-700 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-300 dark:hover:bg-zinc-700' }}"
+                >
+                    {{ __('My Tasks') }}
+                </button>
+                <button
+                    wire:click="setMyTasksOnly(false)"
+                    class="px-3 py-1.5 text-sm font-medium transition-colors border-l border-neutral-200 dark:border-neutral-700
+                        {{ ! $showMyTasksOnly
+                            ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                            : 'bg-white text-neutral-700 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-300 dark:hover:bg-zinc-700' }}"
+                >
+                    {{ __('All Tasks') }}
+                </button>
+            </div>
+            <flux:button size="sm" variant="primary" wire:click="openCreateModal" icon="plus">
+                {{ __('New Task') }}
+            </flux:button>
+        </div>
     </div>
 
     {{-- Navigation + Period Label --}}
