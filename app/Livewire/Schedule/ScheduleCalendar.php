@@ -4,9 +4,12 @@ namespace App\Livewire\Schedule;
 
 use App\Models\PlannedMeal;
 use App\Models\Task;
+use App\Models\TaskCategory;
+use App\Models\TaskPriority;
 use App\Models\Trip;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class ScheduleCalendar extends Component
@@ -19,7 +22,22 @@ class ScheduleCalendar extends Component
 
     public array $selectedPeople = [];
 
+    public bool $showMyTasksOnly = false;
+
     public ?string $selectedDay = null;
+
+    // ─── Task CRUD ────────────────────────────────────────────
+    public bool $showTaskModal = false;
+    public ?int $editingTaskId = null;
+    public string $title = '';
+    public string $description = '';
+    public string $startDate = '';
+    public string $endDate = '';
+    public ?int $taskCategoryId = null;
+    public ?int $taskPriorityId = null;
+
+    public bool $showDeleteModal = false;
+    public ?int $deletingTaskId = null;
 
     public function mount(): void
     {
@@ -93,6 +111,11 @@ class ScheduleCalendar extends Component
         $this->selectedPeople = [];
     }
 
+    public function setMyTasksOnly(bool $value): void
+    {
+        $this->showMyTasksOnly = $value;
+    }
+
     public function openDay(string $date): void
     {
         $this->selectedDay = $date;
@@ -101,6 +124,138 @@ class ScheduleCalendar extends Component
     public function closeDay(): void
     {
         $this->selectedDay = null;
+    }
+
+    // ─── Task CRUD Methods ────────────────────────────────────
+
+    public function openCreateModal(?string $date = null): void
+    {
+        $this->resetForm();
+        if ($date) {
+            $this->startDate = $date . 'T09:00';
+            $this->endDate = $date . 'T10:00';
+        }
+        $this->showTaskModal = true;
+    }
+
+    public function openEditModal(int $taskId): void
+    {
+        $task = Task::findOrFail($taskId);
+
+        if (! $this->canManageTask($task)) {
+            return;
+        }
+
+        $this->editingTaskId = $task->id;
+        $this->title = $task->title;
+        $this->description = $task->description ?? '';
+        $this->startDate = $task->start_date->format('Y-m-d\TH:i');
+        $this->endDate = $task->end_date ? $task->end_date->format('Y-m-d\TH:i') : '';
+        $this->taskCategoryId = $task->task_category_id;
+        $this->taskPriorityId = $task->task_priority_id;
+        $this->showTaskModal = true;
+    }
+
+    public function saveTask(): void
+    {
+        $this->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'startDate' => 'required|date',
+            'endDate' => 'nullable|date|after:startDate',
+            'taskCategoryId' => 'required|exists:task_categories,id',
+            'taskPriorityId' => 'nullable|exists:task_priorities,id',
+        ]);
+
+        $startDt = Carbon::parse($this->startDate);
+        $endDt = $this->endDate ? Carbon::parse($this->endDate) : null;
+
+        $data = [
+            'title' => $this->title,
+            'description' => $this->description ?: null,
+            'start_date' => $startDt,
+            'end_date' => $endDt,
+            'date' => $startDt,
+            'task_category_id' => $this->taskCategoryId,
+            'task_priority_id' => $this->taskPriorityId,
+            'is_complete' => false,
+        ];
+
+        if ($this->editingTaskId) {
+            $task = Task::findOrFail($this->editingTaskId);
+            if (! $this->canManageTask($task)) {
+                return;
+            }
+            $task->update($data);
+        } else {
+            $task = Task::create($data);
+            $task->users()->attach(Auth::id(), ['is_owner' => true]);
+        }
+
+        $this->showTaskModal = false;
+        $this->resetForm();
+    }
+
+    public function confirmDelete(int $taskId): void
+    {
+        $this->deletingTaskId = $taskId;
+        $this->showDeleteModal = true;
+    }
+
+    public function deleteTask(): void
+    {
+        if (! $this->deletingTaskId) {
+            return;
+        }
+
+        $task = Task::findOrFail($this->deletingTaskId);
+
+        if (! $this->canManageTask($task)) {
+            return;
+        }
+
+        $task->users()->detach();
+        $task->locations()->detach();
+        $task->delete();
+
+        $this->showDeleteModal = false;
+        $this->deletingTaskId = null;
+    }
+
+    public function toggleComplete(int $taskId): void
+    {
+        $task = Task::findOrFail($taskId);
+
+        if (! $this->canManageTask($task)) {
+            return;
+        }
+
+        $task->update(['is_complete' => ! $task->is_complete]);
+    }
+
+    private function resetForm(): void
+    {
+        $this->editingTaskId = null;
+        $this->title = '';
+        $this->description = '';
+        $this->startDate = '';
+        $this->endDate = '';
+        $this->taskCategoryId = null;
+        $this->taskPriorityId = null;
+    }
+
+    private function isAdmin(): bool
+    {
+        return Auth::user()->role && Auth::user()->role->name === 'Admin';
+    }
+
+    private function canManageTask(Task $task): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        return $task->users()->where('users.id', Auth::id())->exists();
     }
 
     /**
@@ -152,6 +307,12 @@ class ScheduleCalendar extends Component
                     });
             });
 
+        if ($this->showMyTasksOnly) {
+            $query->whereHas('users', function ($q) {
+                $q->where('users.id', Auth::id());
+            });
+        }
+
         if (! empty($this->selectedPeople)) {
             $query->whereHas('users', function ($q) {
                 $q->whereIn('users.id', $this->selectedPeople);
@@ -165,6 +326,12 @@ class ScheduleCalendar extends Component
     {
         $query = PlannedMeal::with(['meal', 'subscribers'])
             ->whereBetween('date_time', [$start, $end]);
+
+        if ($this->showMyTasksOnly) {
+            $query->whereHas('subscribers', function ($q) {
+                $q->where('users.id', Auth::id());
+            });
+        }
 
         if (! empty($this->selectedPeople)) {
             $query->whereHas('subscribers', function ($q) {
@@ -180,6 +347,12 @@ class ScheduleCalendar extends Component
         $query = Trip::with(['users', 'tripCategory', 'status'])
             ->where('start_date', '<=', $end)
             ->where('end_date', '>=', $start);
+
+        if ($this->showMyTasksOnly) {
+            $query->whereHas('users', function ($q) {
+                $q->where('users.id', Auth::id());
+            });
+        }
 
         if (! empty($this->selectedPeople)) {
             $query->whereHas('users', function ($q) {
@@ -401,8 +574,10 @@ class ScheduleCalendar extends Component
             'weekViewData' => $weekViewData,
             'dayDetails' => $dayDetails,
             'today' => Carbon::today()->format('Y-m-d'),
+            'taskCategories' => TaskCategory::all(),
+            'taskPriorities' => TaskPriority::all(),
+            'isAdmin' => $this->isAdmin(),
         ]);
     }
 }
-
 
