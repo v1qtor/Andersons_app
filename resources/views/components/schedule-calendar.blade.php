@@ -1,15 +1,29 @@
 <div>
     {{-- View Toggle --}}
-    <div class="flex items-center justify-end gap-2 mb-4">
-        <flux:button size="sm" :variant="$view === 'day' ? 'primary' : 'ghost'" wire:click="setView('day')">
-            {{ __('Day') }}
-        </flux:button>
-        <flux:button size="sm" :variant="$view === 'week' ? 'primary' : 'ghost'" wire:click="setView('week')">
-            {{ __('Week') }}
-        </flux:button>
-        <flux:button size="sm" :variant="$view === 'month' ? 'primary' : 'ghost'" wire:click="setView('month')">
-            {{ __('Month') }}
-        </flux:button>
+    <div class="flex items-center justify-between gap-2 mb-4">
+        <div class="flex items-center gap-2">
+            <flux:button size="sm" :variant="$view === 'day' ? 'primary' : 'ghost'" wire:click="setView('day')">
+                {{ __('Day') }}
+            </flux:button>
+            <flux:button size="sm" :variant="$view === 'week' ? 'primary' : 'ghost'" wire:click="setView('week')">
+                {{ __('Week') }}
+            </flux:button>
+            <flux:button size="sm" :variant="$view === 'month' ? 'primary' : 'ghost'" wire:click="setView('month')">
+                {{ __('Month') }}
+            </flux:button>
+        </div>
+        @if ($mode === 'personal-tasks')
+            <div class="flex items-center gap-2">
+                @if ($isAdmin)
+                    <flux:button size="sm" :variant="$showAllTasks ? 'primary' : 'ghost'" wire:click="toggleShowAll" icon="users">
+                        {{ $showAllTasks ? __('All Tasks') : __('My Tasks') }}
+                    </flux:button>
+                @endif
+                <flux:button size="sm" variant="primary" wire:click="openCreateModal" icon="plus">
+                    {{ __('New Task') }}
+                </flux:button>
+            </div>
+        @endif
     </div>
 
     {{-- Navigation + Period Label --}}
@@ -29,38 +43,40 @@
             <flux:button variant="ghost" size="sm" wire:click="nextPeriod" icon="chevron-right" />
         </div>
 
-        {{-- People Filter --}}
-        <div class="mb-6">
-            <div class="flex items-center gap-2 mb-3">
-                <flux:icon name="funnel" class="size-5 text-neutral-500" />
-                <span class="font-semibold text-sm text-neutral-700 dark:text-neutral-300">{{ __('Filter by person:') }}</span>
-            </div>
-            <div class="flex flex-wrap gap-2">
-                @foreach ($users as $user)
-                    @php
-                        $isSelected = in_array($user->id, $selectedPeople);
-                        $roleColor = $user->role?->color ?? '#6366f1';
-                    @endphp
-                    <button
-                        wire:click="togglePerson({{ $user->id }})"
-                        class="px-3 py-1.5 rounded-lg border-2 text-sm font-medium transition-all"
-                        style="
-                            border-color: {{ $roleColor }};
-                            background-color: {{ $isSelected ? $roleColor : 'transparent' }};
-                            color: {{ $isSelected ? '#fff' : $roleColor }};
-                        "
-                    >
-                        {{ $user->name }}
-                    </button>
-                @endforeach
+        {{-- People Filter (schedule mode only) --}}
+        @if ($mode === 'schedule')
+            <div class="mb-6">
+                <div class="flex items-center gap-2 mb-3">
+                    <flux:icon name="funnel" class="size-5 text-neutral-500" />
+                    <span class="font-semibold text-sm text-neutral-700 dark:text-neutral-300">{{ __('Filter by person:') }}</span>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    @foreach ($users as $user)
+                        @php
+                            $isSelected = in_array($user->id, $selectedPeople);
+                            $roleColor = $user->role?->color ?? '#6366f1';
+                        @endphp
+                        <button
+                            wire:click="togglePerson({{ $user->id }})"
+                            class="px-3 py-1.5 rounded-lg border-2 text-sm font-medium transition-all"
+                            style="
+                                border-color: {{ $roleColor }};
+                                background-color: {{ $isSelected ? $roleColor : 'transparent' }};
+                                color: {{ $isSelected ? '#fff' : $roleColor }};
+                            "
+                        >
+                            {{ $user->name }}
+                        </button>
+                    @endforeach
 
-                @if (count($selectedPeople) > 0)
-                    <flux:button variant="ghost" size="sm" wire:click="clearFilters">
-                        {{ __('Clear Filters') }}
-                    </flux:button>
-                @endif
+                    @if (count($selectedPeople) > 0)
+                        <flux:button variant="ghost" size="sm" wire:click="clearFilters">
+                            {{ __('Clear Filters') }}
+                        </flux:button>
+                    @endif
+                </div>
             </div>
-        </div>
+        @endif
 
         {{-- ========== MONTH VIEW ========== --}}
         @if ($view === 'month')
@@ -101,7 +117,7 @@
                                 </span>
                             </div>
                             <div class="space-y-0.5 overflow-hidden flex-1 w-full">
-                                @if ($hasTrips)
+                                @if ($mode === 'schedule' && $hasTrips)
                                     @foreach (array_slice($dayEvents['trips'], 0, 1) as $trip)
                                         <div class="text-[10px] leading-tight px-1 py-0.5 rounded bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300 truncate">
                                             ⛺ {{ $trip->name }}
@@ -111,7 +127,7 @@
                                 @if ($hasTasks)
                                     @foreach (array_slice($dayEvents['tasks'], 0, 2) as $task)
                                         <div class="text-[10px] leading-tight px-1 py-0.5 rounded truncate {{ $task->is_complete ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' }}">
-                                            <span class="font-medium">{{ $task->date ? $task->date->format('H:i') : $task->start_date->format('H:i') }}</span> {{ $task->title }}
+                                            <span class="font-medium">{{ $task->start_date->format('H:i') }}</span> {{ $task->title }}
                                         </div>
                                     @endforeach
                                     @if (count($dayEvents['tasks']) > 2)
@@ -120,7 +136,7 @@
                                         </div>
                                     @endif
                                 @endif
-                                @if ($hasMeals)
+                                @if ($mode === 'schedule' && $hasMeals)
                                     @foreach (array_slice($dayEvents['meals'], 0, 1) as $meal)
                                         <div class="text-[10px] leading-tight px-1 py-0.5 rounded bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300 truncate">
                                             🍽️ {{ $meal->date_time->format('H:i') }} {{ $meal->meal?->name }}
@@ -231,8 +247,8 @@
                                 {{-- Events --}}
                                 @foreach ($dayData['timed'] as $event)
                                     @php
-                                        $isTask = $event['type'] === 'task';
-                                        $isMeal = $event['type'] === 'meal';
+                                        $isTask = ($event['type'] ?? 'task') === 'task';
+                                        $isMeal = ($event['type'] ?? '') === 'meal';
                                         $model = $event['model'];
                                     @endphp
                                     <div class="absolute z-10 px-px overflow-hidden"
@@ -273,83 +289,114 @@
                 $dayEvents = $eventsByDate[$dateStr] ?? [];
             @endphp
             <div class="space-y-4">
-                {{-- Trips --}}
-                @foreach ($dayEvents['trips'] ?? [] as $trip)
-                    <div class="p-4 rounded-lg border-2 border-orange-300 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-700">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="text-lg">⛺</span>
-                            <span class="font-bold text-neutral-900 dark:text-neutral-100">{{ $trip->name }}</span>
-                            @if ($trip->tripCategory)
-                                <span class="text-xs px-2 py-0.5 rounded-full bg-orange-200 text-orange-800 dark:bg-orange-800 dark:text-orange-200">{{ $trip->tripCategory->name }}</span>
-                            @endif
-                        </div>
-                        @if ($trip->description)
-                            <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $trip->description }}</p>
-                        @endif
-                        <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-2">
-                            {{ $trip->start_date->format('j M') }} → {{ $trip->end_date->format('j M Y') }}
-                        </div>
-                        <div class="flex flex-wrap gap-1.5">
-                            @foreach ($trip->users as $u)
-                                <span class="px-2.5 py-1 rounded-full text-white text-xs font-medium" style="background-color: {{ $u->role?->color ?? '#6366f1' }}">
-                                    {{ $u->name }}
-                                </span>
-                            @endforeach
-                        </div>
+                @if ($mode === 'personal-tasks')
+                    <div class="flex justify-end">
+                        <flux:button size="sm" variant="primary" wire:click="openCreateModal('{{ $dateStr }}')" icon="plus">
+                            {{ __('Add Task') }}
+                        </flux:button>
                     </div>
-                @endforeach
+                @endif
+
+                {{-- Trips (schedule mode only) --}}
+                @if ($mode === 'schedule')
+                    @foreach ($dayEvents['trips'] ?? [] as $trip)
+                        <div class="p-4 rounded-lg border-2 border-orange-300 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-700">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-lg">⛺</span>
+                                <span class="font-bold text-neutral-900 dark:text-neutral-100">{{ $trip->name }}</span>
+                                @if ($trip->tripCategory)
+                                    <span class="text-xs px-2 py-0.5 rounded-full bg-orange-200 text-orange-800 dark:bg-orange-800 dark:text-orange-200">{{ $trip->tripCategory->name }}</span>
+                                @endif
+                            </div>
+                            @if ($trip->description)
+                                <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $trip->description }}</p>
+                            @endif
+                            <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-2">
+                                {{ $trip->start_date->format('j M') }} → {{ $trip->end_date->format('j M Y') }}
+                            </div>
+                            <div class="flex flex-wrap gap-1.5">
+                                @foreach ($trip->users as $u)
+                                    <span class="px-2.5 py-1 rounded-full text-white text-xs font-medium" style="background-color: {{ $u->role?->color ?? '#6366f1' }}">
+                                        {{ $u->name }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
+                @endif
 
                 {{-- Tasks --}}
                 @foreach ($dayEvents['tasks'] ?? [] as $task)
                     <div class="p-4 rounded-lg border-2 {{ $task->is_complete ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700' : 'border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700' }}">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="font-bold text-neutral-900 dark:text-neutral-100">{{ $task->is_complete ? '✓' : '○' }} {{ $task->title }}</span>
-                            <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ ($task->date ?? $task->start_date)->format('H:i') }}</span>
-                            @if ($task->taskPriority)
-                                <span class="text-xs px-2 py-0.5 rounded-full bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-300">{{ $task->taskPriority->name }}</span>
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    @if ($mode === 'personal-tasks')
+                                        <button wire:click="toggleComplete({{ $task->id }})" class="cursor-pointer" title="{{ __('Toggle complete') }}">
+                                            <span class="text-lg">{{ $task->is_complete ? '✅' : '⬜' }}</span>
+                                        </button>
+                                    @else
+                                        <span>{{ $task->is_complete ? '✓' : '○' }}</span>
+                                    @endif
+                                    <span class="font-bold text-neutral-900 dark:text-neutral-100">{{ $task->title }}</span>
+                                    <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ $task->start_date->format('H:i') }}@if($task->end_date) – {{ $task->end_date->format('H:i') }}@endif</span>
+                                    @if ($task->taskPriority)
+                                        <span class="text-xs px-2 py-0.5 rounded-full bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-300">{{ $task->taskPriority->name }}</span>
+                                    @endif
+                                </div>
+                                @if ($task->description)
+                                    <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $task->description }}</p>
+                                @endif
+                                <div class="flex items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400">
+                                    @if ($task->taskCategory)
+                                        <span>{{ $task->taskCategory->name }}</span>
+                                    @endif
+                                    @if ($task->locations->isNotEmpty())
+                                        <span>📍 {{ $task->locations->pluck('name')->join(', ') }}</span>
+                                    @endif
+                                </div>
+                                @if ($mode === 'schedule')
+                                    <div class="flex flex-wrap gap-1.5 mt-2">
+                                        @foreach ($task->users as $u)
+                                            <span class="px-2.5 py-1 rounded-full text-white text-xs font-medium" style="background-color: {{ $u->role?->color ?? '#6366f1' }}">
+                                                {{ $u->name }}
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
+                            @if ($mode === 'personal-tasks')
+                                <div class="flex items-center gap-1 shrink-0">
+                                    <flux:button size="sm" variant="ghost" wire:click="openEditModal({{ $task->id }})" icon="pencil-square" />
+                                    <flux:button size="sm" variant="ghost" wire:click="confirmDelete({{ $task->id }})" icon="trash" class="!text-red-500 hover:!text-red-700" />
+                                </div>
                             @endif
-                        </div>
-                        @if ($task->description)
-                            <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $task->description }}</p>
-                        @endif
-                        <div class="flex items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400 mb-2">
-                            @if ($task->taskCategory)
-                                <span>{{ $task->taskCategory->name }}</span>
-                            @endif
-                            @if ($task->locations->isNotEmpty())
-                                <span>📍 {{ $task->locations->pluck('name')->join(', ') }}</span>
-                            @endif
-                        </div>
-                        <div class="flex flex-wrap gap-1.5">
-                            @foreach ($task->users as $u)
-                                <span class="px-2.5 py-1 rounded-full text-white text-xs font-medium" style="background-color: {{ $u->role?->color ?? '#6366f1' }}">
-                                    {{ $u->name }}
-                                </span>
-                            @endforeach
                         </div>
                     </div>
                 @endforeach
 
-                {{-- Meals --}}
-                @foreach ($dayEvents['meals'] ?? [] as $meal)
-                    <div class="p-4 rounded-lg border-2 border-purple-300 bg-purple-50 dark:bg-purple-900/20 dark:border-purple-700">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="text-lg">🍽️</span>
-                            <span class="font-bold text-neutral-900 dark:text-neutral-100">{{ $meal->meal?->name }}</span>
-                            <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ $meal->date_time->format('H:i') }}</span>
+                {{-- Meals (schedule mode only) --}}
+                @if ($mode === 'schedule')
+                    @foreach ($dayEvents['meals'] ?? [] as $meal)
+                        <div class="p-4 rounded-lg border-2 border-purple-300 bg-purple-50 dark:bg-purple-900/20 dark:border-purple-700">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-lg">🍽️</span>
+                                <span class="font-bold text-neutral-900 dark:text-neutral-100">{{ $meal->meal?->name }}</span>
+                                <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ $meal->date_time->format('H:i') }}</span>
+                            </div>
+                            @if ($meal->notes)
+                                <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $meal->notes }}</p>
+                            @endif
+                            <div class="flex flex-wrap gap-1.5">
+                                @foreach ($meal->subscribers as $u)
+                                    <span class="px-2.5 py-1 rounded-full text-white text-xs font-medium" style="background-color: {{ $u->role?->color ?? '#6366f1' }}">
+                                        {{ $u->name }}
+                                    </span>
+                                @endforeach
+                            </div>
                         </div>
-                        @if ($meal->notes)
-                            <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $meal->notes }}</p>
-                        @endif
-                        <div class="flex flex-wrap gap-1.5">
-                            @foreach ($meal->subscribers as $u)
-                                <span class="px-2.5 py-1 rounded-full text-white text-xs font-medium" style="background-color: {{ $u->role?->color ?? '#6366f1' }}">
-                                    {{ $u->name }}
-                                </span>
-                            @endforeach
-                        </div>
-                    </div>
-                @endforeach
+                    @endforeach
+                @endif
 
                 @if (empty($dayEvents))
                     <div class="text-center py-16 text-neutral-500 dark:text-neutral-400">
@@ -363,15 +410,17 @@
     {{-- Legend --}}
     <div class="rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-zinc-800 p-6 mt-6">
         <h3 class="font-semibold text-neutral-900 dark:text-neutral-100 mb-3">{{ __('Legend') }}</h3>
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div class="grid grid-cols-2 md:grid-cols-{{ $mode === 'schedule' ? '5' : '3' }} gap-3">
             <div class="flex items-center gap-2">
                 <div class="w-5 h-5 rounded border-2 border-indigo-500 bg-indigo-50 dark:bg-indigo-950"></div>
                 <span class="text-sm text-neutral-600 dark:text-neutral-400">{{ __('Today') }}</span>
             </div>
-            <div class="flex items-center gap-2">
-                <div class="w-5 h-5 rounded bg-orange-100 dark:bg-orange-900/40"></div>
-                <span class="text-sm text-neutral-600 dark:text-neutral-400">{{ __('Trip') }}</span>
-            </div>
+            @if ($mode === 'schedule')
+                <div class="flex items-center gap-2">
+                    <div class="w-5 h-5 rounded bg-orange-100 dark:bg-orange-900/40"></div>
+                    <span class="text-sm text-neutral-600 dark:text-neutral-400">{{ __('Trip') }}</span>
+                </div>
+            @endif
             <div class="flex items-center gap-2">
                 <div class="w-5 h-5 rounded bg-blue-100 dark:bg-blue-900/40"></div>
                 <span class="text-sm text-neutral-600 dark:text-neutral-400">{{ __('Task') }}</span>
@@ -380,10 +429,12 @@
                 <div class="w-5 h-5 rounded bg-green-100 dark:bg-green-900/40"></div>
                 <span class="text-sm text-neutral-600 dark:text-neutral-400">{{ __('Completed') }}</span>
             </div>
-            <div class="flex items-center gap-2">
-                <div class="w-5 h-5 rounded bg-purple-100 dark:bg-purple-900/40"></div>
-                <span class="text-sm text-neutral-600 dark:text-neutral-400">{{ __('Meal') }}</span>
-            </div>
+            @if ($mode === 'schedule')
+                <div class="flex items-center gap-2">
+                    <div class="w-5 h-5 rounded bg-purple-100 dark:bg-purple-900/40"></div>
+                    <span class="text-sm text-neutral-600 dark:text-neutral-400">{{ __('Meal') }}</span>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -404,12 +455,19 @@
                     <h3 class="text-xl font-bold text-neutral-900 dark:text-neutral-100">
                         {{ \Carbon\Carbon::parse($selectedDay)->format('l, j F Y') }}
                     </h3>
-                    <flux:button variant="ghost" size="sm" wire:click="closeDay" icon="x-mark" />
+                    <div class="flex items-center gap-2">
+                        @if ($mode === 'personal-tasks')
+                            <flux:button size="sm" variant="primary" wire:click="openCreateModal('{{ $selectedDay }}')" icon="plus">
+                                {{ __('Add Task') }}
+                            </flux:button>
+                        @endif
+                        <flux:button variant="ghost" size="sm" wire:click="closeDay" icon="x-mark" />
+                    </div>
                 </div>
 
                 <div class="p-6 space-y-6">
-                    {{-- Trips --}}
-                    @if (! empty($dayDetails['trips']))
+                    {{-- Trips (schedule mode only) --}}
+                    @if ($mode === 'schedule' && ! empty($dayDetails['trips']))
                         <div>
                             <h4 class="font-bold text-neutral-900 dark:text-neutral-100 mb-3">🏕️ {{ __('Trips') }}</h4>
                             <div class="space-y-3">
@@ -442,42 +500,70 @@
                             <div class="space-y-3">
                                 @foreach ($dayDetails['tasks'] as $task)
                                     <div class="p-4 rounded-lg border-2 {{ $task->is_complete ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700' : 'border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700' }}">
-                                        <div class="font-semibold text-lg mb-1 text-neutral-900 dark:text-neutral-100">{{ $task->title }}</div>
-                                        <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-2">
-                                            🕐 {{ $task->start_date->format('j M Y, H:i') }}@if($task->end_date) – {{ $task->end_date->format('j M Y, H:i') }}@endif
-                                        </div>
-                                        @if ($task->description)
-                                            <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $task->description }}</p>
-                                        @endif
-                                        <div class="flex items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400 mb-2">
-                                            @if ($task->taskCategory)
-                                                <span>{{ $task->taskCategory->name }}</span>
+                                        <div class="flex items-start justify-between gap-2">
+                                            <div class="flex-1">
+                                                <div class="flex items-center gap-2 mb-1">
+                                                    @if ($mode === 'personal-tasks')
+                                                        <button wire:click="toggleComplete({{ $task->id }})" class="cursor-pointer" title="{{ __('Toggle complete') }}">
+                                                            <span class="text-lg">{{ $task->is_complete ? '✅' : '⬜' }}</span>
+                                                        </button>
+                                                    @endif
+                                                    <span class="font-semibold text-lg text-neutral-900 dark:text-neutral-100">{{ $task->title }}</span>
+                                                </div>
+                                                <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-2">
+                                                    🕐 {{ $task->start_date->format('j M Y, H:i') }}@if($task->end_date) – {{ $task->end_date->format('j M Y, H:i') }}@endif
+                                                </div>
+                                                @if ($task->description)
+                                                    <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $task->description }}</p>
+                                                @endif
+                                                <div class="flex items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400 mb-2">
+                                                    @if ($task->taskCategory)
+                                                        <span>{{ $task->taskCategory->name }}</span>
+                                                    @endif
+                                                    @if ($task->locations->isNotEmpty())
+                                                        <span>📍 {{ $task->locations->pluck('name')->join(', ') }}</span>
+                                                    @endif
+                                                    @if ($task->taskPriority)
+                                                        <span>{{ $task->taskPriority->name }}</span>
+                                                    @endif
+                                                </div>
+                                                @if ($mode === 'schedule')
+                                                    <div class="flex flex-wrap gap-1.5">
+                                                        @foreach ($task->users as $u)
+                                                            <span class="px-2.5 py-1 rounded-full text-white text-xs font-medium" style="background-color: {{ $u->role?->color ?? '#6366f1' }}">
+                                                                {{ $u->name }}
+                                                            </span>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                                @if ($mode === 'personal-tasks' && !empty($showAllTasks) && $task->users->isNotEmpty())
+                                                    <div class="flex flex-wrap gap-1.5 mt-2">
+                                                        @foreach ($task->users as $u)
+                                                            <span class="px-2 py-0.5 rounded-full text-white text-xs font-medium" style="background-color: {{ $u->role?->color ?? '#6366f1' }}">
+                                                                {{ $u->name }}
+                                                            </span>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                                @if ($task->is_complete)
+                                                    <div class="mt-2 text-green-700 dark:text-green-400 font-bold text-sm">✓ {{ __('Completed') }}</div>
+                                                @endif
+                                            </div>
+                                            @if ($mode === 'personal-tasks')
+                                                <div class="flex items-center gap-1 shrink-0">
+                                                    <flux:button size="sm" variant="ghost" wire:click="openEditModal({{ $task->id }})" icon="pencil-square" />
+                                                    <flux:button size="sm" variant="ghost" wire:click="confirmDelete({{ $task->id }})" icon="trash" class="!text-red-500 hover:!text-red-700" />
+                                                </div>
                                             @endif
-                                            @if ($task->locations->isNotEmpty())
-                                                <span>📍 {{ $task->locations->pluck('name')->join(', ') }}</span>
-                                            @endif
-                                            @if ($task->taskPriority)
-                                                <span>{{ $task->taskPriority->name }}</span>
-                                            @endif
                                         </div>
-                                        <div class="flex flex-wrap gap-1.5">
-                                            @foreach ($task->users as $u)
-                                                <span class="px-2.5 py-1 rounded-full text-white text-xs font-medium" style="background-color: {{ $u->role?->color ?? '#6366f1' }}">
-                                                    {{ $u->name }}
-                                                </span>
-                                            @endforeach
-                                        </div>
-                                        @if ($task->is_complete)
-                                            <div class="mt-2 text-green-700 dark:text-green-400 font-bold text-sm">✓ {{ __('Completed') }}</div>
-                                        @endif
                                     </div>
                                 @endforeach
                             </div>
                         </div>
                     @endif
 
-                    {{-- Meals --}}
-                    @if (! empty($dayDetails['meals']))
+                    {{-- Meals (schedule mode only) --}}
+                    @if ($mode === 'schedule' && ! empty($dayDetails['meals']))
                         <div>
                             <h4 class="font-bold text-neutral-900 dark:text-neutral-100 mb-3">🍽️ {{ __('Meals') }}</h4>
                             <div class="space-y-3">
@@ -504,7 +590,7 @@
                     @endif
 
                     {{-- Empty state --}}
-                    @if (empty($dayDetails['tasks']) && empty($dayDetails['meals']) && empty($dayDetails['trips']))
+                    @if (empty($dayDetails['tasks']) && empty($dayDetails['meals'] ?? []) && empty($dayDetails['trips'] ?? []))
                         <div class="text-center py-12 text-neutral-500 dark:text-neutral-400">
                             {{ __('No activities scheduled for this day.') }}
                         </div>
@@ -512,6 +598,20 @@
                 </div>
             </div>
         </div>
+    @endif
+
+    {{-- ========== CREATE / EDIT TASK MODAL (personal-tasks mode) ========== --}}
+    @if ($mode === 'personal-tasks' && !empty($showTaskModal))
+        <x-task-form-modal
+            :editing-task-id="$editingTaskId"
+            :task-categories="$taskCategories"
+            :task-priorities="$taskPriorities"
+        />
+    @endif
+
+    {{-- ========== DELETE CONFIRMATION MODAL (personal-tasks mode) ========== --}}
+    @if ($mode === 'personal-tasks' && !empty($showDeleteModal))
+        <x-task-delete-modal />
     @endif
 </div>
 
