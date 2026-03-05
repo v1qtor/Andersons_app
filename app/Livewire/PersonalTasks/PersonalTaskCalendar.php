@@ -243,6 +243,158 @@ class PersonalTaskCalendar extends Component
         return $task->users()->where('users.id', Auth::id())->exists();
     }
 
+    // ─── Data ────────────────────────────────────────────────
+
+    private function getDateRange(): array
+    {
+        return match ($this->view) {
+            'day' => [
+                Carbon::create($this->year, $this->month, $this->day)->startOfDay(),
+                Carbon::create($this->year, $this->month, $this->day)->endOfDay(),
+            ],
+            'week' => [
+                Carbon::create($this->year, $this->month, $this->day)->startOfWeek(Carbon::MONDAY),
+                Carbon::create($this->year, $this->month, $this->day)->endOfWeek(Carbon::SUNDAY),
+            ],
+            'month' => [
+                Carbon::create($this->year, $this->month, 1)->startOfDay(),
+                Carbon::create($this->year, $this->month, 1)->endOfMonth()->endOfDay(),
+            ],
+        };
+    }
+
+    public function getPeriodLabelProperty(): string
+    {
+        return match ($this->view) {
+            'day' => Carbon::create($this->year, $this->month, $this->day)->format('l, j F Y'),
+            'week' => (function () {
+                $start = Carbon::create($this->year, $this->month, $this->day)->startOfWeek(Carbon::MONDAY);
+                $end = $start->copy()->endOfWeek(Carbon::SUNDAY);
+
+                return $start->format('j M') . ' – ' . $end->format('j M Y');
+            })(),
+            'month' => Carbon::create($this->year, $this->month, 1)->format('F Y'),
+        };
+    }
+
+    private function getFilteredTasks(Carbon $start, Carbon $end)
+    {
+        $query = Task::with(['users', 'locations', 'taskCategory', 'taskPriority'])
+            ->where(function ($q) use ($start, $end) {
+                $q->whereBetween('date', [$start, $end])
+                    ->orWhere(function ($q2) use ($start, $end) {
+                        $q2->where('start_date', '<=', $end)
+                            ->where('end_date', '>=', $start);
+                    });
+            });
+
+        // Scope to current user unless admin with showAll toggle
+        if (! ($this->isAdmin() && $this->showAllTasks)) {
+            $query->whereHas('users', function ($q) {
+                $q->where('users.id', Auth::id());
+            });
+        }
+
+        return $query->orderBy('date')->get();
+    }
+
+    private function groupTasksByDate($tasks): array
+    {
+        $events = [];
+
+        foreach ($tasks as $task) {
+            $dateKey = $task->date ? $task->date->format('Y-m-d') : $task->start_date->format('Y-m-d');
+            $events[$dateKey][] = $task;
+        }
+
+        return $events;
+    }
+
+    private function buildWeekViewData(array $weekDays, array $tasksByDate): array
+    {
+        $data = [];
+
+        foreach ($weekDays as $weekDay) {
+            $dateStr = $weekDay->format('Y-m-d');
+            $tasks = $tasksByDate[$dateStr] ?? [];
+            $timedItems = [];
+
+            foreach ($tasks as $task) {
+                $startTime = $task->start_date;
+                $endTime = $task->end_date ?? $startTime->copy()->addHour();
+                $dayStart = $weekDay->copy()->startOfDay();
+                $dayEnd = $weekDay->copy()->endOfDay();
+                if ($startTime->lt($dayStart)) {
+                    $startTime = $dayStart->copy();
+                }
+                if ($endTime->gt($dayEnd)) {
+                    $endTime = $dayEnd->copy();
+                }
+
+                $startMinutes = $startTime->hour * 60 + $startTime->minute;
+                $endMinutes = $endTime->hour * 60 + $endTime->minute;
+                if ($endMinutes - $startMinutes < 30) {
+                    $endMinutes = $startMinutes + 30;
+                }
+
+                $timedItems[] = [
+                    'type' => 'task',
+                    'model' => $task,
+                    'startMin' => $startMinutes,
+                    'endMin' => min($endMinutes, 1440),
+                ];
+            }
+
+            usort($timedItems, fn ($a, $b) => $a['startMin'] <=> $b['startMin']);
+            $positionedItems = $this->assignOverlapColumns($timedItems);
+
+            $data[$dateStr] = [
+                'allDay' => [],
+                'timed' => $positionedItems,
+            ];
+        }
+
+        return $data;
+    }
+
+    private function assignOverlapColumns(array $items): array
+    {
+        if (empty($items)) {
+            return [];
+        }
+
+        $clusters = [];
+        $currentCluster = [$items[0]];
+
+        for ($i = 1; $i < count($items); $i++) {
+            $clusterEnd = max(array_column($currentCluster, 'endMin'));
+            if ($items[$i]['startMin'] < $clusterEnd) {
+                $currentCluster[] = $items[$i];
+            } else {
+                $clusters[] = $currentCluster;
+                $currentCluster = [$items[$i]];
+            }
+        }
+        $clusters[] = $currentCluster;
+
+        $result = [];
+
+        foreach ($clusters as $cluster) {
+            $totalCols = count($cluster);
+            foreach ($cluster as $colIndex => $item) {
+                $item['col'] = $colIndex;
+                $item['totalCols'] = $totalCols;
+                $item['topPercent'] = round(($item['startMin'] / 1440) * 100, 4);
+                $item['heightPercent'] = round((($item['endMin'] - $item['startMin']) / 1440) * 100, 4);
+                $item['leftPercent'] = round(($colIndex / $totalCols) * 100, 4);
+                $item['widthPercent'] = round((1 / $totalCols) * 100, 4);
+                $result[] = $item;
+            }
+        }
+
+        return $result;
+    }
+
     public function render()
     {
         [$start, $end] = $this->getDateRange();
