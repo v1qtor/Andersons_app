@@ -255,7 +255,10 @@ class ScheduleCalendar extends Component
             return true;
         }
 
-        return $task->users()->where('users.id', Auth::id())->exists();
+        return $task->users()
+            ->where('users.id', Auth::id())
+            ->wherePivot('is_owner', true)
+            ->exists();
     }
 
     /**
