@@ -178,5 +178,69 @@ class PersonalTaskCalendar extends Component
         $this->showTaskModal = false;
         $this->resetForm();
     }
+
+    public function confirmDelete(int $taskId): void
+    {
+        $this->deletingTaskId = $taskId;
+        $this->showDeleteModal = true;
+    }
+
+    public function deleteTask(): void
+    {
+        if (! $this->deletingTaskId) {
+            return;
+        }
+
+        $task = Task::findOrFail($this->deletingTaskId);
+
+        if (! $this->canManageTask($task)) {
+            return;
+        }
+
+        $task->users()->detach();
+        $task->locations()->detach();
+        $task->delete();
+
+        $this->showDeleteModal = false;
+        $this->deletingTaskId = null;
+    }
+
+    public function toggleComplete(int $taskId): void
+    {
+        $task = Task::findOrFail($taskId);
+
+        if (! $this->canManageTask($task)) {
+            return;
+        }
+
+        $task->update(['is_complete' => ! $task->is_complete]);
+    }
+
+    // ─── Helpers ─────────────────────────────────────────────
+
+    private function resetForm(): void
+    {
+        $this->editingTaskId = null;
+        $this->title = '';
+        $this->description = '';
+        $this->startDate = '';
+        $this->endDate = '';
+        $this->taskCategoryId = null;
+        $this->taskPriorityId = null;
+    }
+
+    private function isAdmin(): bool
+    {
+        return Auth::user()->role && Auth::user()->role->name === 'Admin';
+    }
+
+    private function canManageTask(Task $task): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        return $task->users()->where('users.id', Auth::id())->exists();
+    }
 }
 
