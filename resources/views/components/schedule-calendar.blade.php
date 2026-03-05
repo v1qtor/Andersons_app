@@ -338,13 +338,6 @@
                         <div class="flex items-start justify-between gap-2">
                             <div class="flex-1">
                                 <div class="flex items-center gap-2 mb-1">
-                                    @if ($task->is_complete)
-                                        <span class="text-lg">✅</span>
-                                    @else
-                                        <button wire:click="markComplete({{ $task->id }})" class="cursor-pointer" title="{{ __('Mark as complete') }}">
-                                            <span class="text-lg">⬜</span>
-                                        </button>
-                                    @endif
                                     <span class="font-bold text-neutral-900 dark:text-neutral-100">{{ $task->title }}</span>
                                     <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ $task->start_date->format('H:i') }}@if($task->end_date) – {{ $task->end_date->format('H:i') }}@endif</span>
                                     @if ($task->taskPriority)
@@ -375,6 +368,17 @@
                                     <flux:button size="sm" variant="ghost" wire:click="openEditModal({{ $task->id }})" icon="pencil-square" />
                                     <flux:button size="sm" variant="ghost" wire:click="confirmDelete({{ $task->id }})" icon="trash" class="!text-red-500 hover:!text-red-700" />
                                 </div>
+                            @endif
+                        </div>
+                        <div class="flex justify-end mt-3">
+                            @if ($task->is_complete)
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 text-sm font-semibold">
+                                    ✓ {{ __('Completed') }}
+                                </span>
+                            @elseif ($isAdmin || $task->users->contains('id', auth()->id()))
+                                <flux:button size="sm" variant="primary" wire:click="markComplete({{ $task->id }})" icon="check">
+                                    {{ __('Mark Complete') }}
+                                </flux:button>
                             @endif
                         </div>
                     </div>
@@ -500,13 +504,6 @@
                                         <div class="flex items-start justify-between gap-2">
                                             <div class="flex-1">
                                                 <div class="flex items-center gap-2 mb-1">
-                                                    @if ($task->is_complete)
-                                                        <span class="text-lg">✅</span>
-                                                    @else
-                                                        <button wire:click="markComplete({{ $task->id }})" class="cursor-pointer" title="{{ __('Mark as complete') }}">
-                                                            <span class="text-lg">⬜</span>
-                                                        </button>
-                                                    @endif
                                                     <span class="font-semibold text-lg text-neutral-900 dark:text-neutral-100">{{ $task->title }}</span>
                                                 </div>
                                                 <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-2">
@@ -533,15 +530,23 @@
                                                         </span>
                                                     @endforeach
                                                 </div>
-                                                @if ($task->is_complete)
-                                                    <div class="mt-2 text-green-700 dark:text-green-400 font-bold text-sm">✓ {{ __('Completed') }}</div>
-                                                @endif
                                             </div>
                                             @if ($isAdmin || $task->users->where('id', auth()->id())->first()?->pivot?->is_owner)
                                                 <div class="flex items-center gap-1 shrink-0">
                                                     <flux:button size="sm" variant="ghost" wire:click="openEditModal({{ $task->id }})" icon="pencil-square" />
                                                     <flux:button size="sm" variant="ghost" wire:click="confirmDelete({{ $task->id }})" icon="trash" class="!text-red-500 hover:!text-red-700" />
                                                 </div>
+                                            @endif
+                                        </div>
+                                        <div class="flex justify-end mt-3">
+                                            @if ($task->is_complete)
+                                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 text-sm font-semibold">
+                                                    ✓ {{ __('Completed') }}
+                                                </span>
+                                            @elseif ($isAdmin || $task->users->contains('id', auth()->id()))
+                                                <flux:button size="sm" variant="primary" wire:click="markComplete({{ $task->id }})" icon="check">
+                                                    {{ __('Mark Complete') }}
+                                                </flux:button>
                                             @endif
                                         </div>
                                     </div>
