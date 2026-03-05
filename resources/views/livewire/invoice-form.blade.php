@@ -41,30 +41,6 @@
         </style>
     @endif
 
-    <!-- Save Confirmation Modal -->
-    @if($showSaveConfirm)
-        <div class="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 flex items-center justify-center p-4">
-            <div class="bg-white dark:bg-neutral-800 rounded-xl max-w-md w-full">
-                <div class="p-6 border-b border-gray-200 dark:border-neutral-700">
-                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">Save Changes</h2>
-                </div>
-
-                <div class="p-6">
-                    <p class="text-gray-700 dark:text-gray-300 mb-6">Are you sure you want to save these changes to your invoice?</p>
-                </div>
-
-                <div class="flex gap-3 p-6 border-t border-gray-200 dark:border-neutral-700">
-                    <button wire:click="$set('showSaveConfirm', false)" class="flex-1 px-4 py-2 border border-gray-300 dark:border-neutral-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors font-medium">
-                        Cancel
-                    </button>
-                    <button wire:click="confirmSave" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium">
-                        Save Changes
-                    </button>
-                </div>
-            </div>
-        </div>
-    @endif
-
     <div class="space-y-8">
         <!-- Page Header -->
         <div class="mb-8">

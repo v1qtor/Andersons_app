@@ -24,7 +24,6 @@ class InvoiceForm extends Component
     public string $description = '';
     public string $invoiceName = '';
     public string $amount = '';
-    public bool $showSaveConfirm = false;
 
     public function mount(?int $id = null)
     {
@@ -62,18 +61,7 @@ class InvoiceForm extends Component
 
     public function prepareSave()
     {
-        if ($this->invoice) {
-            // Show confirmation modal for edit
-            $this->showSaveConfirm = true;
-        } else {
-            // Directly save for create
-            $this->saveInvoice();
-        }
-    }
-
-    public function confirmSave()
-    {
-        $this->showSaveConfirm = false;
+        // Directly save for both create and edit
         $this->saveInvoice();
     }
 

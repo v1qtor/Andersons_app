@@ -228,17 +228,17 @@
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 text-sm">
-                                        <div class="flex items-center gap-3">
-                                            <button wire:click="viewInvoice({{ $invoice->id }})" class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium">
-                                                View
-                                            </button>
+                                        <div class="flex items-center justify-end gap-1">
+                                            <flux:tooltip content="{{ __('View') }}" position="top">
+                                                <flux:button variant="ghost" size="sm" wire:click="viewInvoice({{ $invoice->id }})" icon="eye" />
+                                            </flux:tooltip>
                                             @if(!$invoice->is_paid)
-                                                <a href="{{ route('invoices.edit', $invoice->id) }}" class="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium">
-                                                    Edit
-                                                </a>
-                                            <button wire:click="$set('deleteInvoiceId', {{ $invoice->id }})" class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium">
-                                                Delete
-                                            </button>
+                                                <flux:tooltip content="{{ __('Edit') }}" position="top">
+                                                    <flux:button variant="ghost" size="sm" :href="route('invoices.edit', $invoice->id)" wire:navigate icon="pencil" />
+                                                </flux:tooltip>
+                                                <flux:tooltip content="{{ __('Delete') }}" position="top">
+                                                    <flux:button variant="ghost" size="sm" wire:click="$set('deleteInvoiceId', {{ $invoice->id }})" icon="trash" class="!text-red-600 hover:!text-red-700 dark:!text-red-400" />
+                                                </flux:tooltip>
                                             @endif
                                         </div>
                                     </td>
