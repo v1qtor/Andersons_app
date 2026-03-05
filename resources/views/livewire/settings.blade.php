@@ -179,21 +179,23 @@
                         <p class="text-sm font-semibold text-gray-900 dark:text-white">Trip Delay Alerts</p>
                     </div>
                     <div class="flex gap-16">
+                        <!-- Email Toggle -->
                         <div class="flex justify-center w-20">
-                            <input
-                                type="checkbox"
-                                @checked($notifications['tripDelayAlerts']['email'])
-                                wire:change="toggleNotification('tripDelayAlerts', 'email')"
-                                class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                            <button 
+                                wire:click="toggleNotification('tripDelayAlerts', 'email')"
+                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['tripDelayAlerts']['email']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
                             >
+                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['tripDelayAlerts']['email']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
+                            </button>
                         </div>
+                        <!-- Popup Toggle -->
                         <div class="flex justify-center w-20">
-                            <input
-                                type="checkbox"
-                                @checked($notifications['tripDelayAlerts']['popup'])
-                                wire:change="toggleNotification('tripDelayAlerts', 'popup')"
-                                class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                            <button 
+                                wire:click="toggleNotification('tripDelayAlerts', 'popup')"
+                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['tripDelayAlerts']['popup']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
                             >
+                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['tripDelayAlerts']['popup']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -204,21 +206,23 @@
                         <p class="text-sm font-semibold text-gray-900 dark:text-white">Task Reminders</p>
                     </div>
                     <div class="flex gap-16">
+                        <!-- Email Toggle -->
                         <div class="flex justify-center w-20">
-                            <input
-                                type="checkbox"
-                                @checked($notifications['taskReminders']['email'])
-                                wire:change="toggleNotification('taskReminders', 'email')"
-                                class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                            <button 
+                                wire:click="toggleNotification('taskReminders', 'email')"
+                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['taskReminders']['email']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
                             >
+                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['taskReminders']['email']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
+                            </button>
                         </div>
+                        <!-- Popup Toggle -->
                         <div class="flex justify-center w-20">
-                            <input
-                                type="checkbox"
-                                @checked($notifications['taskReminders']['popup'])
-                                wire:change="toggleNotification('taskReminders', 'popup')"
-                                class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                            <button 
+                                wire:click="toggleNotification('taskReminders', 'popup')"
+                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['taskReminders']['popup']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
                             >
+                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['taskReminders']['popup']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -229,21 +233,23 @@
                         <p class="text-sm font-semibold text-gray-900 dark:text-white">Receipt Approvals</p>
                     </div>
                     <div class="flex gap-16">
+                        <!-- Email Toggle -->
                         <div class="flex justify-center w-20">
-                            <input
-                                type="checkbox"
-                                @checked($notifications['receiptApprovals']['email'])
-                                wire:change="toggleNotification('receiptApprovals', 'email')"
-                                class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                            <button 
+                                wire:click="toggleNotification('receiptApprovals', 'email')"
+                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['receiptApprovals']['email']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
                             >
+                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['receiptApprovals']['email']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
+                            </button>
                         </div>
+                        <!-- Popup Toggle -->
                         <div class="flex justify-center w-20">
-                            <input
-                                type="checkbox"
-                                @checked($notifications['receiptApprovals']['popup'])
-                                wire:change="toggleNotification('receiptApprovals', 'popup')"
-                                class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                            <button 
+                                wire:click="toggleNotification('receiptApprovals', 'popup')"
+                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['receiptApprovals']['popup']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
                             >
+                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['receiptApprovals']['popup']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -254,21 +260,23 @@
                         <p class="text-sm font-semibold text-gray-900 dark:text-white">Dinner Signup Confirmations</p>
                     </div>
                     <div class="flex gap-16">
+                        <!-- Email Toggle -->
                         <div class="flex justify-center w-20">
-                            <input
-                                type="checkbox"
-                                @checked($notifications['dinnerSignups']['email'])
-                                wire:change="toggleNotification('dinnerSignups', 'email')"
-                                class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                            <button 
+                                wire:click="toggleNotification('dinnerSignups', 'email')"
+                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['dinnerSignups']['email']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
                             >
+                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['dinnerSignups']['email']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
+                            </button>
                         </div>
+                        <!-- Popup Toggle -->
                         <div class="flex justify-center w-20">
-                            <input
-                                type="checkbox"
-                                @checked($notifications['dinnerSignups']['popup'])
-                                wire:change="toggleNotification('dinnerSignups', 'popup')"
-                                class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                            <button 
+                                wire:click="toggleNotification('dinnerSignups', 'popup')"
+                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['dinnerSignups']['popup']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
                             >
+                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['dinnerSignups']['popup']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
+                            </button>
                         </div>
                     </div>
                 </div>
