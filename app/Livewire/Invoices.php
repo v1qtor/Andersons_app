@@ -138,6 +138,13 @@ class Invoices extends Component
         $this->updateStatusInvoiceId = null;
     }
 
+    public function clearFilters()
+    {
+        $this->filterStatus = '';
+        $this->filterDate = '';
+        $this->searchName = '';
+    }
+
     public function render()
     {
         $invoices = $this->getInvoices();
