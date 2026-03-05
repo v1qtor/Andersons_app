@@ -18,10 +18,10 @@ class Receipt extends Model
         'description',
         'is_paid',
         'file_path',
-        'receipt_file_path',
         'upload_date',
         'paid_date',
         'name',
+        'substitute_category',
     ];
 
     protected function casts(): array

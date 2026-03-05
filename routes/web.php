@@ -25,7 +25,6 @@ Route::view('dashboard', 'dashboard')
 Route::middleware(['auth'])->group(function () {
     Route::get('schedule', Schedule::class)->name('schedule');
 
-    Route::redirect('settings', 'settings/profile');
     Route::get('settings', Settings::class)->name('settings');
     Route::redirect('settings/redirect', 'settings/profile');
 
