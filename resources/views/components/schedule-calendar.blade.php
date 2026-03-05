@@ -1,15 +1,42 @@
 <div>
-    {{-- View Toggle --}}
-    <div class="flex items-center justify-end gap-2 mb-4">
-        <flux:button size="sm" :variant="$view === 'day' ? 'primary' : 'ghost'" wire:click="setView('day')">
-            {{ __('Day') }}
-        </flux:button>
-        <flux:button size="sm" :variant="$view === 'week' ? 'primary' : 'ghost'" wire:click="setView('week')">
-            {{ __('Week') }}
-        </flux:button>
-        <flux:button size="sm" :variant="$view === 'month' ? 'primary' : 'ghost'" wire:click="setView('month')">
-            {{ __('Month') }}
-        </flux:button>
+    {{-- View Toggle + New Task --}}
+    <div class="flex items-center justify-between gap-2 mb-4">
+        <div class="flex items-center gap-2">
+            <flux:button size="sm" :variant="$view === 'day' ? 'primary' : 'ghost'" wire:click="setView('day')">
+                {{ __('Day') }}
+            </flux:button>
+            <flux:button size="sm" :variant="$view === 'week' ? 'primary' : 'ghost'" wire:click="setView('week')">
+                {{ __('Week') }}
+            </flux:button>
+            <flux:button size="sm" :variant="$view === 'month' ? 'primary' : 'ghost'" wire:click="setView('month')">
+                {{ __('Month') }}
+            </flux:button>
+        </div>
+        <div class="flex items-center gap-2">
+            <div class="inline-flex rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden">
+                <button
+                    wire:click="setMyTasksOnly(true)"
+                    class="px-3 py-1.5 text-sm font-medium transition-colors
+                        {{ $showMyTasksOnly
+                            ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                            : 'bg-white text-neutral-700 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-300 dark:hover:bg-zinc-700' }}"
+                >
+                    {{ __('My Tasks') }}
+                </button>
+                <button
+                    wire:click="setMyTasksOnly(false)"
+                    class="px-3 py-1.5 text-sm font-medium transition-colors border-l border-neutral-200 dark:border-neutral-700
+                        {{ ! $showMyTasksOnly
+                            ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                            : 'bg-white text-neutral-700 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-300 dark:hover:bg-zinc-700' }}"
+                >
+                    {{ __('All Tasks') }}
+                </button>
+            </div>
+            <flux:button size="sm" variant="primary" wire:click="openCreateModal" icon="plus">
+                {{ __('New Task') }}
+            </flux:button>
+        </div>
     </div>
 
     {{-- Navigation + Period Label --}}
@@ -111,7 +138,7 @@
                                 @if ($hasTasks)
                                     @foreach (array_slice($dayEvents['tasks'], 0, 2) as $task)
                                         <div class="text-[10px] leading-tight px-1 py-0.5 rounded truncate {{ $task->is_complete ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' }}">
-                                            <span class="font-medium">{{ $task->date ? $task->date->format('H:i') : $task->start_date->format('H:i') }}</span> {{ $task->title }}
+                                            <span class="font-medium">{{ $task->start_date->format('H:i') }}</span> {{ $task->title }}
                                         </div>
                                     @endforeach
                                     @if (count($dayEvents['tasks']) > 2)
@@ -184,7 +211,7 @@
                         </div>
                     @endif
 
-                    {{-- Time grid - all hours fit on screen --}}
+                    {{-- Time grid --}}
                     <div class="grid grid-cols-[48px_repeat(7,1fr)] border-t border-neutral-200 dark:border-neutral-700">
                         {{-- Hour labels column --}}
                         <div class="relative" style="height: 600px;">
@@ -231,8 +258,8 @@
                                 {{-- Events --}}
                                 @foreach ($dayData['timed'] as $event)
                                     @php
-                                        $isTask = $event['type'] === 'task';
-                                        $isMeal = $event['type'] === 'meal';
+                                        $isTask = ($event['type'] ?? 'task') === 'task';
+                                        $isMeal = ($event['type'] ?? '') === 'meal';
                                         $model = $event['model'];
                                     @endphp
                                     <div class="absolute z-10 px-px overflow-hidden"
@@ -273,6 +300,12 @@
                 $dayEvents = $eventsByDate[$dateStr] ?? [];
             @endphp
             <div class="space-y-4">
+                <div class="flex justify-end">
+                    <flux:button size="sm" variant="primary" wire:click="openCreateModal('{{ $dateStr }}')" icon="plus">
+                        {{ __('Add Task') }}
+                    </flux:button>
+                </div>
+
                 {{-- Trips --}}
                 @foreach ($dayEvents['trips'] ?? [] as $trip)
                     <div class="p-4 rounded-lg border-2 border-orange-300 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-700">
@@ -302,30 +335,41 @@
                 {{-- Tasks --}}
                 @foreach ($dayEvents['tasks'] ?? [] as $task)
                     <div class="p-4 rounded-lg border-2 {{ $task->is_complete ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700' : 'border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700' }}">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="font-bold text-neutral-900 dark:text-neutral-100">{{ $task->is_complete ? '✓' : '○' }} {{ $task->title }}</span>
-                            <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ ($task->date ?? $task->start_date)->format('H:i') }}</span>
-                            @if ($task->taskPriority)
-                                <span class="text-xs px-2 py-0.5 rounded-full bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-300">{{ $task->taskPriority->name }}</span>
-                            @endif
-                        </div>
-                        @if ($task->description)
-                            <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $task->description }}</p>
-                        @endif
-                        <div class="flex items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400 mb-2">
-                            @if ($task->taskCategory)
-                                <span>{{ $task->taskCategory->name }}</span>
-                            @endif
-                            @if ($task->locations->isNotEmpty())
-                                <span>📍 {{ $task->locations->pluck('name')->join(', ') }}</span>
-                            @endif
-                        </div>
-                        <div class="flex flex-wrap gap-1.5">
-                            @foreach ($task->users as $u)
-                                <span class="px-2.5 py-1 rounded-full text-white text-xs font-medium" style="background-color: {{ $u->role?->color ?? '#6366f1' }}">
-                                    {{ $u->name }}
-                                </span>
-                            @endforeach
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <button wire:click="toggleComplete({{ $task->id }})" class="cursor-pointer" title="{{ __('Toggle complete') }}">
+                                        <span class="text-lg">{{ $task->is_complete ? '✅' : '⬜' }}</span>
+                                    </button>
+                                    <span class="font-bold text-neutral-900 dark:text-neutral-100">{{ $task->title }}</span>
+                                    <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ $task->start_date->format('H:i') }}@if($task->end_date) – {{ $task->end_date->format('H:i') }}@endif</span>
+                                    @if ($task->taskPriority)
+                                        <span class="text-xs px-2 py-0.5 rounded-full bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-300">{{ $task->taskPriority->name }}</span>
+                                    @endif
+                                </div>
+                                @if ($task->description)
+                                    <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $task->description }}</p>
+                                @endif
+                                <div class="flex items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400">
+                                    @if ($task->taskCategory)
+                                        <span>{{ $task->taskCategory->name }}</span>
+                                    @endif
+                                    @if ($task->locations->isNotEmpty())
+                                        <span>📍 {{ $task->locations->pluck('name')->join(', ') }}</span>
+                                    @endif
+                                </div>
+                                <div class="flex flex-wrap gap-1.5 mt-2">
+                                    @foreach ($task->users as $u)
+                                        <span class="px-2.5 py-1 rounded-full text-white text-xs font-medium" style="background-color: {{ $u->role?->color ?? '#6366f1' }}">
+                                            {{ $u->name }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1 shrink-0">
+                                <flux:button size="sm" variant="ghost" wire:click="openEditModal({{ $task->id }})" icon="pencil-square" />
+                                <flux:button size="sm" variant="ghost" wire:click="confirmDelete({{ $task->id }})" icon="trash" class="!text-red-500 hover:!text-red-700" />
+                            </div>
                         </div>
                     </div>
                 @endforeach
@@ -404,7 +448,12 @@
                     <h3 class="text-xl font-bold text-neutral-900 dark:text-neutral-100">
                         {{ \Carbon\Carbon::parse($selectedDay)->format('l, j F Y') }}
                     </h3>
-                    <flux:button variant="ghost" size="sm" wire:click="closeDay" icon="x-mark" />
+                    <div class="flex items-center gap-2">
+                        <flux:button size="sm" variant="primary" wire:click="openCreateModal('{{ $selectedDay }}')" icon="plus">
+                            {{ __('Add Task') }}
+                        </flux:button>
+                        <flux:button variant="ghost" size="sm" wire:click="closeDay" icon="x-mark" />
+                    </div>
                 </div>
 
                 <div class="p-6 space-y-6">
@@ -442,34 +491,47 @@
                             <div class="space-y-3">
                                 @foreach ($dayDetails['tasks'] as $task)
                                     <div class="p-4 rounded-lg border-2 {{ $task->is_complete ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700' : 'border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700' }}">
-                                        <div class="font-semibold text-lg mb-1 text-neutral-900 dark:text-neutral-100">{{ $task->title }}</div>
-                                        <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-2">
-                                            🕐 {{ $task->start_date->format('j M Y, H:i') }}@if($task->end_date) – {{ $task->end_date->format('j M Y, H:i') }}@endif
+                                        <div class="flex items-start justify-between gap-2">
+                                            <div class="flex-1">
+                                                <div class="flex items-center gap-2 mb-1">
+                                                    <button wire:click="toggleComplete({{ $task->id }})" class="cursor-pointer" title="{{ __('Toggle complete') }}">
+                                                        <span class="text-lg">{{ $task->is_complete ? '✅' : '⬜' }}</span>
+                                                    </button>
+                                                    <span class="font-semibold text-lg text-neutral-900 dark:text-neutral-100">{{ $task->title }}</span>
+                                                </div>
+                                                <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-2">
+                                                    🕐 {{ $task->start_date->format('j M Y, H:i') }}@if($task->end_date) – {{ $task->end_date->format('j M Y, H:i') }}@endif
+                                                </div>
+                                                @if ($task->description)
+                                                    <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $task->description }}</p>
+                                                @endif
+                                                <div class="flex items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400 mb-2">
+                                                    @if ($task->taskCategory)
+                                                        <span>{{ $task->taskCategory->name }}</span>
+                                                    @endif
+                                                    @if ($task->locations->isNotEmpty())
+                                                        <span>📍 {{ $task->locations->pluck('name')->join(', ') }}</span>
+                                                    @endif
+                                                    @if ($task->taskPriority)
+                                                        <span>{{ $task->taskPriority->name }}</span>
+                                                    @endif
+                                                </div>
+                                                <div class="flex flex-wrap gap-1.5">
+                                                    @foreach ($task->users as $u)
+                                                        <span class="px-2.5 py-1 rounded-full text-white text-xs font-medium" style="background-color: {{ $u->role?->color ?? '#6366f1' }}">
+                                                            {{ $u->name }}
+                                                        </span>
+                                                    @endforeach
+                                                </div>
+                                                @if ($task->is_complete)
+                                                    <div class="mt-2 text-green-700 dark:text-green-400 font-bold text-sm">✓ {{ __('Completed') }}</div>
+                                                @endif
+                                            </div>
+                                            <div class="flex items-center gap-1 shrink-0">
+                                                <flux:button size="sm" variant="ghost" wire:click="openEditModal({{ $task->id }})" icon="pencil-square" />
+                                                <flux:button size="sm" variant="ghost" wire:click="confirmDelete({{ $task->id }})" icon="trash" class="!text-red-500 hover:!text-red-700" />
+                                            </div>
                                         </div>
-                                        @if ($task->description)
-                                            <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $task->description }}</p>
-                                        @endif
-                                        <div class="flex items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400 mb-2">
-                                            @if ($task->taskCategory)
-                                                <span>{{ $task->taskCategory->name }}</span>
-                                            @endif
-                                            @if ($task->locations->isNotEmpty())
-                                                <span>📍 {{ $task->locations->pluck('name')->join(', ') }}</span>
-                                            @endif
-                                            @if ($task->taskPriority)
-                                                <span>{{ $task->taskPriority->name }}</span>
-                                            @endif
-                                        </div>
-                                        <div class="flex flex-wrap gap-1.5">
-                                            @foreach ($task->users as $u)
-                                                <span class="px-2.5 py-1 rounded-full text-white text-xs font-medium" style="background-color: {{ $u->role?->color ?? '#6366f1' }}">
-                                                    {{ $u->name }}
-                                                </span>
-                                            @endforeach
-                                        </div>
-                                        @if ($task->is_complete)
-                                            <div class="mt-2 text-green-700 dark:text-green-400 font-bold text-sm">✓ {{ __('Completed') }}</div>
-                                        @endif
                                     </div>
                                 @endforeach
                             </div>
@@ -512,6 +574,20 @@
                 </div>
             </div>
         </div>
+    @endif
+
+    {{-- ========== CREATE / EDIT TASK MODAL ========== --}}
+    @if (!empty($showTaskModal))
+        <x-task-form-modal
+            :editing-task-id="$editingTaskId"
+            :task-categories="$taskCategories"
+            :task-priorities="$taskPriorities"
+        />
+    @endif
+
+    {{-- ========== DELETE CONFIRMATION MODAL ========== --}}
+    @if (!empty($showDeleteModal))
+        <x-task-delete-modal />
     @endif
 </div>
 
