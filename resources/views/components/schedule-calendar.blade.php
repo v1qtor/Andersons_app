@@ -338,12 +338,12 @@
                         <div class="flex items-start justify-between gap-2">
                             <div class="flex-1">
                                 <div class="flex items-center gap-2 mb-1">
-                                    @if ($isAdmin || $task->users->where('id', auth()->id())->first()?->pivot?->is_owner)
-                                        <button wire:click="toggleComplete({{ $task->id }})" class="cursor-pointer" title="{{ __('Toggle complete') }}">
-                                            <span class="text-lg">{{ $task->is_complete ? '✅' : '⬜' }}</span>
-                                        </button>
+                                    @if ($task->is_complete)
+                                        <span class="text-lg">✅</span>
                                     @else
-                                        <span class="text-lg">{{ $task->is_complete ? '✅' : '⬜' }}</span>
+                                        <button wire:click="markComplete({{ $task->id }})" class="cursor-pointer" title="{{ __('Mark as complete') }}">
+                                            <span class="text-lg">⬜</span>
+                                        </button>
                                     @endif
                                     <span class="font-bold text-neutral-900 dark:text-neutral-100">{{ $task->title }}</span>
                                     <span class="text-sm text-neutral-500 dark:text-neutral-400">{{ $task->start_date->format('H:i') }}@if($task->end_date) – {{ $task->end_date->format('H:i') }}@endif</span>
@@ -500,12 +500,12 @@
                                         <div class="flex items-start justify-between gap-2">
                                             <div class="flex-1">
                                                 <div class="flex items-center gap-2 mb-1">
-                                                    @if ($isAdmin || $task->users->where('id', auth()->id())->first()?->pivot?->is_owner)
-                                                        <button wire:click="toggleComplete({{ $task->id }})" class="cursor-pointer" title="{{ __('Toggle complete') }}">
-                                                            <span class="text-lg">{{ $task->is_complete ? '✅' : '⬜' }}</span>
-                                                        </button>
+                                                    @if ($task->is_complete)
+                                                        <span class="text-lg">✅</span>
                                                     @else
-                                                        <span class="text-lg">{{ $task->is_complete ? '✅' : '⬜' }}</span>
+                                                        <button wire:click="markComplete({{ $task->id }})" class="cursor-pointer" title="{{ __('Mark as complete') }}">
+                                                            <span class="text-lg">⬜</span>
+                                                        </button>
                                                     @endif
                                                     <span class="font-semibold text-lg text-neutral-900 dark:text-neutral-100">{{ $task->title }}</span>
                                                 </div>
