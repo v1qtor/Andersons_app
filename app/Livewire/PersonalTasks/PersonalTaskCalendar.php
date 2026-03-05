@@ -242,5 +242,76 @@ class PersonalTaskCalendar extends Component
 
         return $task->users()->where('users.id', Auth::id())->exists();
     }
+
+    public function render()
+    {
+        [$start, $end] = $this->getDateRange();
+
+        $tasks = $this->getFilteredTasks($start, $end);
+        $tasksByDate = $this->groupTasksByDate($tasks);
+
+        // Convert to eventsByDate format (same as ScheduleCalendar)
+        $eventsByDate = [];
+        foreach ($tasksByDate as $date => $dateTasks) {
+            $eventsByDate[$date] = [
+                'tasks' => $dateTasks,
+                'meals' => [],
+                'trips' => [],
+            ];
+        }
+
+        // Calendar grid for month
+        $calendarDays = [];
+        if ($this->view === 'month') {
+            $firstOfMonth = Carbon::create($this->year, $this->month, 1);
+            $startDow = $firstOfMonth->dayOfWeekIso;
+            $daysInMonth = $firstOfMonth->daysInMonth;
+
+            for ($i = 1; $i < $startDow; $i++) {
+                $calendarDays[] = null;
+            }
+            for ($d = 1; $d <= $daysInMonth; $d++) {
+                $calendarDays[] = $d;
+            }
+        }
+
+        // Week days
+        $weekDays = [];
+        $weekViewData = [];
+        if ($this->view === 'week') {
+            $weekStart = Carbon::create($this->year, $this->month, $this->day)->startOfWeek(Carbon::MONDAY);
+            for ($i = 0; $i < 7; $i++) {
+                $weekDays[] = $weekStart->copy()->addDays($i);
+            }
+            $weekViewData = $this->buildWeekViewData($weekDays, $tasksByDate);
+        }
+
+        // Day details (same format as ScheduleCalendar)
+        $dayDetails = null;
+        if ($this->selectedDay) {
+            $dayDetails = [
+                'tasks' => $eventsByDate[$this->selectedDay]['tasks'] ?? [],
+                'meals' => [],
+                'trips' => [],
+            ];
+        }
+
+        return view('components.schedule-calendar', [
+            'mode' => 'personal-tasks',
+            'tasks' => $tasks,
+            'meals' => collect(),
+            'trips' => collect(),
+            'eventsByDate' => $eventsByDate,
+            'users' => collect(),
+            'calendarDays' => $calendarDays,
+            'weekDays' => $weekDays,
+            'weekViewData' => $weekViewData,
+            'dayDetails' => $dayDetails,
+            'today' => Carbon::today()->format('Y-m-d'),
+            'taskCategories' => TaskCategory::all(),
+            'taskPriorities' => TaskPriority::all(),
+            'isAdmin' => $this->isAdmin(),
+        ]);
+    }
 }
 
