@@ -3,6 +3,7 @@
 use App\Livewire\Admin\UserCreate;
 use App\Livewire\Admin\UserEdit;
 use App\Livewire\Admin\UserIndex;
+use App\Livewire\PersonalTasks;
 use App\Livewire\Schedule;
 use App\Livewire\Settings;
 use App\Livewire\Settings\Appearance;
@@ -22,6 +23,7 @@ Route::view('dashboard', 'dashboard')
 
 Route::middleware(['auth'])->group(function () {
     Route::get('schedule', Schedule::class)->name('schedule');
+    Route::get('personal-tasks', PersonalTasks::class)->name('personal-tasks');
 
     Route::redirect('settings', 'settings/profile');
     Route::get('settings', Settings::class)->name('settings');
