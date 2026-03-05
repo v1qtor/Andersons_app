@@ -29,7 +29,7 @@ class InvoiceForm extends Component
     {
         // Check if user has access to invoices feature
         $user = Auth::user();
-        $allowedRoles = ['Staff', 'Chef', 'Admin'];
+        $allowedRoles = ['Staff', 'Chef', 'Admin', 'The Andersons'];
         if (!$user || !$user->role || !in_array($user->role->name, $allowedRoles)) {
             abort(403, __('Unauthorized. Staff access required.'));
         }

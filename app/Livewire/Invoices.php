@@ -13,24 +13,37 @@ class Invoices extends Component
 {
     public string $filterStatus = '';
     public string $filterDate = '';
+    public string $searchName = '';
     public ?int $viewInvoiceId = null;
     public ?int $deleteInvoiceId = null;
+    public ?int $updateStatusInvoiceId = null;
+    public ?int $showIbanInvoiceId = null;
 
     public function mount()
     {
         $user = Auth::user();
-        $allowedRoles = ['Staff', 'Chef', 'Admin'];
+        $allowedRoles = ['Staff', 'Chef', 'Admin', 'The Andersons'];
         
         if (!$user || !$user->role || !in_array($user->role->name, $allowedRoles)) {
             abort(403, __('Unauthorized. Staff access required.'));
         }
     }
 
+    public function isAdmin()
+    {
+        $user = Auth::user();
+        return $user && $user->role && in_array($user->role->name, ['Admin', 'The Andersons']);
+    }
+
     public function getInvoices()
     {
-        $query = Receipt::where('user_id', Auth::id())
-            ->with('category')
-            ->orderBy('created_at', 'desc');
+        $user = Auth::user();
+        $isAdmin = $this->isAdmin();
+
+        // Admin/TheAndersons see all invoices, others see only their own
+        $query = $isAdmin 
+            ? Receipt::with(['category', 'user'])
+            : Receipt::where('user_id', $user->id)->with(['category', 'user']);
 
         if ($this->filterStatus) {
             $query->where('is_paid', $this->filterStatus === 'paid');
@@ -40,12 +53,21 @@ class Invoices extends Component
             $query->whereDate('bill_date', $this->filterDate);
         }
 
-        return $query->get();
+        if ($isAdmin && $this->searchName) {
+            $query->whereHas('user', function ($q) {
+                $q->where('name', 'like', '%' . $this->searchName . '%');
+            });
+        }
+
+        return $query->orderBy('created_at', 'desc')->get();
     }
 
     public function viewInvoice(Receipt $invoice)
     {
-        if ($invoice->user_id !== Auth::id()) {
+        $user = Auth::user();
+        $isAdmin = $this->isAdmin();
+
+        if (!$isAdmin && $invoice->user_id !== $user->id) {
             abort(403);
         }
         $this->viewInvoiceId = $invoice->id;
@@ -68,7 +90,10 @@ class Invoices extends Component
             abort(404, 'Invoice not found');
         }
 
-        if ($invoice->user_id !== Auth::id()) {
+        $user = Auth::user();
+        $isAdmin = $this->isAdmin();
+
+        if (!$isAdmin && $invoice->user_id !== $user->id) {
             abort(403);
         }
 
@@ -83,6 +108,36 @@ class Invoices extends Component
         $this->deleteInvoiceId = null;
     }
 
+    public function toggleShowIban($invoiceId)
+    {
+        if ($this->showIbanInvoiceId === $invoiceId) {
+            $this->showIbanInvoiceId = null;
+        } else {
+            $this->showIbanInvoiceId = $invoiceId;
+        }
+    }
+
+    public function confirmStatusUpdate($invoiceId)
+    {
+        $this->updateStatusInvoiceId = $invoiceId;
+    }
+
+    public function updateInvoiceStatus($invoiceId)
+    {
+        $invoice = Receipt::find($invoiceId);
+        if (!$invoice) {
+            abort(404, 'Invoice not found');
+        }
+
+        if (!$this->isAdmin()) {
+            abort(403);
+        }
+
+        $invoice->update(['is_paid' => true, 'paid_date' => now()]);
+        session()->flash('message', 'Invoice marked as paid successfully.');
+        $this->updateStatusInvoiceId = null;
+    }
+
     public function render()
     {
         $invoices = $this->getInvoices();
@@ -91,6 +146,7 @@ class Invoices extends Component
         return view('livewire.invoices', [
             'invoices' => $invoices,
             'viewInvoice' => $viewInvoice,
+            'isAdmin' => $this->isAdmin(),
         ]);
     }
 }
