@@ -200,7 +200,7 @@
                     </div>
 
                     <div class="flex items-end">
-                        <button wire:click="$set('filterDate', ''); $set('filterStatus', ''); $set('searchName', '')" class="w-full px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-neutral-700 rounded-lg hover:bg-gray-200 dark:hover:bg-neutral-600 transition-colors">
+                        <button wire:click="clearFilters" class="w-full px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-neutral-700 rounded-lg hover:bg-gray-200 dark:hover:bg-neutral-600 transition-colors">
                             Clear
                         </button>
                     </div>
@@ -225,7 +225,7 @@
                     </div>
 
                     <div class="flex items-end">
-                        <button wire:click="$set('filterDate', ''); $set('filterStatus', '')" class="w-full px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-neutral-700 rounded-lg hover:bg-gray-200 dark:hover:bg-neutral-600 transition-colors">
+                        <button wire:click="clearFilters" class="w-full px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-neutral-700 rounded-lg hover:bg-gray-200 dark:hover:bg-neutral-600 transition-colors">
                             Clear Filters
                         </button>
                     </div>
@@ -252,7 +252,7 @@
                 <!-- Admin View: Card-based Layout -->
                 <div class="space-y-4">
                     @foreach($invoices as $invoice)
-                        <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 p-6 hover:shadow-md transition-shadow">
+                        <div class="rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow @if($invoice->is_paid) bg-green-50 dark:bg-green-900/10 border border-green-300 dark:border-green-700 @else bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 @endif">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                                 <!-- Left Column: Details -->
                                 <div class="space-y-4">
@@ -372,7 +372,7 @@
                             </thead>
                             <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
                                 @foreach($invoices as $invoice)
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-neutral-700/50 transition-colors">
+                                    <tr class="transition-colors @if($invoice->is_paid) bg-green-50 dark:bg-green-900/10 hover:bg-green-100 dark:hover:bg-green-900/20 @else hover:bg-gray-50 dark:hover:bg-neutral-700/50 @endif">
                                         <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-300">
                                             {{ $invoice->bill_date->format('M d, Y') }}
                                         </td>
