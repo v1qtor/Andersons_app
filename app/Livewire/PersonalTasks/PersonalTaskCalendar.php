@@ -65,5 +65,33 @@ class PersonalTaskCalendar extends Component
         $this->day = $date->day;
         $this->selectedDay = null;
     }
+    public function nextPeriod(): void
+    {
+        if ($this->view === 'month') {
+            $date = Carbon::create($this->year, $this->month, 1)->addMonth();
+        } else {
+            $date = Carbon::create($this->year, $this->month, $this->day);
+            match ($this->view) {
+                'day' => $date->addDay(),
+                'week' => $date->addWeek(),
+            };
+        }
+
+        $this->year = $date->year;
+        $this->month = $date->month;
+        $this->day = $date->day;
+        $this->selectedDay = null;
+    }
+
+    public function goToToday(): void
+    {
+        $today = Carbon::today();
+        $this->year = $today->year;
+        $this->month = $today->month;
+        $this->day = $today->day;
+        $this->selectedDay = null;
+    }
+
+
 }
 
