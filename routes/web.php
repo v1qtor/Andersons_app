@@ -4,6 +4,7 @@ use App\Livewire\Admin\MealPlanning;
 use App\Livewire\Admin\UserCreate;
 use App\Livewire\Admin\UserEdit;
 use App\Livewire\Admin\UserIndex;
+use App\Livewire\Chef\MealPlanning as ChefMealPlanning;
 use App\Livewire\Schedule;
 use App\Livewire\Settings;
 use App\Livewire\Settings\Appearance;
@@ -50,6 +51,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('admin/users/create', UserCreate::class)->name('admin.users.create');
         Route::get('admin/users/{user}/edit', UserEdit::class)->name('admin.users.edit');
         Route::get('admin/meals', MealPlanning::class)->name('admin.meals.index');
+    });
+
+    // Chef Management
+    Route::middleware(['chef'])->group(function () {
+        Route::get('chef/meals', ChefMealPlanning::class)->name('chef.meals.index');
     });
 });
 
