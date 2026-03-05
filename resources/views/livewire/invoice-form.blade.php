@@ -122,7 +122,7 @@
                         Category <span class="text-red-600">*</span>
                     </label>
                     <select
-                        wire:model="category"
+                        wire:model.live="category"
                         class="w-full px-4 py-3 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                     >
                         <option value="">Select a category...</option>
@@ -138,12 +138,12 @@
                 @if($category === 'other')
                     <div class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4">
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                            Category Name <span class="text-red-600">*</span>
+                            Specify Category <span class="text-red-600">*</span>
                         </label>
                         <input
                             wire:model="customCategory"
                             type="text"
-                            placeholder="Enter custom category name"
+                            placeholder="Enter your custom category name"
                             class="w-full px-4 py-3 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                         >
                         @error('customCategory') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
@@ -188,8 +188,8 @@
                             <p class="text-xs text-gray-500 mt-1">PDF, JPG, or PNG (Max 5MB)</p>
                         @endif
                     </div>
-                    @if($invoice && $invoice->receipt_file_path && !$receiptFile)
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Current receipt: {{ basename($invoice->receipt_file_path) }}</p>
+                    @if($invoice && $invoice->file_path && !$receiptFile)
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Current receipt: {{ basename($invoice->file_path) }}</p>
                     @endif
                     @error('receiptFile') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                 </div>

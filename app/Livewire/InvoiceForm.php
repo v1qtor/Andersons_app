@@ -47,9 +47,14 @@ class InvoiceForm extends Component
             }
 
             $this->billDate = $invoice->bill_date->format('Y-m-d');
-            // If category_id is null, it's a custom category
-            $this->category = $invoice->category_id ? (string) $invoice->category_id : 'other';
-            $this->customCategory = $invoice->name ?? '';
+            // Check if this is a custom category by looking for substitute_category
+            if ($invoice->substitute_category) {
+                $this->category = 'other';
+                $this->customCategory = $invoice->substitute_category;
+            } else {
+                $this->category = (string) $invoice->category_id;
+                $this->customCategory = '';
+            }
             $this->description = $invoice->description ?? '';
             $this->amount = number_format($invoice->amount, 2);
         }
@@ -91,19 +96,27 @@ class InvoiceForm extends Component
             'customCategory' => 'required_if:category,other|string|max:255',
         ]);
 
-        $categoryId = $this->category === 'other' ? null : $this->category;
-        $categoryName = $this->category === 'other' ? $this->customCategory : null;
+        // Get the "Other" category ID for custom categories
+        $otherCategory = Category::where('name', 'Other')->first();
+        
+        if ($this->category === 'other' && !$otherCategory) {
+            $this->addError('category', 'Other category not found in system.');
+            return;
+        }
+
+        $categoryId = $this->category === 'other' ? $otherCategory->id : $this->category;
+        $substituteCategory = $this->category === 'other' ? $this->customCategory : null;
 
         $receiptFilePath = null;
         if ($this->receiptFile) {
             // Delete old receipt file if exists
-            if ($this->invoice && $this->invoice->receipt_file_path) {
-                Storage::disk('public')->delete($this->invoice->receipt_file_path);
+            if ($this->invoice && $this->invoice->file_path) {
+                Storage::disk('public')->delete($this->invoice->file_path);
             }
 
             $receiptFilePath = $this->receiptFile->store('receipts', 'public');
         } elseif ($this->invoice) {
-            $receiptFilePath = $this->invoice->receipt_file_path;
+            $receiptFilePath = $this->invoice->file_path;
         }
 
         if ($this->invoice) {
@@ -117,10 +130,9 @@ class InvoiceForm extends Component
                 'category_id' => $categoryId,
                 'bill_date' => $this->billDate,
                 'description' => $this->description,
-                'name' => $categoryName ?: $this->category,
+                'substitute_category' => $substituteCategory,
                 'amount' => $amountValue,
-                'file_path' => $this->invoice->file_path,
-                'receipt_file_path' => $receiptFilePath ?? $this->invoice->receipt_file_path,
+                'file_path' => $receiptFilePath ?? $this->invoice->file_path,
             ]);
 
             session()->flash('message', 'Invoice updated successfully.');
@@ -131,10 +143,9 @@ class InvoiceForm extends Component
                 'category_id' => $categoryId,
                 'bill_date' => $this->billDate,
                 'description' => $this->description,
-                'name' => $categoryName ?: $this->category,
+                'substitute_category' => $substituteCategory,
                 'amount' => $amountValue,
-                'file_path' => null,
-                'receipt_file_path' => $receiptFilePath,
+                'file_path' => $receiptFilePath,
                 'upload_date' => now(),
                 'is_paid' => false,
             ]);
@@ -154,7 +165,7 @@ class InvoiceForm extends Component
     public function render()
     {
         return view('livewire.invoice-form', [
-            'categories' => Category::all(),
+            'categories' => Category::whereNotIn('name', ['Other', 'other'])->get(),
         ]);
     }
 }

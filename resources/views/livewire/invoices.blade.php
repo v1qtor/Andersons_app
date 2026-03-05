@@ -87,10 +87,10 @@
                         <div>
                             <p class="text-sm text-gray-600 dark:text-gray-400">Category</p>
                             <p class="font-semibold text-gray-900 dark:text-white">
-                                @if($viewInvoice->category)
+                                @if($viewInvoice->substitute_category)
+                                    <span class="italic">{{ $viewInvoice->substitute_category }}</span>
+                                @elseif($viewInvoice->category)
                                     {{ $viewInvoice->category->name }}
-                                @elseif($viewInvoice->name)
-                                    {{ $viewInvoice->name }}
                                 @else
                                     Other
                                 @endif
@@ -115,10 +115,10 @@
                         </div>
                     @endif
 
-                    @if($viewInvoice->receipt_file_path)
+                    @if($viewInvoice->file_path)
                         <div>
                             <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Receipt / Proof of Purchase</p>
-                            <a href="{{ route('receipts.show', ['path' => str_replace('receipts/', '', $viewInvoice->receipt_file_path)]) }}" target="_blank" class="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 underline">
+                            <a href="{{ route('receipts.show', ['path' => str_replace('receipts/', '', $viewInvoice->file_path)]) }}" target="_blank" class="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 underline">
                                 View Receipt
                             </a>
                         </div>
@@ -204,10 +204,10 @@
                                         {{ $invoice->bill_date->format('M d, Y') }}
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-300">
-                                        @if($invoice->category)
+                                        @if($invoice->substitute_category)
+                                            <span class="italic">{{ $invoice->substitute_category }}</span>
+                                        @elseif($invoice->category)
                                             {{ $invoice->category->name }}
-                                        @elseif($invoice->name)
-                                            <span class="italic">{{ $invoice->name }}</span>
                                         @else
                                             <span class="text-gray-500">Other</span>
                                         @endif
