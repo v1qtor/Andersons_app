@@ -15,7 +15,7 @@ use Laravel\Fortify\Features;
 Route::redirect('/', '/login');
 
 Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth'])
     ->name('dashboard');
 
 Route::middleware(['auth'])->group(function () {
