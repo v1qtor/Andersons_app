@@ -1,6 +1,7 @@
 <div class="w-full max-w-6xl mx-auto"
     x-data="{
         showRemoveModal: false,
+        showPasswordModal: false,
         removeItemId: null,
         removeItemName: '',
         removeMethod: '',
@@ -19,10 +20,117 @@
             this.showRemoveModal = false;
         }
     }"
-    x-effect="document.body.style.overflow = showRemoveModal ? 'hidden' : ''"
+    x-effect="document.body.style.overflow = (showRemoveModal || showPasswordModal) ? 'hidden' : ''"
+    @password-updated.window="showPasswordModal = false"
 >
 
     <x-settings.confirm-remove-modal />
+
+    <!-- Change Password Modal -->
+    <div
+        x-show="showPasswordModal"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+        @keydown.escape.window="showPasswordModal = false"
+        @mousedown.self="showPasswordModal = false"
+        x-cloak
+    >
+        <div
+            class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-8"
+        >
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-900">Change Password</h3>
+                <button @click="showPasswordModal = false" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+
+            <form wire:submit="updatePassword" class="space-y-5" x-data="{
+                showCurrent: false, showNew: false, showConfirm: false,
+                cooldown: 0,
+                cooldownTimer: null,
+                startCooldown(s) {
+                    this.cooldown = s;
+                    clearInterval(this.cooldownTimer);
+                    this.cooldownTimer = setInterval(() => { if (--this.cooldown <= 0) { this.cooldown = 0; clearInterval(this.cooldownTimer); } }, 1000);
+                }
+            }"
+            @rate-limited.window="startCooldown($event.detail.seconds)">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Current Password</label>
+                    <div class="relative">
+                        <input
+                            wire:model="currentPassword"
+                            :type="showCurrent ? 'text' : 'password'"
+                            class="w-full px-4 py-3 pr-11 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                            autocomplete="current-password"
+                        >
+                        <button type="button" @click="showCurrent = !showCurrent" class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 transition-colors">
+                            <svg x-show="!showCurrent" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            <svg x-show="showCurrent" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.477 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+                        </button>
+                    </div>
+                    @error('currentPassword') <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span> @enderror
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">New Password</label>
+                    <div class="relative">
+                        <input
+                            wire:model="newPassword"
+                            :type="showNew ? 'text' : 'password'"
+                            class="w-full px-4 py-3 pr-11 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                            autocomplete="new-password"
+                        >
+                        <button type="button" @click="showNew = !showNew" class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 transition-colors">
+                            <svg x-show="!showNew" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            <svg x-show="showNew" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.477 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+                        </button>
+                    </div>
+                    @error('newPassword') <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span> @enderror
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Confirm New Password</label>
+                    <div class="relative">
+                        <input
+                            wire:model="newPasswordConfirmation"
+                            :type="showConfirm ? 'text' : 'password'"
+                            class="w-full px-4 py-3 pr-11 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                            autocomplete="new-password"
+                        >
+                        <button type="button" @click="showConfirm = !showConfirm" class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600 transition-colors">
+                            <svg x-show="!showConfirm" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            <svg x-show="showConfirm" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.477 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button
+                        type="submit"
+                        :disabled="cooldown > 0"
+                        :class="cooldown > 0 ? 'bg-indigo-300 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'"
+                        class="flex-1 px-6 py-3 text-white rounded-lg transition-colors font-semibold"
+                    >
+                        Update Password
+                    </button>
+                    <button
+                        type="button"
+                        @click="showPasswordModal = false"
+                        class="flex-1 px-6 py-3 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-200 transition-colors font-semibold"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- Toast Notifications -->
     <div
@@ -135,16 +243,27 @@
                     </div>
                 </div>
 
-                <!-- IBAN -->
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">IBAN</label>
-                    <input
-                        wire:model="iban"
-                        type="text"
-                        placeholder="GB29 NWBK 6016 1331 9268 19"
-                        class="w-full px-4 py-3 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                    >
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">This will be automatically used when submitting invoices</p>
+                <!-- IBAN + Change Password -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">IBAN</label>
+                        <input
+                            wire:model="iban"
+                            type="text"
+                            placeholder="GB29 NWBK 6016 1331 9268 19"
+                            class="w-full px-4 py-3 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                        >
+                    </div>
+                    <div class="flex flex-col justify-end">
+                        <button
+                            type="button"
+                            @click="showPasswordModal = true"
+                            class="w-full px-4 py-3 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-200 transition-colors font-semibold text-sm flex items-center justify-center gap-2"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                            Change Password
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Save Button -->
