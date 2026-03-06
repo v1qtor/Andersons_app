@@ -31,52 +31,28 @@
 
     <flux:spacer />
 
-    <flux:dropdown class="hidden lg:block" position="bottom" align="start">
-        <flux:profile
-            :name="auth()->user()->name"
-            :initials="auth()->user()->initials"
-            icon:trailing="chevrons-up-down"
-        />
-
-        <flux:menu class="w-[220px]">
-            <flux:menu.radio.group>
-                <div class="p-0 text-sm font-normal">
-                    <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
-                                <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
-                                    <span
-                                        class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white"
-                                    >
-                                        {{ auth()->user()->initials }}
-                                    </span>
-                                </span>
-
-                        <div class="grid flex-1 text-start text-sm leading-tight">
-                            <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
-                            <span class="truncate text-xs">{{ auth()->user()->email }}</span>
-                            <span class="truncate text-xs font-medium mt-0.5" style="color: {{ auth()->user()->role?->color ?? '#9ca3af' }}">
-                                        {{ auth()->user()->role?->name ?? 'No Role' }}
-                                    </span>
-                        </div>
-                    </div>
-                </div>
-            </flux:menu.radio.group>
-
-            <flux:menu.separator />
-
-            <flux:menu.radio.group>
-                <flux:menu.item :href="route('settings')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
-            </flux:menu.radio.group>
-
-            <flux:menu.separator />
-
-            <form method="POST" action="{{ route('logout') }}" class="w-full">
+    <div class="hidden lg:block border-t border-zinc-200 bg-zinc-100 pt-3 pb-4 -mx-4 -mb-4">
+        <div class="flex items-center gap-3 px-4 py-1.5">
+            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-neutral-200 text-sm font-semibold text-black">
+                {{ auth()->user()->initials }}
+            </span>
+            <div class="grid flex-1 text-start text-sm leading-tight min-w-0">
+                <span class="truncate font-semibold text-gray-900">{{ auth()->user()->name }}</span>
+                <span class="truncate text-xs font-medium" style="color: {{ auth()->user()->role?->color ?? '#9ca3af' }}">
+                    {{ auth()->user()->role?->name ?? 'No Role' }}
+                </span>
+            </div>
+        </div>
+        <div class="flex justify-center pt-3">
+            <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full">
-                    {{ __('Log Out') }}
-                </flux:menu.item>
+                <button type="submit" class="flex items-center gap-2 text-base text-gray-500 hover:text-gray-800 transition-colors cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                    Logout
+                </button>
             </form>
-        </flux:menu>
-    </flux:dropdown>
+        </div>
+    </div>
 </flux:sidebar>
 
 <flux:header class="lg:hidden">
@@ -111,12 +87,6 @@
                         </div>
                     </div>
                 </div>
-            </flux:menu.radio.group>
-
-            <flux:menu.separator />
-
-            <flux:menu.radio.group>
-                <flux:menu.item :href="route('settings')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
             </flux:menu.radio.group>
 
             <flux:menu.separator />
