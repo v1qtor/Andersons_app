@@ -62,6 +62,16 @@
                 </div>
             </div>
 
+            @if ($editingTaskId)
+                <div class="flex items-center gap-3">
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" wire:model="isComplete" class="sr-only peer">
+                        <div class="w-9 h-5 bg-neutral-200 peer-focus:outline-none rounded-full peer dark:bg-neutral-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-neutral-600 peer-checked:bg-green-500"></div>
+                    </label>
+                    <span class="text-sm font-medium text-neutral-700 dark:text-neutral-300">{{ __('Completed') }}</span>
+                </div>
+            @endif
+
             <div class="flex justify-end gap-3 pt-4 border-t border-neutral-200 dark:border-neutral-700">
                 <flux:button variant="ghost" wire:click="$set('showTaskModal', false)">
                     {{ __('Cancel') }}

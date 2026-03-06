@@ -35,6 +35,7 @@ class ScheduleCalendar extends Component
     public string $endDate = '';
     public ?int $taskCategoryId = null;
     public ?int $taskPriorityId = null;
+    public bool $isComplete = false;
 
     public bool $showDeleteModal = false;
     public ?int $deletingTaskId = null;
@@ -153,32 +154,43 @@ class ScheduleCalendar extends Component
         $this->endDate = $task->end_date ? $task->end_date->format('Y-m-d\TH:i') : '';
         $this->taskCategoryId = $task->task_category_id;
         $this->taskPriorityId = $task->task_priority_id;
+        $this->isComplete = $task->is_complete;
         $this->showTaskModal = true;
     }
 
     public function saveTask(): void
     {
-        $this->validate([
+        // Prepare data treating empty strings as null
+        $validationData = [
+            'title' => $this->title,
+            'description' => $this->description !== '' ? $this->description : null,
+            'startDate' => $this->startDate,
+            'endDate' => $this->endDate !== '' ? $this->endDate : null,
+            'taskCategoryId' => $this->taskCategoryId,
+            'taskPriorityId' => $this->taskPriorityId,
+        ];
+
+        $validated = \Illuminate\Support\Facades\Validator::make($validationData, [
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'startDate' => 'required|date',
             'endDate' => 'nullable|date|after:startDate',
             'taskCategoryId' => 'required|exists:task_categories,id',
             'taskPriorityId' => 'nullable|exists:task_priorities,id',
-        ]);
+        ])->validate();
 
-        $startDt = Carbon::parse($this->startDate);
-        $endDt = $this->endDate ? Carbon::parse($this->endDate) : null;
+        $startDt = Carbon::parse($validated['startDate']);
+        $endDt = $validated['endDate'] ? Carbon::parse($validated['endDate']) : null;
 
         $data = [
-            'title' => $this->title,
-            'description' => $this->description ?: null,
+            'title' => $validated['title'],
+            'description' => $validated['description'],
             'start_date' => $startDt,
             'end_date' => $endDt,
             'date' => $startDt,
-            'task_category_id' => $this->taskCategoryId,
-            'task_priority_id' => $this->taskPriorityId,
-            'is_complete' => false,
+            'task_category_id' => $validated['taskCategoryId'],
+            'task_priority_id' => $validated['taskPriorityId'],
+            'is_complete' => $this->editingTaskId ? $this->isComplete : false,
         ];
 
         if ($this->editingTaskId) {
@@ -222,15 +234,17 @@ class ScheduleCalendar extends Component
         $this->deletingTaskId = null;
     }
 
-    public function toggleComplete(int $taskId): void
+    public function markComplete(int $taskId): void
     {
         $task = Task::findOrFail($taskId);
 
-        if (! $this->canManageTask($task)) {
+        // Any user assigned to the task (or admin) can mark it complete
+        $isAssigned = $task->users()->where('users.id', Auth::id())->exists();
+        if (! $isAssigned && ! $this->isAdmin()) {
             return;
         }
 
-        $task->update(['is_complete' => ! $task->is_complete]);
+        $task->update(['is_complete' => true]);
     }
 
     private function resetForm(): void
@@ -242,6 +256,7 @@ class ScheduleCalendar extends Component
         $this->endDate = '';
         $this->taskCategoryId = null;
         $this->taskPriorityId = null;
+        $this->isComplete = false;
     }
 
     private function isAdmin(): bool
@@ -255,7 +270,10 @@ class ScheduleCalendar extends Component
             return true;
         }
 
-        return $task->users()->where('users.id', Auth::id())->exists();
+        return $task->users()
+            ->where('users.id', Auth::id())
+            ->wherePivot('is_owner', true)
+            ->exists();
     }
 
     /**
@@ -304,6 +322,10 @@ class ScheduleCalendar extends Component
                     ->orWhere(function ($q2) use ($start, $end) {
                         $q2->where('start_date', '<=', $end)
                             ->where('end_date', '>=', $start);
+                    })
+                    ->orWhere(function ($q2) use ($start, $end) {
+                        $q2->whereNull('end_date')
+                            ->whereBetween('start_date', [$start, $end]);
                     });
             });
 
