@@ -9,10 +9,6 @@ use App\Livewire\Invoices;
 use App\Livewire\Chef\MealPlanning as ChefMealPlanning;
 use App\Livewire\Schedule;
 use App\Livewire\Settings;
-use App\Livewire\Settings\Appearance;
-use App\Livewire\Settings\Password;
-use App\Livewire\Settings\Profile;
-use App\Livewire\Settings\TwoFactor;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -26,22 +22,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('schedule', Schedule::class)->name('schedule');
 
     Route::get('settings', Settings::class)->name('settings');
-    Route::redirect('settings/redirect', 'settings/profile');
-
-    Route::get('settings/profile', Profile::class)->name('settings.profile');
-    Route::get('settings/password', Password::class)->name('settings.password');
-    Route::get('settings/appearance', Appearance::class)->name('settings.appearance');
-
-    Route::get('settings/two-factor', TwoFactor::class)
-        ->middleware(
-            when(
-                Features::canManageTwoFactorAuthentication()
-                    && Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword'),
-                ['password.confirm'],
-                [],
-            ),
-        )
-        ->name('two-factor.show');
 
     // Invoices/Expenses
     Route::get('invoices', Invoices::class)->name('invoices');
