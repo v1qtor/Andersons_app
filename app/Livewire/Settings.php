@@ -5,6 +5,8 @@ namespace App\Livewire;
 use App\Models\Allergy;
 use App\Models\Preference;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -19,6 +21,10 @@ class Settings extends Component
 
     public string $newAllergy = '';
     public string $newPreference = '';
+
+    public string $currentPassword = '';
+    public string $newPassword = '';
+    public string $newPasswordConfirmation = '';
 
     public array $notifications = [
         'tripDelayAlerts' => ['email' => true, 'popup' => true],
@@ -117,6 +123,47 @@ class Settings extends Component
                     $notificationTypeId => ['value' => $settingValue]
                 ]);
         }
+    }
+
+    /**
+     * Update the user's password.
+     */
+    public function updatePassword(): void
+    {
+        $key = 'change-password:' . Auth::id();
+
+        if (RateLimiter::tooManyAttempts($key, 1)) {
+            $seconds = RateLimiter::availableIn($key);
+            $this->dispatch('rate-limited', seconds: $seconds);
+            $this->addError('currentPassword', "Too many attempts. Please wait {$seconds} second(s).");
+            return;
+        }
+
+        RateLimiter::hit($key, 1);
+        $this->dispatch('rate-limited', seconds: 1);
+
+        $this->validate([
+            'currentPassword' => 'required|string',
+            'newPassword' => 'required|string|min:8|same:newPasswordConfirmation',
+        ], [
+            'newPassword.same' => 'The new password confirmation does not match.',
+        ]);
+
+        $user = Auth::user();
+
+        if (!Hash::check($this->currentPassword, $user->password)) {
+            $this->addError('currentPassword', 'The current password is incorrect.');
+            return;
+        }
+
+        $user->update(['password' => Hash::make($this->newPassword)]);
+
+        $this->currentPassword = '';
+        $this->newPassword = '';
+        $this->newPasswordConfirmation = '';
+
+        $this->dispatch('password-updated');
+        $this->dispatch('toast', message: 'Password changed successfully!', type: 'success');
     }
 
     public function addAllergy(): void
