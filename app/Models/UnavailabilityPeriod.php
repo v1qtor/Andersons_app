@@ -10,25 +10,23 @@ class UnavailabilityPeriod extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'unavailabilityPeriodId';
-
     protected $fillable = [
-        'userId',
-        'startDate',
-        'endDate',
+        'user_id',
+        'start_date',
+        'end_date',
         'description',
     ];
 
     protected function casts(): array
     {
         return [
-            'startDate' => 'datetime',
-            'endDate' => 'datetime',
+            'start_date' => 'datetime',
+            'end_date' => 'datetime',
         ];
     }
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'userId', 'userId');
+        return $this->belongsTo(User::class);
     }
 }

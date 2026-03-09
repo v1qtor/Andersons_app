@@ -9,9 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('preferences', function (Blueprint $table) {
-            $table->id('preferenceId');
-            $table->foreignId('userId')->constrained('users', 'userId')->onUpdate('cascade')->onDelete('cascade');
-            $table->string('name');
+            $table->id();
+            $table->foreignId('user_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->string('name')->collation('nocase');
             $table->timestamps();
         });
     }

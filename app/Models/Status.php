@@ -10,14 +10,12 @@ class Status extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'statusId';
-
     protected $fillable = [
         'name',
     ];
 
     public function trips(): HasMany
     {
-        return $this->hasMany(Trip::class, 'statusId', 'statusId');
+        return $this->hasMany(Trip::class);
     }
 }

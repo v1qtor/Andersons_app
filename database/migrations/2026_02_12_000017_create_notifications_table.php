@@ -9,10 +9,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('notifications_custom', function (Blueprint $table) {
-            $table->id('notificationId');
-            $table->string('title')->nullable();
-            $table->string('description')->nullable();
-            $table->boolean('isMail');
+            $table->id();
+            $table->string('title')->nullable()->collation('nocase');
+            $table->string('description')->nullable()->collation('nocase');
+            $table->boolean('is_mail');
             $table->timestamps();
         });
     }

@@ -9,10 +9,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('planned_meals', function (Blueprint $table) {
-            $table->id('plannedMealId');
-            $table->foreignId('mealId')->constrained('meals', 'mealId')->onUpdate('cascade')->onDelete('cascade');
-            $table->dateTime('dateTime');
-            $table->string('notes')->nullable();
+            $table->id();
+            $table->foreignId('meal_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->dateTime('date_time');
+            $table->string('notes')->nullable()->collation('nocase');
             $table->timestamps();
         });
     }

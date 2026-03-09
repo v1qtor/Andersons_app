@@ -16,8 +16,8 @@ class RecurringTaskFactory extends Factory
     public function definition(): array
     {
         return [
-            'repeatabilityTypeId' => RepeatabilityType::inRandomOrder()->first()?->repeatabilityTypeId ?? RepeatabilityType::factory(),
-            'endDate' => fake()->optional()->dateTimeBetween('+1 month', '+1 year'),
+            'repeatability_type_id' => RepeatabilityType::inRandomOrder()->first()?->id ?? RepeatabilityType::factory(),
+            'end_date' => fake()->optional()->dateTimeBetween('+1 month', '+1 year'),
         ];
     }
 }

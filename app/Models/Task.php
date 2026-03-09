@@ -11,52 +11,50 @@ class Task extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'taskId';
-
     protected $fillable = [
         'title',
         'description',
-        'startDate',
-        'endDate',
-        'taskCategoryId',
-        'taskPriorityId',
-        'isComplete',
+        'start_date',
+        'end_date',
+        'task_category_id',
+        'task_priority_id',
+        'is_complete',
         'date',
-        'recurringTaskId',
+        'recurring_task_id',
     ];
 
     protected function casts(): array
     {
         return [
-            'startDate' => 'datetime',
-            'endDate' => 'datetime',
+            'start_date' => 'datetime',
+            'end_date' => 'datetime',
             'date' => 'datetime',
-            'isComplete' => 'boolean',
+            'is_complete' => 'boolean',
         ];
     }
 
     public function taskCategory(): BelongsTo
     {
-        return $this->belongsTo(TaskCategory::class, 'taskCategoryId', 'taskCategoryId');
+        return $this->belongsTo(TaskCategory::class);
     }
 
     public function taskPriority(): BelongsTo
     {
-        return $this->belongsTo(TaskPriority::class, 'taskPriorityId', 'taskPriorityId');
+        return $this->belongsTo(TaskPriority::class);
     }
 
     public function recurringTask(): BelongsTo
     {
-        return $this->belongsTo(RecurringTask::class, 'recurringTaskId', 'recurringTaskId');
+        return $this->belongsTo(RecurringTask::class);
     }
 
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'user_tasks', 'taskId', 'userId')->withPivot('isOwner');
+        return $this->belongsToMany(User::class, 'user_tasks')->withPivot('is_owner');
     }
 
     public function locations(): BelongsToMany
     {
-        return $this->belongsToMany(Location::class, 'task_locations', 'taskId', 'locationId');
+        return $this->belongsToMany(Location::class, 'task_locations');
     }
 }

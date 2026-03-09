@@ -9,9 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('meals', function (Blueprint $table) {
-            $table->id('mealId');
-            $table->string('name');
-            $table->string('description')->nullable();
+            $table->id();
+            $table->string('name')->collation('nocase');
+            $table->string('description')->nullable()->collation('nocase');
             $table->timestamps();
         });
     }

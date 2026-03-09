@@ -9,12 +9,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('trip_checkpoints', function (Blueprint $table) {
-            $table->foreignId('checkpointId')->constrained('checkpoints', 'checkpointId')->onUpdate('cascade')->onDelete('cascade');
-            $table->foreignId('tripId')->constrained('trips', 'tripId')->onUpdate('cascade')->onDelete('cascade');
-            $table->dateTime('arrivalDate');
-            $table->boolean('isConfirmed');
+            $table->foreignId('checkpoint_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('trip_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->dateTime('arrival_date');
+            $table->boolean('is_confirmed');
             $table->integer('order');
-            $table->primary(['checkpointId', 'tripId']);
+            $table->primary(['checkpoint_id', 'trip_id']);
             $table->timestamps();
         });
     }

@@ -10,14 +10,12 @@ class Category extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'categoryId';
-
     protected $fillable = [
         'name',
     ];
 
     public function receipts(): HasMany
     {
-        return $this->hasMany(Receipt::class, 'categoryId', 'categoryId');
+        return $this->hasMany(Receipt::class);
     }
 }

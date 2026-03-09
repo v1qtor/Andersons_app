@@ -9,9 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('task_locations', function (Blueprint $table) {
-            $table->foreignId('taskId')->constrained('tasks', 'taskId')->onUpdate('cascade')->onDelete('cascade');
-            $table->foreignId('locationId')->constrained('locations', 'locationId')->onUpdate('cascade')->onDelete('restrict');
-            $table->primary(['taskId', 'locationId']);
+            $table->foreignId('task_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('location_id')->constrained()->onUpdate('cascade')->onDelete('restrict');
+            $table->primary(['task_id', 'location_id']);
             $table->timestamps();
         });
     }
