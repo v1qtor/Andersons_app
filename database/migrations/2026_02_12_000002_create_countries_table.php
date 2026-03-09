@@ -9,8 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('countries', function (Blueprint $table) {
-            $table->id('countryId');
-            $table->string('name');
+            $table->id();
+            $table->string('name')->collation('nocase');
             $table->timestamps();
         });
     }

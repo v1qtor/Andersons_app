@@ -9,8 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('task_priorities', function (Blueprint $table) {
-            $table->id('taskPriorityId');
-            $table->string('name');
+            $table->id();
+            $table->string('name')->collation('nocase');
             $table->timestamps();
         });
     }

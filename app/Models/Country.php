@@ -10,14 +10,12 @@ class Country extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'countryId';
-
     protected $fillable = [
         'name',
     ];
 
     public function users(): HasMany
     {
-        return $this->hasMany(User::class, 'countryId', 'countryId');
+        return $this->hasMany(User::class);
     }
 }

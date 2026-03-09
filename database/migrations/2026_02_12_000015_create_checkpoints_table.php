@@ -9,11 +9,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('checkpoints', function (Blueprint $table) {
-            $table->id('checkpointId');
-            $table->string('location');
-            $table->string('address')->nullable();
+            $table->id();
+            $table->string('location')->collation('nocase');
+            $table->string('address')->nullable()->collation('nocase');
             $table->string('coordinates')->nullable();
-            $table->foreignId('folderId')->nullable()->constrained('folders', 'folderId')->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('folder_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->timestamps();
         });
     }

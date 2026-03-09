@@ -11,27 +11,25 @@ class RecurringTask extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'recurringTaskId';
-
     protected $fillable = [
-        'repeatabilityTypeId',
-        'endDate',
+        'repeatability_type_id',
+        'end_date',
     ];
 
     protected function casts(): array
     {
         return [
-            'endDate' => 'datetime',
+            'end_date' => 'datetime',
         ];
     }
 
     public function repeatabilityType(): BelongsTo
     {
-        return $this->belongsTo(RepeatabilityType::class, 'repeatabilityTypeId', 'repeatabilityTypeId');
+        return $this->belongsTo(RepeatabilityType::class);
     }
 
     public function tasks(): HasMany
     {
-        return $this->hasMany(Task::class, 'recurringTaskId', 'recurringTaskId');
+        return $this->hasMany(Task::class);
     }
 }

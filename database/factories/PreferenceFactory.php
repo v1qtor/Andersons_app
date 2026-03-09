@@ -16,7 +16,7 @@ class PreferenceFactory extends Factory
     public function definition(): array
     {
         return [
-            'userId' => User::inRandomOrder()->first()?->userId ?? User::factory(),
+            'user_id' => User::inRandomOrder()->first()?->id ?? User::factory(),
             'name' => fake()->randomElement([
                 'Dark Mode', 'Email Digest', 'Weekly Summary',
                 'Auto-assign Tasks', 'Show Completed', 'Compact View',

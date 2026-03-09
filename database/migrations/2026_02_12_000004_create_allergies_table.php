@@ -9,8 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('allergies', function (Blueprint $table) {
-            $table->id('allergyId');
-            $table->string('name');
+            $table->id();
+            $table->string('name')->collation('nocase');
             $table->timestamps();
         });
     }
