@@ -30,7 +30,6 @@ class User extends Authenticatable
         'password',
         'iban',
         'phone_number',
-        'country_id',
         'is_active',
     ];
 
@@ -84,11 +83,6 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
-    public function country(): BelongsTo
-    {
-        return $this->belongsTo(Country::class);
-    }
-
     public function unavailabilityPeriods(): HasMany
     {
         return $this->hasMany(UnavailabilityPeriod::class);
@@ -127,5 +121,15 @@ class User extends Authenticatable
     public function preferences(): HasMany
     {
         return $this->hasMany(Preference::class);
+    }
+
+    public function sentCollaborationRequests(): HasMany
+    {
+        return $this->hasMany(CollaborationRequest::class, 'requester_id');
+    }
+
+    public function receivedCollaborationRequests(): HasMany
+    {
+        return $this->hasMany(CollaborationRequest::class, 'target_user_id');
     }
 }

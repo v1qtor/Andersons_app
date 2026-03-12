@@ -26,6 +26,9 @@
                     @if(auth()->user()->role && auth()->user()->role->name === 'Chef')
                         <flux:navlist.item icon="fire" :href="route('chef.meals.index')" :current="request()->routeIs('chef.meals.*')" wire:navigate>{{ __('Meals') }}</flux:navlist.item>
                     @endif
+                    @if(auth()->user()->role && in_array(auth()->user()->role->name, ['Family Member', 'The Andersons', 'Staff']))
+                        <flux:navlist.item icon="fire" :href="route('meals.index')" :current="request()->routeIs('meals.index')" wire:navigate>{{ __('Meals') }}</flux:navlist.item>
+                    @endif
                 </flux:navlist.group>
     </flux:navlist>
 
