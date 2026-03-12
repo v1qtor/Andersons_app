@@ -29,6 +29,18 @@ Route::middleware(['auth'])->group(function () {
     Route::get('invoices/{id}', InvoiceForm::class)->where('id', '[0-9]+')->name('invoices.edit');
     Route::get('receipts/{path}', 'App\Http\Controllers\ReceiptController@show')->where('path', '.*')->name('receipts.show');
 
+    // Notifications
+    Route::get('notifications/test', 'App\Http\Controllers\NotificationTestController@index')->name('notifications.test');
+    Route::post('notifications/send-test', 'App\Http\Controllers\NotificationTestController@sendTestNotification')->name('notifications.send-test');
+    Route::post('notifications/send-task-assignment', 'App\Http\Controllers\NotificationTestController@sendTaskAssignmentNotification')->name('notifications.send-task-assignment');
+    Route::post('notifications/send-collaboration-request', 'App\Http\Controllers\NotificationTestController@sendCollaborationRequestNotification')->name('notifications.send-collaboration-request');
+    Route::post('notifications/{id}/mark-as-read', 'App\Http\Controllers\NotificationTestController@markAsRead')->name('notifications.mark-as-read');
+    Route::delete('notifications/{id}', 'App\Http\Controllers\NotificationTestController@deleteNotification')->name('notifications.delete');
+    Route::post('notifications/clear-all', 'App\Http\Controllers\NotificationTestController@clearAll')->name('notifications.clear-all');
+    
+    // API-style notification endpoint for AJAX calls (session auth)
+    Route::get('api/notifications', 'App\Http\Controllers\Api\NotificationController@index')->name('notifications.list');
+
 
     // Admin Management
     Route::middleware(['admin'])->group(function () {
