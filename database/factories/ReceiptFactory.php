@@ -25,7 +25,7 @@ class ReceiptFactory extends Factory
             'bill_date' => fake()->dateTimeBetween('-6 months', 'now'),
             'description' => fake()->optional()->sentence(),
             'is_paid' => $isPaid,
-            'file_path' => 'receipts/' . fake()->uuid() . '.pdf',
+            'file_path' => 'receipts/sample.pdf',
             'upload_date' => fake()->dateTimeBetween('-6 months', 'now'),
             'paid_date' => $isPaid ? fake()->dateTimeBetween('-3 months', 'now') : null,
             'name' => fake()->words(3, true),

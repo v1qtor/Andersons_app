@@ -18,8 +18,10 @@ class PreferenceFactory extends Factory
         return [
             'user_id' => User::inRandomOrder()->first()?->id ?? User::factory(),
             'name' => fake()->randomElement([
-                'Dark Mode', 'Email Digest', 'Weekly Summary',
-                'Auto-assign Tasks', 'Show Completed', 'Compact View',
+                'Vegetarian', 'Vegan', 'Gluten-free', 'Dairy-free',
+                'Nut-free', 'Halal', 'Kosher', 'Low-sodium',
+                'Low-carb', 'No seafood', 'No pork', 'No shellfish',
+                'Spicy food', 'No spicy food', 'Organic only',
             ]),
         ];
     }

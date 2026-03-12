@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Chef;
+namespace App\Livewire\Meals;
 
 use Livewire\Component;
 
@@ -8,6 +8,6 @@ class MealPlanning extends Component
 {
     public function render()
     {
-        return view('livewire.chef.meal-planning');
+        return view('livewire.meals.meal-planning');
     }
 }

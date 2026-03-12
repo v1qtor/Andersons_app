@@ -313,9 +313,6 @@
                                             </div>
                                             @if($showIbanInvoiceId === $invoice->id)
                                                 <p class="text-lg font-mono font-semibold text-gray-900 dark:text-white break-all">{{ $invoice->user->iban }}</p>
-                                                @if($invoice->user->bank_country)
-                                                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Country: {{ $invoice->user->bank_country }}</p>
-                                                @endif
                                             @else
                                                 <p class="text-sm text-gray-600 dark:text-gray-400 font-mono">•••• •••• •••• {{ substr($invoice->user->iban, -4) }}</p>
                                             @endif
