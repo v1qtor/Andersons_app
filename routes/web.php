@@ -6,6 +6,7 @@ use App\Livewire\Admin\UserIndex;
 use App\Livewire\InvoiceForm;
 use App\Livewire\Invoices;
 use App\Livewire\Meals\MealPlanning;
+use App\Livewire\Meals\MealSchedule;
 use App\Livewire\Schedule;
 use App\Livewire\Settings;
 use Illuminate\Support\Facades\Route;
@@ -41,6 +42,9 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['chef'])->group(function () {
         Route::get('chef/meals', MealPlanning::class)->name('chef.meals.index');
     });
+
+    // Meal Schedule (Family Member, The Andersons, Staff — and any authenticated user)
+    Route::get('meals', MealSchedule::class)->name('meals.index');
 });
 
 require __DIR__.'/auth.php';

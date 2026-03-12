@@ -22,7 +22,6 @@ class DatabaseSeeder extends Seeder
         // Tier 1: Independent lookup tables (no FK dependencies)
         $this->call([
             RoleSeeder::class,
-            CountrySeeder::class,
             CategorySeeder::class,
             AllergySeeder::class,
             MealSeeder::class,
@@ -80,18 +79,6 @@ class DatabaseSeeder extends Seeder
                 $plannedMeal->subscribers()->attach($user->id, [
                     'guest_name' => fake()->optional(0.3)->name(),
                 ]);
-            }
-        });
-
-        // UserTask
-        $tasks->each(function ($task) use ($users) {
-            $selectedUsers = $users->random(rand(1, 3));
-            $first = true;
-            foreach ($selectedUsers as $user) {
-                $task->users()->attach($user->id, [
-                    'is_owner' => $first,
-                ]);
-                $first = false;
             }
         });
 
