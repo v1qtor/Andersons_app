@@ -39,6 +39,44 @@
         </div>
     </div>
 
+    {{-- ========== INCOMING COLLABORATION REQUESTS ========== --}}
+    @if ($pendingIncomingRequests->isNotEmpty())
+        <div class="rounded-xl border border-amber-200 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/20 p-4 mb-6">
+            <div class="flex items-center gap-2 mb-3">
+                <span class="text-lg">🤝</span>
+                <h4 class="font-semibold text-sm text-amber-800 dark:text-amber-300">
+                    {{ __('Collaboration Requests') }}
+                    <span class="ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold rounded-full bg-amber-200 text-amber-800 dark:bg-amber-700 dark:text-amber-100">
+                        {{ $pendingIncomingRequests->count() }}
+                    </span>
+                </h4>
+            </div>
+            <div class="space-y-2">
+                @foreach ($pendingIncomingRequests as $req)
+                    <div class="flex items-center justify-between gap-3 p-3 rounded-lg bg-white dark:bg-zinc-800 border border-amber-100 dark:border-amber-800">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">
+                                {{ $req->task->title }}
+                            </p>
+                            <p class="text-xs text-neutral-500 dark:text-neutral-400">
+                                {{ __('from') }} <span class="font-medium">{{ $req->requester->name }}</span>
+                                · {{ $req->created_at->diffForHumans() }}
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <flux:button size="sm" variant="primary" wire:click="acceptCollaborationRequest({{ $req->id }})">
+                                {{ __('Accept') }}
+                            </flux:button>
+                            <flux:button size="sm" variant="ghost" wire:click="declineCollaborationRequest({{ $req->id }})">
+                                {{ __('Decline') }}
+                            </flux:button>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     {{-- Navigation + Period Label --}}
     <div class="rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-zinc-800 p-6 mb-6">
         <div class="flex items-center justify-between mb-6">
@@ -605,6 +643,8 @@
             :assigned-user-ids="$assignedUserIds"
             :locations="$locations"
             :selected-location-ids="$selectedLocationIds"
+            :collaboration-user-ids="$collaborationUserIds"
+            :pending-outgoing-user-ids="$pendingOutgoingUserIds"
         />
     @endif
 
