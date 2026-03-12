@@ -45,7 +45,7 @@
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <flux:select wire:model="taskCategoryId" :label="__('Category')" placeholder="{{ __('Select category') }}">
+                    <flux:select wire:model.live="taskCategoryId" :label="__('Category')" placeholder="{{ __('Select category') }}">
                         @foreach ($taskCategories as $cat)
                             <flux:select.option value="{{ $cat->id }}">{{ $cat->name }}</flux:select.option>
                         @endforeach
@@ -53,7 +53,7 @@
                     @error('taskCategoryId') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                 </div>
                 <div>
-                    <flux:select wire:model="taskPriorityId" :label="__('Priority')" placeholder="{{ __('Select priority') }}">
+                    <flux:select wire:model.live="taskPriorityId" :label="__('Priority')" placeholder="{{ __('Select priority') }}">
                         @foreach ($taskPriorities as $pri)
                             <flux:select.option value="{{ $pri->id }}">{{ $pri->name }}</flux:select.option>
                         @endforeach

@@ -32,7 +32,7 @@ class ScheduleCalendar extends Component
     public string $title = '';
     public string $description = '';
     public string $startDate = '';
-    public string $endDate = '';
+    public ?string $endDate = '';
     public ?int $taskCategoryId = null;
     public ?int $taskPriorityId = null;
     public bool $isComplete = false;
@@ -160,12 +160,15 @@ class ScheduleCalendar extends Component
 
     public function saveTask(): void
     {
+        // Normalize null/empty endDate to empty string for consistent handling
+        $endDateValue = ($this->endDate !== null && $this->endDate !== '') ? $this->endDate : null;
+
         // Prepare data treating empty strings as null
         $validationData = [
             'title' => $this->title,
             'description' => $this->description !== '' ? $this->description : null,
             'startDate' => $this->startDate,
-            'endDate' => $this->endDate !== '' ? $this->endDate : null,
+            'endDate' => $endDateValue,
             'taskCategoryId' => $this->taskCategoryId,
             'taskPriorityId' => $this->taskPriorityId,
         ];
@@ -175,8 +178,13 @@ class ScheduleCalendar extends Component
             'description' => 'nullable|string|max:1000',
             'startDate' => 'required|date',
             'endDate' => 'nullable|date|after:startDate',
-            'taskCategoryId' => 'required|exists:task_categories,id',
-            'taskPriorityId' => 'nullable|exists:task_priorities,id',
+            'taskCategoryId' => 'required|integer|exists:task_categories,id',
+            'taskPriorityId' => 'nullable|integer|exists:task_priorities,id',
+        ], [], [
+            'taskCategoryId' => __('category'),
+            'taskPriorityId' => __('priority'),
+            'startDate' => __('start date'),
+            'endDate' => __('end date'),
         ])->validate();
 
         $startDt = Carbon::parse($validated['startDate']);
