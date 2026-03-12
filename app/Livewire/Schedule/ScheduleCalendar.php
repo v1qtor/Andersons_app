@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Schedule;
 
+use App\Models\Location;
 use App\Models\PlannedMeal;
 use App\Models\Task;
 use App\Models\TaskCategory;
@@ -38,6 +39,7 @@ class ScheduleCalendar extends Component
     public bool $isComplete = false;
     public ?int $taskOwnerId = null;
     public array $assignedUserIds = [];
+    public array $selectedLocationIds = [];
 
     public bool $showDeleteModal = false;
     public ?int $deletingTaskId = null;
@@ -148,6 +150,15 @@ class ScheduleCalendar extends Component
         }
     }
 
+    public function toggleLocation(int $locationId): void
+    {
+        if (in_array($locationId, $this->selectedLocationIds)) {
+            $this->selectedLocationIds = array_values(array_diff($this->selectedLocationIds, [$locationId]));
+        } else {
+            $this->selectedLocationIds[] = $locationId;
+        }
+    }
+
     public function openCreateModal(?string $date = null): void
     {
         $this->resetForm();
@@ -178,6 +189,7 @@ class ScheduleCalendar extends Component
         $this->isComplete = $task->is_complete;
         $this->taskOwnerId = $task->users()->wherePivot('is_owner', true)->value('users.id');
         $this->assignedUserIds = $task->users->pluck('id')->toArray();
+        $this->selectedLocationIds = $task->locations->pluck('id')->toArray();
         $this->showTaskModal = true;
     }
 
@@ -231,6 +243,9 @@ class ScheduleCalendar extends Component
             }
             $task->update($data);
 
+            // Sync locations
+            $task->locations()->sync($this->selectedLocationIds);
+
             // Only admins can change user assignments
             if ($this->isAdmin()) {
                 $ownerId = $this->taskOwnerId
@@ -274,6 +289,9 @@ class ScheduleCalendar extends Component
             }
 
             $task->users()->sync($syncData);
+
+            // Sync locations
+            $task->locations()->sync($this->selectedLocationIds);
         }
 
         $this->showTaskModal = false;
@@ -331,6 +349,7 @@ class ScheduleCalendar extends Component
         $this->isComplete = false;
         $this->taskOwnerId = null;
         $this->assignedUserIds = [];
+        $this->selectedLocationIds = [];
     }
 
     private function isAdmin(): bool
@@ -673,6 +692,7 @@ class ScheduleCalendar extends Component
             'today' => Carbon::today()->format('Y-m-d'),
             'taskCategories' => TaskCategory::all(),
             'taskPriorities' => TaskPriority::all(),
+            'locations' => Location::all(),
             'isAdmin' => $this->isAdmin(),
         ]);
     }

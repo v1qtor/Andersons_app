@@ -6,6 +6,8 @@
     'isAdmin' => false,
     'taskOwnerId' => null,
     'assignedUserIds' => [],
+    'locations' => collect(),
+    'selectedLocationIds' => [],
 ])
 
 <div
@@ -65,6 +67,30 @@
                     @error('taskPriorityId') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                 </div>
             </div>
+
+            {{-- ─── Locations ─── --}}
+            @if ($locations->isNotEmpty())
+                <div>
+                    <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                        {{ __('Locations') }}
+                    </label>
+                    <div class="flex flex-wrap gap-2 p-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-zinc-900/50 max-h-32 overflow-y-auto">
+                        @foreach ($locations as $location)
+                            @php $isSelected = in_array($location->id, $selectedLocationIds); @endphp
+                            <button
+                                type="button"
+                                wire:click="toggleLocation({{ $location->id }})"
+                                class="px-3 py-1.5 rounded-full text-xs font-medium transition-all border-2
+                                    {{ $isSelected
+                                        ? 'border-teal-500 bg-teal-500 text-white dark:border-teal-400 dark:bg-teal-400 dark:text-zinc-900'
+                                        : 'border-neutral-300 bg-transparent text-neutral-600 hover:border-teal-400 dark:border-neutral-600 dark:text-neutral-400 dark:hover:border-teal-500' }}"
+                            >
+                                📍 {{ $location->name }}
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
 
             {{-- ─── Task Owner (admin only) ─── --}}
             @if ($isAdmin)
@@ -154,3 +180,4 @@
         </form>
     </div>
 </div>
+
