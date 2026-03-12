@@ -128,4 +128,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Preference::class);
     }
+
+    public function sentCollaborationRequests(): HasMany
+    {
+        return $this->hasMany(CollaborationRequest::class, 'requester_id');
+    }
+
+    public function receivedCollaborationRequests(): HasMany
+    {
+        return $this->hasMany(CollaborationRequest::class, 'target_user_id');
+    }
 }
