@@ -15,12 +15,14 @@ class PlannedMeal extends Model
         'meal_id',
         'date_time',
         'notes',
+        'is_prepared',
     ];
 
     protected function casts(): array
     {
         return [
-            'date_time' => 'datetime',
+            'date_time'   => 'datetime',
+            'is_prepared' => 'boolean',
         ];
     }
 
@@ -31,6 +33,6 @@ class PlannedMeal extends Model
 
     public function subscribers(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'meal_subscriptions')->withPivot('guest_name');
+        return $this->belongsToMany(User::class, 'meal_subscriptions')->withPivot('guest_name', 'confirmed')->withTimestamps();
     }
 }
