@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\Country;
 use App\Models\Role;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -42,7 +41,6 @@ class UserFactory extends Factory
         self::$index++;
 
         $role = Role::where('name', $user['role'])->first();
-        $country = Country::first(); // use the first seeded country
 
         return [
             'role_id' => $role?->id,
@@ -52,7 +50,6 @@ class UserFactory extends Factory
             'password' => static::$password ??= Hash::make('password'),
             'iban' => $user['iban'],
             'phone_number' => $user['phone'],
-            'country_id' => $country?->id,
             'remember_token' => Str::random(10),
         ];
     }

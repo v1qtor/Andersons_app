@@ -22,7 +22,6 @@ class DatabaseSeeder extends Seeder
         // Tier 1: Independent lookup tables (no FK dependencies)
         $this->call([
             RoleSeeder::class,
-            CountrySeeder::class,
             CategorySeeder::class,
             AllergySeeder::class,
             MealSeeder::class,
