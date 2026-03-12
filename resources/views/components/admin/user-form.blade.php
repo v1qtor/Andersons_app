@@ -2,7 +2,6 @@
 @props([
     'isEdit' => false,
     'roles' => collect(),
-    'countries' => collect(),
 ])
 
 <div class="space-y-6">
@@ -44,20 +43,12 @@
         />
     </div>
 
-    {{-- Role & Country --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <flux:select wire:model="role_id" :label="__('Role')" placeholder="{{ __('Select a role') }}">
-            @foreach ($roles as $role)
-                <flux:select.option value="{{ $role->id }}">{{ $role->name }}</flux:select.option>
-            @endforeach
-        </flux:select>
-
-        <flux:select wire:model="country_id" :label="__('Country')" placeholder="{{ __('Select a country') }}">
-            @foreach ($countries as $country)
-                <flux:select.option value="{{ $country->id }}">{{ $country->name }}</flux:select.option>
-            @endforeach
-        </flux:select>
-    </div>
+    {{-- Role --}}
+    <flux:select wire:model="role_id" :label="__('Role')" placeholder="{{ __('Select a role') }}">
+        @foreach ($roles as $role)
+            <flux:select.option value="{{ $role->id }}">{{ $role->name }}</flux:select.option>
+        @endforeach
+    </flux:select>
 
     {{-- Password --}}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
