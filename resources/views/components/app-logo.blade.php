@@ -1,6 +1,6 @@
-<div class="flex aspect-square size-8 items-center justify-center rounded-md text-accent-foreground">
-    <x-app-logo-icon class="size-8 fill-current text-white dark:text-black" />
+<div class="flex aspect-square size-10 items-center justify-center rounded-md text-accent-foreground">
+    <x-app-logo-icon class="size-10 fill-current text-white dark:text-black" />
 </div>
-<div class="ms-1 grid flex-1 text-start text-sm">
+<div class="ms-1 grid flex-1 text-start text-lg">
     <span class="mb-0.5 truncate leading-tight font-semibold">Andersons</span>
 </div>
