@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Task extends Model
 {
@@ -56,5 +57,10 @@ class Task extends Model
     public function locations(): BelongsToMany
     {
         return $this->belongsToMany(Location::class, 'task_locations');
+    }
+
+    public function collaborationRequests(): HasMany
+    {
+        return $this->hasMany(CollaborationRequest::class);
     }
 }
