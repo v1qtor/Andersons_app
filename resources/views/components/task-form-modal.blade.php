@@ -2,6 +2,12 @@
     'editingTaskId' => null,
     'taskCategories' => collect(),
     'taskPriorities' => collect(),
+    'allUsers' => collect(),
+    'isAdmin' => false,
+    'taskOwnerId' => null,
+    'assignedUserIds' => [],
+    'locations' => collect(),
+    'selectedLocationIds' => [],
 ])
 
 <div
@@ -61,6 +67,97 @@
                     @error('taskPriorityId') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                 </div>
             </div>
+
+            {{-- ─── Locations ─── --}}
+            @if ($locations->isNotEmpty())
+                <div>
+                    <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                        {{ __('Locations') }}
+                    </label>
+                    <div class="flex flex-wrap gap-2 p-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-zinc-900/50 max-h-32 overflow-y-auto">
+                        @foreach ($locations as $location)
+                            @php $isSelected = in_array($location->id, $selectedLocationIds); @endphp
+                            <button
+                                type="button"
+                                wire:click="toggleLocation({{ $location->id }})"
+                                class="px-3 py-1.5 rounded-full text-xs font-medium transition-all border-2
+                                    {{ $isSelected
+                                        ? 'border-teal-500 bg-teal-500 text-white dark:border-teal-400 dark:bg-teal-400 dark:text-zinc-900'
+                                        : 'border-neutral-300 bg-transparent text-neutral-600 hover:border-teal-400 dark:border-neutral-600 dark:text-neutral-400 dark:hover:border-teal-500' }}"
+                            >
+                                📍 {{ $location->name }}
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            {{-- ─── Task Owner (admin only) ─── --}}
+            @if ($isAdmin)
+                <div>
+                    <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                        {{ __('Task Owner') }}
+                    </label>
+                    <div class="flex flex-wrap gap-2 p-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-zinc-900/50 max-h-40 overflow-y-auto">
+                        @foreach ($allUsers as $user)
+                            @php
+                                $isOwner = $user->id === $taskOwnerId;
+                                $roleColor = $user->role?->color ?? '#6366f1';
+                            @endphp
+                            <button
+                                type="button"
+                                wire:click="setTaskOwner({{ $user->id }})"
+                                class="px-3 py-1.5 rounded-full text-xs font-medium transition-all border-2"
+                                style="
+                                    border-color: {{ $roleColor }};
+                                    background-color: {{ $isOwner ? $roleColor : 'transparent' }};
+                                    color: {{ $isOwner ? '#fff' : $roleColor }};
+                                "
+                            >
+                                {{ $user->name }}
+                                @if ($isOwner)
+                                    <span class="ml-0.5">👑</span>
+                                @endif
+                            </button>
+                        @endforeach
+                    </div>
+                    <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                        {{ __('The owner can edit and delete this task. Only one owner allowed.') }}
+                    </p>
+                </div>
+            @endif
+
+            {{-- ─── Assigned Users ─── --}}
+            @if ($isAdmin)
+                <div>
+                    <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                        {{ __('Assigned Users') }}
+                    </label>
+                    <div class="flex flex-wrap gap-2 p-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-zinc-900/50 max-h-40 overflow-y-auto">
+                        @foreach ($allUsers as $user)
+                            @php
+                                $isAssigned = in_array($user->id, $assignedUserIds);
+                                $roleColor = $user->role?->color ?? '#6366f1';
+                            @endphp
+                            <button
+                                type="button"
+                                wire:click="toggleAssignedUser({{ $user->id }})"
+                                class="px-3 py-1.5 rounded-full text-xs font-medium transition-all border-2"
+                                style="
+                                    border-color: {{ $roleColor }};
+                                    background-color: {{ $isAssigned ? $roleColor : 'transparent' }};
+                                    color: {{ $isAssigned ? '#fff' : $roleColor }};
+                                "
+                            >
+                                {{ $user->name }}
+                            </button>
+                        @endforeach
+                    </div>
+                    <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                        {{ __('Select multiple users to assign to this task.') }}
+                    </p>
+                </div>
+            @endif
 
             @if ($editingTaskId)
                 <div class="flex items-center gap-3">
