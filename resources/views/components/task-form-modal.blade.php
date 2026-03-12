@@ -2,6 +2,10 @@
     'editingTaskId' => null,
     'taskCategories' => collect(),
     'taskPriorities' => collect(),
+    'allUsers' => collect(),
+    'isAdmin' => false,
+    'taskOwnerId' => null,
+    'assignedUserIds' => [],
 ])
 
 <div
@@ -62,6 +66,73 @@
                 </div>
             </div>
 
+            {{-- ─── Task Owner (admin only) ─── --}}
+            @if ($isAdmin)
+                <div>
+                    <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                        {{ __('Task Owner') }}
+                    </label>
+                    <div class="flex flex-wrap gap-2 p-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-zinc-900/50 max-h-40 overflow-y-auto">
+                        @foreach ($allUsers as $user)
+                            @php
+                                $isOwner = $user->id === $taskOwnerId;
+                                $roleColor = $user->role?->color ?? '#6366f1';
+                            @endphp
+                            <button
+                                type="button"
+                                wire:click="setTaskOwner({{ $user->id }})"
+                                class="px-3 py-1.5 rounded-full text-xs font-medium transition-all border-2"
+                                style="
+                                    border-color: {{ $roleColor }};
+                                    background-color: {{ $isOwner ? $roleColor : 'transparent' }};
+                                    color: {{ $isOwner ? '#fff' : $roleColor }};
+                                "
+                            >
+                                {{ $user->name }}
+                                @if ($isOwner)
+                                    <span class="ml-0.5">👑</span>
+                                @endif
+                            </button>
+                        @endforeach
+                    </div>
+                    <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                        {{ __('The owner can edit and delete this task. Only one owner allowed.') }}
+                    </p>
+                </div>
+            @endif
+
+            {{-- ─── Assigned Users ─── --}}
+            @if ($isAdmin)
+                <div>
+                    <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                        {{ __('Assigned Users') }}
+                    </label>
+                    <div class="flex flex-wrap gap-2 p-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-zinc-900/50 max-h-40 overflow-y-auto">
+                        @foreach ($allUsers as $user)
+                            @php
+                                $isAssigned = in_array($user->id, $assignedUserIds);
+                                $roleColor = $user->role?->color ?? '#6366f1';
+                            @endphp
+                            <button
+                                type="button"
+                                wire:click="toggleAssignedUser({{ $user->id }})"
+                                class="px-3 py-1.5 rounded-full text-xs font-medium transition-all border-2"
+                                style="
+                                    border-color: {{ $roleColor }};
+                                    background-color: {{ $isAssigned ? $roleColor : 'transparent' }};
+                                    color: {{ $isAssigned ? '#fff' : $roleColor }};
+                                "
+                            >
+                                {{ $user->name }}
+                            </button>
+                        @endforeach
+                    </div>
+                    <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                        {{ __('Select multiple users to assign to this task.') }}
+                    </p>
+                </div>
+            @endif
+
             @if ($editingTaskId)
                 <div class="flex items-center gap-3">
                     <label class="relative inline-flex items-center cursor-pointer">
@@ -83,4 +154,3 @@
         </form>
     </div>
 </div>
-

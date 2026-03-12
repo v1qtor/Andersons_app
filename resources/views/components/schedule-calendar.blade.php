@@ -599,6 +599,10 @@
             :editing-task-id="$editingTaskId"
             :task-categories="$taskCategories"
             :task-priorities="$taskPriorities"
+            :all-users="$allUsers"
+            :is-admin="$isAdmin"
+            :task-owner-id="$taskOwnerId"
+            :assigned-user-ids="$assignedUserIds"
         />
     @endif
 
