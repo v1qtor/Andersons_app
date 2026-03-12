@@ -33,5 +33,10 @@
 
 
 
+### Questions:
+- Is the design of filter schedule nice?
+- SMS notifications?
+- Which one should be default view for schedule? (week, day, month)
+- Should admin be able to delete or edit invoices?
 
 

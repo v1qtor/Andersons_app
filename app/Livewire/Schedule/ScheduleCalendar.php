@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Schedule;
 
+use App\Models\CollaborationRequest;
+use App\Models\Location;
 use App\Models\PlannedMeal;
 use App\Models\Task;
 use App\Models\TaskCategory;
@@ -36,6 +38,10 @@ class ScheduleCalendar extends Component
     public ?int $taskCategoryId = null;
     public ?int $taskPriorityId = null;
     public bool $isComplete = false;
+    public ?int $taskOwnerId = null;
+    public array $assignedUserIds = [];
+    public array $selectedLocationIds = [];
+    public array $collaborationUserIds = [];
 
     public bool $showDeleteModal = false;
     public ?int $deletingTaskId = null;
@@ -129,9 +135,82 @@ class ScheduleCalendar extends Component
 
     // ─── Task CRUD Methods ────────────────────────────────────
 
+    public function setTaskOwner(int $userId): void
+    {
+        if (! $this->isAdmin()) {
+            return;
+        }
+        $this->taskOwnerId = $userId;
+    }
+
+    public function toggleAssignedUser(int $userId): void
+    {
+        if (in_array($userId, $this->assignedUserIds)) {
+            $this->assignedUserIds = array_values(array_diff($this->assignedUserIds, [$userId]));
+        } else {
+            $this->assignedUserIds[] = $userId;
+        }
+    }
+
+    public function toggleLocation(int $locationId): void
+    {
+        if (in_array($locationId, $this->selectedLocationIds)) {
+            $this->selectedLocationIds = array_values(array_diff($this->selectedLocationIds, [$locationId]));
+        } else {
+            $this->selectedLocationIds[] = $locationId;
+        }
+    }
+
+    public function toggleCollaborationUser(int $userId): void
+    {
+        if (in_array($userId, $this->collaborationUserIds)) {
+            $this->collaborationUserIds = array_values(array_diff($this->collaborationUserIds, [$userId]));
+        } else {
+            $this->collaborationUserIds[] = $userId;
+        }
+    }
+
+    public function acceptCollaborationRequest(int $requestId): void
+    {
+        $request = CollaborationRequest::findOrFail($requestId);
+
+        if ($request->target_user_id !== Auth::id()) {
+            return;
+        }
+
+        if ($request->status !== 'pending') {
+            return;
+        }
+
+        $request->update(['status' => 'accepted']);
+
+        // Add the target user to the task if not already assigned
+        $task = $request->task;
+        if (! $task->users()->where('users.id', $request->target_user_id)->exists()) {
+            $task->users()->attach($request->target_user_id, ['is_owner' => false]);
+        }
+    }
+
+    public function declineCollaborationRequest(int $requestId): void
+    {
+        $request = CollaborationRequest::findOrFail($requestId);
+
+        if ($request->target_user_id !== Auth::id()) {
+            return;
+        }
+
+        if ($request->status !== 'pending') {
+            return;
+        }
+
+        $request->update(['status' => 'declined']);
+    }
+
     public function openCreateModal(?string $date = null): void
     {
         $this->resetForm();
+        $this->taskOwnerId = Auth::id();
+        $this->assignedUserIds = [Auth::id()];
         if ($date) {
             $this->startDate = $date . 'T09:00';
             $this->endDate = $date . 'T10:00';
@@ -155,6 +234,9 @@ class ScheduleCalendar extends Component
         $this->taskCategoryId = $task->task_category_id;
         $this->taskPriorityId = $task->task_priority_id;
         $this->isComplete = $task->is_complete;
+        $this->taskOwnerId = $task->users()->wherePivot('is_owner', true)->value('users.id');
+        $this->assignedUserIds = $task->users->pluck('id')->toArray();
+        $this->selectedLocationIds = $task->locations->pluck('id')->toArray();
         $this->showTaskModal = true;
     }
 
@@ -207,9 +289,80 @@ class ScheduleCalendar extends Component
                 return;
             }
             $task->update($data);
+
+            // Sync locations
+            $task->locations()->sync($this->selectedLocationIds);
+
+            // Only admins can change user assignments
+            if ($this->isAdmin()) {
+                $ownerId = $this->taskOwnerId
+                    ?: $task->users()->wherePivot('is_owner', true)->value('users.id');
+
+                $syncData = [];
+
+                // Owner is always included
+                if ($ownerId) {
+                    $syncData[$ownerId] = ['is_owner' => true];
+                }
+
+                // Assigned users (non-owners)
+                foreach ($this->assignedUserIds as $uid) {
+                    if (! isset($syncData[$uid])) {
+                        $syncData[$uid] = ['is_owner' => false];
+                    }
+                }
+
+                $task->users()->sync($syncData);
+            }
         } else {
             $task = Task::create($data);
-            $task->users()->attach(Auth::id(), ['is_owner' => true]);
+
+            // Non-admin: creator is always the sole owner
+            // Admin: can pick a different owner and assign multiple users
+            $ownerId = ($this->isAdmin() && $this->taskOwnerId)
+                ? $this->taskOwnerId
+                : Auth::id();
+
+            $syncData = [];
+            $syncData[$ownerId] = ['is_owner' => true];
+
+            // Admin can assign additional users
+            if ($this->isAdmin()) {
+                foreach ($this->assignedUserIds as $uid) {
+                    if (! isset($syncData[$uid])) {
+                        $syncData[$uid] = ['is_owner' => false];
+                    }
+                }
+            }
+
+            $task->users()->sync($syncData);
+
+            // Sync locations
+            $task->locations()->sync($this->selectedLocationIds);
+        }
+
+        // Non-admin: send collaboration requests for selected users
+        if (! $this->isAdmin() && ! empty($this->collaborationUserIds)) {
+            foreach ($this->collaborationUserIds as $targetUserId) {
+                if ($targetUserId === Auth::id()) {
+                    continue;
+                }
+
+                // Skip if a pending request already exists for this task+target
+                $exists = CollaborationRequest::where('task_id', $task->id)
+                    ->where('target_user_id', $targetUserId)
+                    ->where('status', 'pending')
+                    ->exists();
+
+                if (! $exists) {
+                    CollaborationRequest::create([
+                        'task_id' => $task->id,
+                        'requester_id' => Auth::id(),
+                        'target_user_id' => $targetUserId,
+                        'status' => 'pending',
+                    ]);
+                }
+            }
         }
 
         $this->showTaskModal = false;
@@ -265,6 +418,10 @@ class ScheduleCalendar extends Component
         $this->taskCategoryId = null;
         $this->taskPriorityId = null;
         $this->isComplete = false;
+        $this->taskOwnerId = null;
+        $this->assignedUserIds = [];
+        $this->selectedLocationIds = [];
+        $this->collaborationUserIds = [];
     }
 
     private function isAdmin(): bool
@@ -593,12 +750,28 @@ class ScheduleCalendar extends Component
             ];
         }
 
+        // Collaboration requests
+        $pendingIncomingRequests = CollaborationRequest::with(['task', 'requester'])
+            ->where('target_user_id', Auth::id())
+            ->where('status', 'pending')
+            ->get();
+
+        // For the edit form: get target_user_ids of pending outgoing requests for the current task
+        $pendingOutgoingUserIds = [];
+        if ($this->editingTaskId) {
+            $pendingOutgoingUserIds = CollaborationRequest::where('task_id', $this->editingTaskId)
+                ->where('status', 'pending')
+                ->pluck('target_user_id')
+                ->toArray();
+        }
+
         return view('components.schedule-calendar', [
             'tasks' => $tasks,
             'meals' => $meals,
             'trips' => $trips,
             'eventsByDate' => $eventsByDate,
             'users' => $users,
+            'allUsers' => $users,
             'calendarDays' => $calendarDays,
             'weekDays' => $weekDays,
             'weekViewData' => $weekViewData,
@@ -606,7 +779,10 @@ class ScheduleCalendar extends Component
             'today' => Carbon::today()->format('Y-m-d'),
             'taskCategories' => TaskCategory::all(),
             'taskPriorities' => TaskPriority::all(),
+            'locations' => Location::all(),
             'isAdmin' => $this->isAdmin(),
+            'pendingIncomingRequests' => $pendingIncomingRequests,
+            'pendingOutgoingUserIds' => $pendingOutgoingUserIds,
         ]);
     }
 }

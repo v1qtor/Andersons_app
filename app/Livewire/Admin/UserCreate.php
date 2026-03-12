@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Admin;
 
-use App\Models\Country;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -17,7 +16,6 @@ class UserCreate extends Component
     public string $iban = '';
     public string $phone_number = '';
     public ?int $role_id = null;
-    public ?int $country_id = null;
 
     public function rules(): array
     {
@@ -28,7 +26,6 @@ class UserCreate extends Component
             'iban' => ['required', 'string', 'max:255'],
             'phone_number' => ['required', 'string', 'max:255'],
             'role_id' => ['nullable', 'exists:roles,id'],
-            'country_id' => ['nullable', 'exists:countries,id'],
         ];
     }
 
@@ -49,7 +46,6 @@ class UserCreate extends Component
     {
         return view('livewire.admin.user-create', [
             'roles' => Role::all(),
-            'countries' => Country::all(),
         ]);
     }
 }

@@ -10,6 +10,19 @@ class CategorySeeder extends Seeder
     public function run(): void
     {
         Category::query()->delete();
-        Category::factory(7)->create();
+
+        $categories = [
+            'Groceries',
+            'Food & Catering',
+            'Cleaning Supplies',
+            'Garden Maintenance',
+            'Materials',
+            'Transportation',
+            'Other',
+        ];
+
+        foreach ($categories as $name) {
+            Category::create(['name' => $name]);
+        }
     }
 }

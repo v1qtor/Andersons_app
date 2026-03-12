@@ -19,7 +19,7 @@ class MealFactory extends Factory
                 'Pasta Bolognese', 'Grilled Chicken Salad', 'Vegetable Stir Fry',
                 'Beef Stew', 'Fish and Chips', 'Caesar Salad', 'Mushroom Risotto',
                 'Chicken Curry', 'Tomato Soup', 'Roast Lamb',
-            ]) . ' ' . fake()->numberBetween(1, 100),
+            ]),
             'description' => fake()->optional()->sentence(),
         ];
     }
