@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Admin;
 
-use App\Models\Country;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +20,6 @@ class UserEdit extends Component
     public string $iban = '';
     public string $phone_number = '';
     public ?int $role_id = null;
-    public ?int $country_id = null;
 
     public bool $showDeleteModal = false;
     public string $deletePassword = '';
@@ -35,7 +33,6 @@ class UserEdit extends Component
         $this->iban = $user->iban ?? '';
         $this->phone_number = $user->phone_number ?? '';
         $this->role_id = $user->role_id;
-        $this->country_id = $user->country_id;
     }
 
     public function rules(): array
@@ -47,7 +44,6 @@ class UserEdit extends Component
             'iban' => ['required', 'string', 'max:255'],
             'phone_number' => ['required', 'string', 'max:255'],
             'role_id' => ['nullable', 'exists:roles,id'],
-            'country_id' => ['nullable', 'exists:countries,id'],
         ];
     }
 
@@ -110,7 +106,6 @@ class UserEdit extends Component
     {
         return view('livewire.admin.user-edit', [
             'roles' => Role::all(),
-            'countries' => Country::all(),
         ]);
     }
 }

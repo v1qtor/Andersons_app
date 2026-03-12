@@ -106,7 +106,7 @@ class UserIndex extends Component
 
     public function render()
     {
-        $users = User::with(['role', 'country'])
+        $users = User::with(['role'])
             ->when($this->search, function ($query) {
                 $query->where('name', 'like', '%' . $this->search . '%')
                     ->orWhere('email', 'like', '%' . $this->search . '%');

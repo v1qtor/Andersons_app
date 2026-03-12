@@ -65,3 +65,30 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+/* Sidebar navlist group heading: scale up 25% */
+[data-flux-navlist] .px-3.py-2 > div {
+    font-size: 1.094rem !important; /* text-sm (14px) × 1.25 ≈ 17.5px */
+}
+
+/* Sidebar navlist items: scale up */
+[data-flux-navlist-item] {
+    height: 2.5rem !important;
+}
+
+@media (max-width: 1023px) {
+    [data-flux-navlist-item] {
+        height: 3rem !important;
+    }
+}
+
+[data-flux-navlist-item] [data-content] {
+    font-size: 1rem !important;
+}
+
+[data-flux-navlist-item] svg[data-flux-icon] {
+    width: 1.25rem !important; 
+    height: 1.25rem !important;
+    min-width: 1.25rem !important;
+    min-height: 1.25rem !important;
+}

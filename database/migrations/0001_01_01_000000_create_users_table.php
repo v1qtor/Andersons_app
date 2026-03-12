@@ -20,7 +20,6 @@ return new class extends Migration
             $table->string('password');
             $table->string('iban')->nullable()->collation('nocase');
             $table->string('phone_number')->nullable()->collation('nocase');
-            $table->unsignedBigInteger('country_id')->nullable();
             $table->boolean('is_active')->default(true);
             $table->rememberToken();
             $table->timestamps();
