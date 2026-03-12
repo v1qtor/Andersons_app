@@ -16,18 +16,16 @@
                     <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
                     <flux:navlist.item icon="calendar-days" :href="route('schedule')" :current="request()->routeIs('schedule')" wire:navigate>{{ __('Schedule') }}</flux:navlist.item>
                     <flux:navlist.item icon="cog" :href="route('settings')" :current="request()->routeIs('settings')" wire:navigate>{{ __('Settings') }}</flux:navlist.item>
-                    @auth
-                        @if(auth()->user()->role && in_array(auth()->user()->role->name, ['Staff', 'Chef', 'Admin', 'The Andersons']))
-                            <flux:navlist.item icon="document-text" :href="route('invoices')" :current="request()->routeIs('invoices*')" wire:navigate>{{ __('Invoices') }}</flux:navlist.item>
-                        @endif
-                        @if(auth()->user()->role && auth()->user()->role->name === 'Admin')
-                            <flux:navlist.item icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>{{ __('Users') }}</flux:navlist.item>
-                            <flux:navlist.item icon="fire" :href="route('admin.meals.index')" :current="request()->routeIs('admin.meals.*')" wire:navigate>{{ __('Meals') }}</flux:navlist.item>
-                        @endif
-                        @if(auth()->user()->role && auth()->user()->role->name === 'Chef')
-                            <flux:navlist.item icon="fire" :href="route('chef.meals.index')" :current="request()->routeIs('chef.meals.*')" wire:navigate>{{ __('Meals') }}</flux:navlist.item>
-                        @endif
-                    @endauth
+                    @if(auth()->user()->role && in_array(auth()->user()->role->name, ['Staff', 'Chef', 'Admin', 'The Andersons']))
+                        <flux:navlist.item icon="document-text" :href="route('invoices')" :current="request()->routeIs('invoices*')" wire:navigate>{{ __('Invoices') }}</flux:navlist.item>
+                    @endif
+                    @if(auth()->user()->role && auth()->user()->role->name === 'Admin')
+                        <flux:navlist.item icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>{{ __('Users') }}</flux:navlist.item>
+                        <flux:navlist.item icon="fire" :href="route('admin.meals.index')" :current="request()->routeIs('admin.meals.*')" wire:navigate>{{ __('Meals') }}</flux:navlist.item>
+                    @endif
+                    @if(auth()->user()->role && auth()->user()->role->name === 'Chef')
+                        <flux:navlist.item icon="fire" :href="route('chef.meals.index')" :current="request()->routeIs('chef.meals.*')" wire:navigate>{{ __('Meals') }}</flux:navlist.item>
+                    @endif
                 </flux:navlist.group>
     </flux:navlist>
 
