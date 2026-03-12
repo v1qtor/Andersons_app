@@ -30,7 +30,6 @@ class User extends Authenticatable
         'password',
         'iban',
         'phone_number',
-        'country_id',
         'is_active',
     ];
 
@@ -82,11 +81,6 @@ class User extends Authenticatable
     public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);
-    }
-
-    public function country(): BelongsTo
-    {
-        return $this->belongsTo(Country::class);
     }
 
     public function unavailabilityPeriods(): HasMany
