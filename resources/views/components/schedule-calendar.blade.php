@@ -603,6 +603,8 @@
             :is-admin="$isAdmin"
             :task-owner-id="$taskOwnerId"
             :assigned-user-ids="$assignedUserIds"
+            :locations="$locations"
+            :selected-location-ids="$selectedLocationIds"
         />
     @endif
 
