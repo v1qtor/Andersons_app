@@ -14,7 +14,7 @@
         {{-- Form Card --}}
         <div class="rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-zinc-800 p-6">
             <form wire:submit="save">
-                <x-admin.user-form :isEdit="false" :roles="$roles" :countries="$countries" />
+                <x-admin.user-form :isEdit="false" :roles="$roles" />
 
                 <div class="flex items-center justify-end gap-3 mt-8 pt-6 border-t border-neutral-200 dark:border-neutral-700">
                     <flux:button variant="ghost" :href="route('admin.users.index')" wire:navigate>

@@ -17,7 +17,6 @@ class Settings extends Component
     public string $email = '';
     public string $phone_number = '';
     public string $iban = '';
-    public string $bankCountry = 'United Kingdom';
 
     public string $newAllergy = '';
     public string $newPreference = '';
@@ -83,7 +82,6 @@ class Settings extends Component
             'email' => 'required|email|max:255|unique:users,email,' . Auth::id(),
             'phone_number' => 'nullable|string|max:20',
             'iban' => 'nullable|string|max:50',
-            'bankCountry' => 'required|string|max:255',
         ]);
 
         $user = Auth::user();
