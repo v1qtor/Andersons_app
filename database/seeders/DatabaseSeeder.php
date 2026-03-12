@@ -82,18 +82,6 @@ class DatabaseSeeder extends Seeder
             }
         });
 
-        // UserTask
-        $tasks->each(function ($task) use ($users) {
-            $selectedUsers = $users->random(rand(1, 3));
-            $first = true;
-            foreach ($selectedUsers as $user) {
-                $task->users()->attach($user->id, [
-                    'is_owner' => $first,
-                ]);
-                $first = false;
-            }
-        });
-
         // TaskLocation
         $tasks->each(function ($task) use ($locations) {
             $task->locations()->attach(
