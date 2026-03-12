@@ -16,21 +16,24 @@
                     <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
                     <flux:navlist.item icon="calendar-days" :href="route('schedule')" :current="request()->routeIs('schedule')" wire:navigate>{{ __('Schedule') }}</flux:navlist.item>
                     <flux:navlist.item icon="cog" :href="route('settings')" :current="request()->routeIs('settings')" wire:navigate>{{ __('Settings') }}</flux:navlist.item>
-                    @if(auth()->user()->role && in_array(auth()->user()->role->name, ['Staff', 'Chef', 'Admin', 'The Andersons']))
-                        <flux:navlist.item icon="document-text" :href="route('invoices')" :current="request()->routeIs('invoices*')" wire:navigate>{{ __('Invoices') }}</flux:navlist.item>
-                    @endif
-                    @if(auth()->user()->role && auth()->user()->role->name === 'Admin')
-                        <flux:navlist.item icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>{{ __('Users') }}</flux:navlist.item>
-                        <flux:navlist.item icon="fire" :href="route('admin.meals.index')" :current="request()->routeIs('admin.meals.*')" wire:navigate>{{ __('Meals') }}</flux:navlist.item>
-                    @endif
-                    @if(auth()->user()->role && auth()->user()->role->name === 'Chef')
-                        <flux:navlist.item icon="fire" :href="route('chef.meals.index')" :current="request()->routeIs('chef.meals.*')" wire:navigate>{{ __('Meals') }}</flux:navlist.item>
-                    @endif
+                    @auth
+                        @if(auth()->user()->role && in_array(auth()->user()->role->name, ['Staff', 'Chef', 'Admin', 'The Andersons']))
+                            <flux:navlist.item icon="document-text" :href="route('invoices')" :current="request()->routeIs('invoices*')" wire:navigate>{{ __('Invoices') }}</flux:navlist.item>
+                        @endif
+                        @if(auth()->user()->role && auth()->user()->role->name === 'Admin')
+                            <flux:navlist.item icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>{{ __('Users') }}</flux:navlist.item>
+                            <flux:navlist.item icon="fire" :href="route('admin.meals.index')" :current="request()->routeIs('admin.meals.*')" wire:navigate>{{ __('Meals') }}</flux:navlist.item>
+                        @endif
+                        @if(auth()->user()->role && auth()->user()->role->name === 'Chef')
+                            <flux:navlist.item icon="fire" :href="route('chef.meals.index')" :current="request()->routeIs('chef.meals.*')" wire:navigate>{{ __('Meals') }}</flux:navlist.item>
+                        @endif
+                    @endauth
                 </flux:navlist.group>
     </flux:navlist>
 
     <flux:spacer />
 
+    @auth
     <div class="hidden lg:block border-t border-zinc-200 bg-zinc-100 pt-3 pb-4 -mx-4 -mb-4">
         <div class="flex items-center gap-3 px-4 py-1.5">
             <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-neutral-200 text-sm font-semibold text-black">
@@ -53,6 +56,7 @@
             </form>
         </div>
     </div>
+    @endauth
 </flux:sidebar>
 
 <flux:header class="lg:hidden">
@@ -60,6 +64,7 @@
 
     <flux:spacer />
 
+    @auth
     <flux:dropdown position="top" align="end">
         <flux:profile
             :initials="auth()->user()->initials"
@@ -99,6 +104,7 @@
             </form>
         </flux:menu>
     </flux:dropdown>
+    @endauth
 </flux:header>
 
 {{ $slot }}
