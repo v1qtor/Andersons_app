@@ -13,15 +13,45 @@ class Dashboard extends Component
 {
     use WithPagination;
 
+    public $priorityFilter = '';
+    public $timeFilter = '';
+
+    public function markTaskAsDone($taskId)
+    {
+        $task = Task::find($taskId);
+        // Ensure user can update this task
+        if ($task && $task->users()->where('user_id', auth()->id())->exists()) {
+            $task->update(['is_complete' => true]);
+        }
+    }
+
     public function render()
     {
         $user = auth()->user();
         
-        $todayTasks = $user->tasks()
+        $tasksQuery = $user->tasks()
             ->with(['users', 'taskCategory', 'taskPriority', 'locations'])
-            ->whereDate('date', today())
-            ->orderBy('start_date')
-            ->get();
+            ->whereDate('date', today());
+
+        if ($this->priorityFilter) {
+            $tasksQuery->whereHas('taskPriority', function ($q) {
+                $q->where('name', $this->priorityFilter);
+            });
+        }
+
+        if ($this->timeFilter) {
+            if ($this->timeFilter === 'morning') {
+                $tasksQuery->whereTime('start_date', '<', '12:00:00');
+            } elseif ($this->timeFilter === 'afternoon') {
+                $tasksQuery->whereTime('start_date', '>=', '12:00:00')->whereTime('start_date', '<', '17:00:00');
+            } elseif ($this->timeFilter === 'evening') {
+                $tasksQuery->whereTime('start_date', '>=', '17:00:00');
+            }
+        }
+
+        $todayTasks = $tasksQuery->orderBy('start_date')->get();
+        // Get base count to show how many total regardless of filters
+        $tasksCount = $user->tasks()->whereDate('date', today())->count();
             
         $upcomingTrips = $user->trips()
             ->with('checkpoints')
@@ -41,9 +71,11 @@ class Dashboard extends Component
             'todayTasks' => $todayTasks,
             'upcomingTrips' => $upcomingTrips,
             'dinnerPlans' => $dinnerPlans,
-            'tasksCount' => $todayTasks->count(),
+            'tasksCount' => $tasksCount,
+            'completedCount' => $user->tasks()->whereDate('date', today())->where('is_complete', true)->count(),
             'totalTripsCount' => $totalUpcomingTrips,
             'totalDinnerCount' => $totalDinnerPlans,
+            'priorities' => \App\Models\TaskPriority::all(),
         ])->layout('components.layouts.app');
     }
 }
