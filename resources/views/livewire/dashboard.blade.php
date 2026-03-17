@@ -59,43 +59,58 @@
             
             {{-- Left Column: Today's Tasks --}}
             <div class="lg:col-span-7 bg-white dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-700/50 rounded-2xl p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-2xl font-medium text-neutral-800 dark:text-neutral-200">Today's Tasks</h2>
-                    <div class="text-xl text-neutral-800 dark:text-neutral-200">{{ now()->format('n/j/Y') }}</div>
-                    @php
-                        $completedTasks = count($todayTasks) > 0 ? $todayTasks->where('is_complete', true)->count() : 0;
-                    @endphp
-                    <div class="bg-blue-50 dark:bg-blue-900/30 text-blue-500 dark:text-blue-400 text-xs px-3 py-1 rounded-md font-medium">
-                        {{ $completedTasks }}/{{ $tasksCount }} Complete
+                <div class="flex items-center justify-between gap-4 flex-wrap mb-6">
+                    <div class="flex items-center gap-4">
+                        <h2 class="text-2xl font-medium text-neutral-800 dark:text-neutral-200">Today's Tasks</h2>
+                        <div class="text-lg text-neutral-800 dark:text-neutral-200">{{ now()->format('n/j/Y') }}</div>
+                    </div>
+                    
+                    <div class="flex items-center gap-3">
+                        <select wire:model.live="priorityFilter" class="bg-white border border-neutral-200 text-neutral-700 text-sm rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500 outline-none shadow-sm dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-200">
+                            <option value="">Priority</option>
+                            @foreach($priorities as $priority)
+                                <option value="{{ $priority->name }}">{{ $priority->name }}</option>
+                            @endforeach
+                        </select>
+
+                        <select wire:model.live="timeFilter" class="bg-white border border-neutral-200 text-neutral-700 text-sm rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500 outline-none shadow-sm dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-200">
+                            <option value="">Time</option>
+                            <option value="morning">Morning</option>
+                            <option value="afternoon">Afternoon</option>
+                            <option value="evening">Evening</option>
+                        </select>
+
+                        <div class="bg-blue-50/50 dark:bg-blue-900/30 text-blue-500 dark:text-blue-400 text-xs px-3 py-1.5 rounded-md font-medium ml-1">
+                            {{ $completedCount }}/{{ $tasksCount }} Complete
+                        </div>
                     </div>
                 </div>
 
                 <div class="flex flex-col gap-4">
                     @forelse($todayTasks as $index => $task)
                         @php
-                            // Match colors from screenshot approximately
                             $colors = [
-                                ['bg' => 'bg-[#f4ebfd] dark:bg-purple-900/10', 'border' => 'border-[#e8d2fa] dark:border-purple-800'],
-                                ['bg' => 'bg-[#ebfbf5] dark:bg-emerald-900/10', 'border' => 'border-[#c6f3df] dark:border-emerald-800'],
+                                ['bg' => 'bg-[#f4eefe] dark:bg-purple-900/10', 'border' => 'border-[#b598f8] dark:border-purple-800'],
+                                ['bg' => 'bg-[#8be2bc] dark:bg-emerald-900/10', 'border' => 'border-[#56b78f] dark:border-emerald-800'],
                                 ['bg' => 'bg-[#fef4e5] dark:bg-orange-900/10', 'border' => 'border-[#fbe1b6] dark:border-orange-800'],
                             ];
                             $color = $colors[$index % count($colors)];
                         @endphp
-                        <div class="rounded-xl border {{ $color['bg'] }} {{ $color['border'] }} p-3.5 relative group">
-                            <div class="flex justify-between items-start gap-4">
-                                <div class="flex gap-3">
+                        <div class="rounded-2xl border {{ $color['bg'] }} {{ $color['border'] }} p-4 relative group">
+                            <div class="flex justify-between items-center gap-4">
+                                <div class="flex gap-4">
                                     <div class="pt-0.5">
                                         @if($task->is_complete)
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6 text-neutral-400">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-[26px] text-neutral-400 mt-1">
                                                 <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clip-rule="evenodd" />
                                             </svg>
                                         @else
-                                            <div class="size-6 rounded-full border border-neutral-400 dark:border-neutral-500 bg-white/50 dark:bg-transparent"></div>
+                                            <button wire:click="markTaskAsDone({{ $task->id }})" class="size-[26px] mt-1 rounded-full border-2 border-slate-300 dark:border-neutral-500 bg-transparent hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"></button>
                                         @endif
                                     </div>
                                     <div>
-                                        <h4 class="text-[17px] text-neutral-800 dark:text-neutral-200">{{ $task->title }}</h4>
-                                        <div class="flex items-center gap-6 mt-1.5 text-[15px] text-neutral-600 dark:text-neutral-400">
+                                        <h4 class="text-[20px] text-neutral-800 dark:text-neutral-200">{{ $task->title }}</h4>
+                                        <div class="flex items-center gap-6 mt-1 text-[15px] text-neutral-600 dark:text-neutral-400">
                                             <div class="flex items-center gap-1.5">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
                                                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -115,23 +130,35 @@
                                     </div>
                                 </div>
                                 
-                                <div class="flex flex-col items-end gap-1.5 pt-0.5">
-                                    @php
-                                        $owner = $task->users->where('pivot.is_owner', true)->first() ?? $task->users->first();
-                                    @endphp
-                                    @if($owner)
-                                        <div class="bg-[#59636a] text-white text-[11px] px-2.5 py-0.5 rounded-full whitespace-nowrap">
-                                            {{ explode(' ', $owner->name)[0] }}({{ $owner->role?->name ?? 'Role' }})
-                                        </div>
-                                    @endif
-                                    @if($task->taskPriority)
-                                        <div class="bg-cyan-50 dark:bg-cyan-900/30 text-[#0bcbb5] border border-cyan-200 dark:border-cyan-800 text-[11px] px-3 py-[1px] rounded-full lowercase">
-                                            {{ $task->taskPriority->name }}
-                                        </div>
-                                    @elseif($index < 3)
-                                        <div class="bg-cyan-50 dark:bg-cyan-900/30 text-[#0bcbb5] border border-cyan-200 dark:border-cyan-800 text-[11px] px-3 py-[1px] rounded-full lowercase">
-                                            medium
-                                        </div>
+                                <div class="flex items-center pr-2">
+                                    <div class="flex flex-col items-center justify-center gap-1.5 mr-4 mt-0.5">
+                                        @php
+                                            $owner = $task->users->where('pivot.is_owner', true)->first() ?? $task->users->first();
+                                        @endphp
+                                        @if($owner)
+                                            <div class="bg-[#59636a] text-white text-[12px] px-4 py-0.5 rounded-full whitespace-nowrap">
+                                                {{ explode(' ', $owner->name)[0] }}
+                                            </div>
+                                        @endif
+                                        @if($task->taskPriority)
+                                            <div class="bg-cyan-50 dark:bg-cyan-900/30 text-[#0bcbb5] border border-cyan-200 dark:border-cyan-800 text-[11px] px-4 py-[1px] rounded-full lowercase">
+                                                {{ $task->taskPriority->name }}
+                                            </div>
+                                        @elseif($index < 3)
+                                            <div class="bg-cyan-50 dark:bg-cyan-900/30 text-[#0bcbb5] border border-cyan-200 dark:border-cyan-800 text-[11px] px-4 py-[1px] rounded-full lowercase">
+                                                medium
+                                            </div>
+                                        @endif
+                                    </div>
+                                    
+                                    @if(!$task->is_complete)
+                                        <button wire:click="markTaskAsDone({{ $task->id }})" class="bg-gradient-to-r from-blue-600 to-[#0ba5cc] hover:from-blue-700 hover:to-[#0896ba] text-white text-[17px] px-6 py-2.5 rounded-xl font-medium transition-colors shadow-sm ml-2">
+                                            Done
+                                        </button>
+                                    @else
+                                        <button disabled class="bg-neutral-200 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-600 text-[17px] px-6 py-2.5 rounded-xl font-medium cursor-not-allowed ml-2 shadow-sm">
+                                            Done
+                                        </button>
                                     @endif
                                 </div>
                             </div>
