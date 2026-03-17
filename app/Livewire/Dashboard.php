@@ -7,9 +7,12 @@ use App\Models\Task;
 use App\Models\Trip;
 use Illuminate\Support\Carbon;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class Dashboard extends Component
 {
+    use WithPagination;
+
     public function render()
     {
         $user = auth()->user();
@@ -24,8 +27,7 @@ class Dashboard extends Component
             ->with('checkpoints')
             ->where('start_date', '>=', today())
             ->orderBy('start_date')
-            ->take(3)
-            ->get();
+            ->paginate(5);
             
         $dinnerPlans = PlannedMeal::with(['meal', 'subscribers'])
             ->whereDate('date_time', '>=', today())
