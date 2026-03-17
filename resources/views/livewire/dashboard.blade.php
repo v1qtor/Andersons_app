@@ -230,6 +230,12 @@
                             </div>
                         @endforelse
                     </div>
+
+                    @if($upcomingTrips->hasPages())
+                        <div class="mt-4">
+                            {{ $upcomingTrips->links() }}
+                        </div>
+                    @endif
                 </div>
 
             </div>
