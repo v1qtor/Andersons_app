@@ -32,7 +32,7 @@ class Dashboard extends Component
         $dinnerPlans = PlannedMeal::with(['meal', 'subscribers'])
             ->whereDate('date_time', '>=', today())
             ->orderBy('date_time')
-            ->first();
+            ->paginate(3, ['*'], 'dinnerPage');
             
         $totalDinnerPlans = PlannedMeal::whereDate('date_time', '>=', today())->count();
         $totalUpcomingTrips = $user->trips()->where('start_date', '>=', today())->count();
