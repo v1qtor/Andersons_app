@@ -18,9 +18,14 @@ class Dashboard extends Component
 
     public function markTaskAsDone($taskId)
     {
+        $user = auth()->user();
+        if (in_array($user->role?->name, ['Family Member', 'The Andersons'])) {
+            return; // Restricted roles cannot mark tasks as done
+        }
+
         $task = Task::find($taskId);
         // Ensure user can update this task
-        if ($task && $task->users()->where('user_id', auth()->id())->exists()) {
+        if ($task && $task->users()->where('user_id', $user->id)->exists()) {
             $task->update(['is_complete' => true]);
         }
     }
@@ -28,10 +33,20 @@ class Dashboard extends Component
     public function render()
     {
         $user = auth()->user();
+        $isFamilyView = in_array($user->role?->name, ['Family Member', 'The Andersons']);
         
-        $tasksQuery = $user->tasks()
-            ->with(['users', 'taskCategory', 'taskPriority', 'locations'])
-            ->whereDate('date', today());
+        if ($isFamilyView) {
+            // Family views all tasks but cannot edit
+            $tasksQuery = Task::with(['users', 'taskCategory', 'taskPriority', 'locations'])
+                ->whereDate('date', today());
+            $baseTasksQuery = Task::whereDate('date', today());
+        } else {
+            // Staff members view only their own assigned tasks and can edit
+            $tasksQuery = $user->tasks()
+                ->with(['users', 'taskCategory', 'taskPriority', 'locations'])
+                ->whereDate('date', today());
+            $baseTasksQuery = $user->tasks()->whereDate('date', today());
+        }
 
         if ($this->priorityFilter) {
             $tasksQuery->whereHas('taskPriority', function ($q) {
@@ -51,7 +66,8 @@ class Dashboard extends Component
 
         $todayTasks = $tasksQuery->orderBy('start_date')->get();
         // Get base count to show how many total regardless of filters
-        $tasksCount = $user->tasks()->whereDate('date', today())->count();
+        $tasksCount = (clone $baseTasksQuery)->count();
+        $completedCount = (clone $baseTasksQuery)->where('is_complete', true)->count();
             
         $upcomingTrips = $user->trips()
             ->with('checkpoints')
@@ -72,10 +88,11 @@ class Dashboard extends Component
             'upcomingTrips' => $upcomingTrips,
             'dinnerPlans' => $dinnerPlans,
             'tasksCount' => $tasksCount,
-            'completedCount' => $user->tasks()->whereDate('date', today())->where('is_complete', true)->count(),
+            'completedCount' => $completedCount,
             'totalTripsCount' => $totalUpcomingTrips,
             'totalDinnerCount' => $totalDinnerPlans,
             'priorities' => \App\Models\TaskPriority::all(),
+            'canManageTasks' => !$isFamilyView,
         ])->layout('components.layouts.app');
     }
 }

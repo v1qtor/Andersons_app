@@ -89,23 +89,27 @@
                 <div class="flex flex-col gap-4">
                     @forelse($todayTasks as $index => $task)
                         @php
-                            $colors = [
-                                ['bg' => 'bg-[#f4eefe] dark:bg-purple-900/10', 'border' => 'border-[#b598f8] dark:border-purple-800'],
-                                ['bg' => 'bg-[#8be2bc] dark:bg-emerald-900/10', 'border' => 'border-[#56b78f] dark:border-emerald-800'],
-                                ['bg' => 'bg-[#fef4e5] dark:bg-orange-900/10', 'border' => 'border-[#fbe1b6] dark:border-orange-800'],
-                            ];
-                            $color = $colors[$index % count($colors)];
+                            $owner = $task->users->where('pivot.is_owner', true)->first() ?? $task->users->first();
+                            $baseOwnerColor = $owner?->role?->color ?? '#6366f1';
+                            $ownerColor = preg_match('/^#[0-9A-Fa-f]{6}$/', $baseOwnerColor) ? $baseOwnerColor : '#6366f1';
+                            $taskBgColor = $task->is_complete ? '#dcfce7' : $ownerColor . '1F';
+                            $taskBorderColor = $task->is_complete ? '#4ade80' : $ownerColor;
+                            $indicatorColor = $task->is_complete ? '#22c55e' : $ownerColor;
                         @endphp
-                        <div class="rounded-2xl border {{ $color['bg'] }} {{ $color['border'] }} p-4 relative group">
+                        <div class="rounded-2xl border p-4 relative group" style="background-color: {{ $taskBgColor }}; border-color: {{ $taskBorderColor }};">
                             <div class="flex justify-between items-center gap-4">
                                 <div class="flex gap-4">
                                     <div class="pt-0.5">
                                         @if($task->is_complete)
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-[26px] text-neutral-400 mt-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-[26px] mt-1" style="color: {{ $indicatorColor }};">
                                                 <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clip-rule="evenodd" />
                                             </svg>
                                         @else
-                                            <button wire:click="markTaskAsDone({{ $task->id }})" class="size-[26px] mt-1 rounded-full border-2 border-slate-300 dark:border-neutral-500 bg-transparent hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"></button>
+                                            @if($canManageTasks)
+                                                <button wire:click="markTaskAsDone({{ $task->id }})" class="size-[26px] mt-1 rounded-full border-2 bg-transparent hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer" style="border-color: {{ $indicatorColor }};"></button>
+                                            @else
+                                                <div class="size-[26px] mt-1 rounded-full border-2 bg-transparent" style="border-color: {{ $indicatorColor }};"></div>
+                                            @endif
                                         @endif
                                     </div>
                                     <div>
@@ -132,11 +136,8 @@
                                 
                                 <div class="flex items-center pr-2">
                                     <div class="flex flex-col items-center justify-center gap-1.5 mr-4 mt-0.5">
-                                        @php
-                                            $owner = $task->users->where('pivot.is_owner', true)->first() ?? $task->users->first();
-                                        @endphp
                                         @if($owner)
-                                            <div class="bg-[#59636a] text-white text-[12px] px-4 py-0.5 rounded-full whitespace-nowrap">
+                                            <div class="text-white text-[12px] px-4 py-0.5 rounded-full whitespace-nowrap" style="background-color: {{ $ownerColor }};">
                                                 {{ explode(' ', $owner->name)[0] }}
                                             </div>
                                         @endif
@@ -151,14 +152,16 @@
                                         @endif
                                     </div>
                                     
-                                    @if(!$task->is_complete)
-                                        <button wire:click="markTaskAsDone({{ $task->id }})" class="bg-gradient-to-r from-blue-600 to-[#0ba5cc] hover:from-blue-700 hover:to-[#0896ba] text-white text-[17px] px-6 py-2.5 rounded-xl font-medium transition-colors shadow-sm ml-2">
-                                            Done
-                                        </button>
-                                    @else
-                                        <button disabled class="bg-neutral-200 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-600 text-[17px] px-6 py-2.5 rounded-xl font-medium cursor-not-allowed ml-2 shadow-sm">
-                                            Done
-                                        </button>
+                                    @if($canManageTasks)
+                                        @if(!$task->is_complete)
+                                            <button wire:click="markTaskAsDone({{ $task->id }})" class="bg-gradient-to-r from-blue-600 to-[#0ba5cc] hover:from-blue-700 hover:to-[#0896ba] text-white text-[17px] px-6 py-2.5 rounded-xl font-medium transition-colors shadow-sm ml-2">
+                                                Done
+                                            </button>
+                                        @else
+                                            <button disabled class="bg-neutral-200 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-600 text-[17px] px-6 py-2.5 rounded-xl font-medium cursor-not-allowed ml-2 shadow-sm">
+                                                Done
+                                            </button>
+                                        @endif
                                     @endif
                                 </div>
                             </div>
