@@ -5,8 +5,10 @@ namespace App\Livewire\Admin;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 
+#[Layout('components.layouts.app')]
 class UserCreate extends Component
 {
     public string $name = '';
