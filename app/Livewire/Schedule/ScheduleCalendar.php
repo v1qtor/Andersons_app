@@ -12,8 +12,10 @@ use App\Models\Trip;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 
+#[Layout('components.layouts.app')]
 class ScheduleCalendar extends Component
 {
     public string $view = 'month'; // day, week, month
