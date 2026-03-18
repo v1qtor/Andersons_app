@@ -4,8 +4,10 @@ namespace App\Livewire\Meals;
 
 use App\Models\PlannedMeal;
 use App\Models\User;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 
+#[Layout('components.layouts.app')]
 class MealList extends Component
 {
     public bool $showDeleteConfirm = false;
