@@ -1,4 +1,52 @@
 <div>
+    <div
+        x-data="{
+            toasts: [],
+            add(message, type) {
+                const id = Date.now();
+                this.toasts.push({ id, message, type, show: true });
+                setTimeout(() => {
+                    const toast = this.toasts.find(t => t.id === id);
+                    if (toast) toast.show = false;
+                    setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 600);
+                }, 5000);
+            }
+        }"
+        @toast.window="add($event.detail.message, $event.detail.type)"
+        class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"
+    >
+        <template x-for="toast in toasts" :key="toast.id">
+            <div
+                x-show="toast.show"
+                x-transition:leave="transition ease-in duration-500"
+                x-transition:leave-start="opacity-100 translate-x-0"
+                x-transition:leave-end="opacity-0 translate-x-24"
+                :class="toast.type === 'error'
+                    ? 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
+                    : 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'"
+                class="rounded-lg shadow-lg p-4 max-w-md"
+            >
+                <div class="flex items-center gap-3">
+                    <template x-if="toast.type !== 'error'">
+                        <svg class="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                    </template>
+                    <template x-if="toast.type === 'error'">
+                        <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-9a1 1 0 012 0v4a1 1 0 01-2 0V9zm1-4a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" />
+                        </svg>
+                    </template>
+                    <p
+                        :class="toast.type === 'error' ? 'text-red-800 dark:text-red-300' : 'text-green-800 dark:text-green-300'"
+                        class="font-medium"
+                        x-text="toast.message"
+                    ></p>
+                </div>
+            </div>
+        </template>
+    </div>
+
     <div class="flex w-full flex-col gap-6">
         
         {{-- Header Area --}}
@@ -183,6 +231,11 @@
                     
                     <div class="flex flex-col gap-3">
                         @forelse($dinnerPlans as $dinner)
+                            @php
+                                $mySubscription = $dinner->subscribers->firstWhere('id', auth()->id());
+                                $isJoined = (bool) ($mySubscription?->pivot?->confirmed);
+                                $confirmedSubscribers = $dinner->subscribers->filter(fn($subscriber) => (bool) ($subscriber->pivot->confirmed ?? false))->count();
+                            @endphp
                             <div class="bg-white dark:bg-neutral-800 border border-neutral-100 dark:border-neutral-700 rounded-xl p-4 flex items-center justify-between shadow-sm">
                                 <div class="flex items-center gap-4">
                                     <div class="bg-[#fdf4ee] dark:bg-orange-900/20 text-[#ea580c] size-[42px] rounded-xl flex items-center justify-center">
@@ -195,28 +248,26 @@
                                     <div>
                                         <h4 class="text-lg font-normal text-neutral-800 dark:text-neutral-200">{{ $dinner->meal->name }}</h4>
                                         <div class="text-sm text-neutral-500">
-                                            {{ $dinner->date_time->format('M j, Y • H:i') }} - {{ $dinner->date_time->addHour()->format('H:i') }}
+                                            {{ $dinner->date_time->format('M j, Y • H:i') }} - {{ $dinner->date_time->copy()->addHour()->format('H:i') }}
                                         </div>
                                     </div>
                                 </div>
                                 
                                 <div class="flex items-center gap-3">
-                                    <div class="flex items-center gap-1.5">
-                                        <button class="text-red-400 hover:bg-neutral-100 border border-red-200 dark:hover:bg-neutral-700 rounded p-[3px] bg-white">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
-                                              <path stroke-linecap="round" stroke-linejoin="round" d="M22 10.5h-6m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM4 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 10.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
-                                            </svg>
+                                    <span class="text-blue-500 font-medium bg-blue-100 border border-blue-200 dark:bg-blue-800 dark:text-blue-200 px-2.5 py-1 rounded text-sm">{{ $confirmedSubscribers }}</span>
+
+                                    @if($isJoined)
+                                        <button wire:click="cancelMeal({{ $dinner->id }})" class="bg-gradient-to-r from-blue-600 to-[#0ba5cc] hover:from-blue-700 hover:to-[#0896ba] text-white text-[15px] px-5 py-1.5 rounded-lg transition-colors">
+                                            Cancel
                                         </button>
-                                        <span class="text-blue-500 font-medium bg-blue-100 border border-blue-200 dark:bg-blue-800 dark:text-blue-200 px-2 py-0.5 rounded text-sm">{{ $dinner->subscribers->count() }}</span>
-                                        <button class="text-blue-500 hover:bg-neutral-100 border border-blue-200 dark:hover:bg-neutral-700 rounded p-[3px] bg-white">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
-                                              <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
-                                            </svg>
+                                        <button disabled class="bg-[#8fd9b5] text-white text-[15px] px-5 py-1.5 rounded-lg cursor-not-allowed">
+                                            Joined
                                         </button>
-                                    </div>
-                                    <button class="bg-[#1bcc8a] hover:bg-[#15ab73] text-white text-[15px] px-5 py-1.5 rounded-lg transition-colors">
-                                        Join
-                                    </button>
+                                    @else
+                                        <button wire:click="joinMeal({{ $dinner->id }})" class="bg-[#1bcc8a] hover:bg-[#15ab73] text-white text-[15px] px-5 py-1.5 rounded-lg transition-colors">
+                                            Join
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
                         @empty
