@@ -38,5 +38,5 @@
 - SMS notifications?
 - Which one should be default view for schedule? (week, day, month)
 - Should admin be able to delete or edit invoices?
-
+- Should a user be able to invite multiple guests to a dinner?
 

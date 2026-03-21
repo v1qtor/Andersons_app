@@ -15,6 +15,8 @@ class Dashboard extends Component
 
     public $priorityFilter = '';
     public $timeFilter = '';
+    public $editingGuestForMealId = null;
+    public $guestName = '';
 
     public function markTaskAsDone($taskId)
     {
@@ -70,6 +72,83 @@ class Dashboard extends Component
         }
 
         $this->dispatch('toast', message: 'No dinner subscription found to cancel.', type: 'error');
+    }
+
+    public function startGuestEdit($plannedMealId)
+    {
+        $plannedMeal = PlannedMeal::with('subscribers')->find($plannedMealId);
+
+        if (! $plannedMeal) {
+            $this->dispatch('toast', message: 'Meal plan not found.', type: 'error');
+            return;
+        }
+
+        $mySubscription = $plannedMeal->subscribers->firstWhere('id', auth()->id());
+        $isJoined = (bool) ($mySubscription?->pivot?->confirmed);
+
+        if (! $isJoined) {
+            $this->dispatch('toast', message: 'Join the dinner first before adding a guest.', type: 'error');
+            return;
+        }
+
+        $this->editingGuestForMealId = $plannedMealId;
+        $this->guestName = (string) ($mySubscription?->pivot?->guest_name ?? '');
+    }
+
+    public function saveGuest($plannedMealId)
+    {
+        $user = auth()->user();
+        $plannedMeal = PlannedMeal::find($plannedMealId);
+
+        if (! $plannedMeal) {
+            $this->dispatch('toast', message: 'Meal plan not found.', type: 'error');
+            return;
+        }
+
+        $this->validate([
+            'guestName' => 'required|string|max:100',
+        ]);
+
+        $isSubscribed = $plannedMeal->subscribers()->where('user_id', $user->id)->exists();
+
+        if (! $isSubscribed) {
+            $this->dispatch('toast', message: 'Join the dinner first before adding a guest.', type: 'error');
+            return;
+        }
+
+        $plannedMeal->subscribers()->updateExistingPivot($user->id, [
+            'guest_name' => trim($this->guestName),
+        ]);
+
+        $this->editingGuestForMealId = null;
+        $this->guestName = '';
+        $this->dispatch('toast', message: 'Guest saved successfully.', type: 'success');
+    }
+
+    public function removeGuest($plannedMealId)
+    {
+        $user = auth()->user();
+        $plannedMeal = PlannedMeal::find($plannedMealId);
+
+        if (! $plannedMeal) {
+            $this->dispatch('toast', message: 'Meal plan not found.', type: 'error');
+            return;
+        }
+
+        $isSubscribed = $plannedMeal->subscribers()->where('user_id', $user->id)->exists();
+
+        if (! $isSubscribed) {
+            $this->dispatch('toast', message: 'No meal subscription found.', type: 'error');
+            return;
+        }
+
+        $plannedMeal->subscribers()->updateExistingPivot($user->id, [
+            'guest_name' => null,
+        ]);
+
+        $this->editingGuestForMealId = null;
+        $this->guestName = '';
+        $this->dispatch('toast', message: 'Guest removed.', type: 'success');
     }
 
     public function render()
