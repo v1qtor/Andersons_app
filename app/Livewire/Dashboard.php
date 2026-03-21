@@ -30,6 +30,48 @@ class Dashboard extends Component
         }
     }
 
+    public function joinMeal($plannedMealId)
+    {
+        $user = auth()->user();
+        $plannedMeal = PlannedMeal::find($plannedMealId);
+
+        if (! $plannedMeal) {
+            $this->dispatch('toast', message: 'Meal plan not found.', type: 'error');
+            return;
+        }
+
+        $isSubscribed = $plannedMeal->subscribers()->where('user_id', $user->id)->exists();
+
+        if ($isSubscribed) {
+            $plannedMeal->subscribers()->updateExistingPivot($user->id, ['confirmed' => true]);
+        } else {
+            $plannedMeal->subscribers()->attach($user->id, ['confirmed' => true]);
+        }
+
+        $this->dispatch('toast', message: 'You joined this dinner plan.', type: 'success');
+    }
+
+    public function cancelMeal($plannedMealId)
+    {
+        $user = auth()->user();
+        $plannedMeal = PlannedMeal::find($plannedMealId);
+
+        if (! $plannedMeal) {
+            $this->dispatch('toast', message: 'Meal plan not found.', type: 'error');
+            return;
+        }
+
+        $isSubscribed = $plannedMeal->subscribers()->where('user_id', $user->id)->exists();
+
+        if ($isSubscribed) {
+            $plannedMeal->subscribers()->updateExistingPivot($user->id, ['confirmed' => false]);
+            $this->dispatch('toast', message: 'You cancelled your dinner participation.', type: 'success');
+            return;
+        }
+
+        $this->dispatch('toast', message: 'No dinner subscription found to cancel.', type: 'error');
+    }
+
     public function render()
     {
         $user = auth()->user();
