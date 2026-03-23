@@ -10,6 +10,7 @@ use Livewire\Component;
 
 class Profile extends Component
 {
+    public string $phoneNumber = '';
     public string $name = '';
 
     public string $email = '';
@@ -21,6 +22,7 @@ class Profile extends Component
     {
         $this->name = Auth::user()->name;
         $this->email = Auth::user()->email;
+        $this->phoneNumber = Auth::user()->phoneNumber;
     }
 
     /**
@@ -41,9 +43,11 @@ class Profile extends Component
                 'max:255',
                 Rule::unique(User::class)->ignore($user->id),
             ],
+            'phoneNumber' => ['nullable', 'string', 'max:20']
         ]);
 
-        $user->fill($validated);
+        $user->fill(
+            ['name'=>$validated['name'], 'email'=>$validated['email'], 'phoneNumber'=>$validated['phoneNumber']??null,]);
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
