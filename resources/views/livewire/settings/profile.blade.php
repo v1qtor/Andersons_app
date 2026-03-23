@@ -1,7 +1,7 @@
 <section class="w-full">
     @include('partials.settings-heading')
 
-    <x-settings.layout :heading="__('Profile')" :subheading="__('Update your name and email address')">
+    <x-settings.layxout :heading="__('Profile')" :subheading="__('Update your name, email address, and phone number')">
         <form wire:submit="updateProfileInformation" class="my-6 w-full space-y-6">
             <flux:input wire:model="name" :label="__('Name')" type="text" required autofocus autocomplete="name" />
 
@@ -27,6 +27,13 @@
                 @endif
             </div>
 
+            <div>
+{{--                blade component here is unknown--}}
+                <x-input-label for="phoneNumber" : value="__('Phone Number)"/>
+                <x-text-input wire:model="phoneNumber" id="phoneNumber" name="phoneNumber" type="text" class="mt-1 block w-full" />
+                <x-input-error class="mt-2" :messages="$errors->get('phoneNumber')" />
+            </div>
+
             <div class="flex items-center gap-4">
                 <div class="flex items-center justify-end">
                     <flux:button variant="primary" type="submit" class="w-full">{{ __('Save') }}</flux:button>
@@ -39,5 +46,5 @@
         </form>
 
         <livewire:settings.delete-user-form />
-    </x-settings.layout>
+    </x-settings.layxout>
 </section>
