@@ -28,15 +28,31 @@
 
 | Role  | Email           | Password    |
 |:------|:----------------|:------------|
-| Admin | admin@admin.com | password123 |
-| ...   | ...             | ...         |
+| The Andersons | andersons@andersons.com | password |
+| Family Member | emily@andersons.com | password |
+| Family Member | james@andersons.com | password |
+| Family Member | sophie@andersons.com | password |
+| Staff | tom.gardener@andersons.com | password |
+| Staff | tom.handyman@andersons.com | password |
+| Chef | oliver@andersons.com | password |
+| Admin | laurien@andersons.com | password |
 
 
 
 ### Questions:
+#### Schedule
 - Is the design of filter schedule nice?
-- SMS notifications?
 - Which one should be default view for schedule? (week, day, month)
-- Should admin be able to delete or edit invoices?
-- Should a user be able to invite multiple guests to a dinner?
 
+#### Invoices
+- Should admin be able to delete or edit invoices?
+
+#### Dashboard
+- Should a user be able to invite multiple guests to a dinner?
+- Should a user be able to mark a task as undone on dashboard
+
+#### Users
+- Should the user be prompted each time they want to edit/delete/deactivate/activate
+
+#### Meals
+- Should it be only visible for cheff and admin?
