@@ -1,45 +1,5 @@
 <div class="w-full max-w-4xl mx-auto">
-    <!-- Success Message Toast -->
-    @if (session('status') || session('message') || session('error'))
-        <script>
-            setTimeout(() => {
-                const toast = document.getElementById('success-toast');
-                if (toast) {
-                    toast.style.animation = 'slideOut 0.3s ease-out forwards';
-                }
-            }, 3000);
-        </script>
-        <div id="success-toast" class="fixed top-4 right-4 @if(session('error')) bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 @else bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 @endif border rounded-lg shadow-lg p-4 max-w-md z-50" style="animation: slideIn 0.3s ease-out;">
-            <div class="flex items-center gap-3">
-                <svg class="w-5 h-5 @if(session('error')) text-red-600 dark:text-red-400 @else text-green-600 dark:text-green-400 @endif flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                </svg>
-                <p class="@if(session('error')) text-red-800 dark:text-red-300 @else text-green-800 dark:text-green-300 @endif font-medium">{{ session('status') ?? session('message') ?? session('error') }}</p>
-            </div>
-        </div>
-        <style>
-            @keyframes slideIn {
-                from {
-                    transform: translateX(400px);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-            }
-            @keyframes slideOut {
-                from {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-                to {
-                    transform: translateX(400px);
-                    opacity: 0;
-                }
-            }
-        </style>
-    @endif
+    <x-ui.flash-alert fixed="true" />
 
     <div class="space-y-8">
         <!-- Page Header -->
@@ -129,7 +89,7 @@
                 <!-- Description -->
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Description <span class="text-gray-500 text-xs font-normal">(Optional)</span>
+                        Description <span class="text-gray-500 text-xs font-normal">(Optional - Max 500 characters)</span>
                     </label>
                     <textarea
                         wire:model="description"
@@ -143,8 +103,26 @@
                 <!-- Receipt File Upload -->
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Receipt / Proof of Purchase <span class="text-red-600">*</span>
+                        Receipt / Proof of Purchase 
+                        @if(!$invoice)
+                            <span class="text-red-600">*</span>
+                        @else
+                            <span class="text-gray-500 text-sm font-normal">(Optional - Update if needed)</span>
+                        @endif
                     </label>
+                    
+                    @if($invoice && $invoice->file_path && !$receiptFile)
+                        <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg flex items-center gap-2">
+                            <div class="flex items-center">
+                                <input type="checkbox" id="has-receipt" class="w-4 h-4 rounded border-gray-300" checked disabled />
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-blue-900 dark:text-blue-200">Invoice already has a receipt</p>
+                                <p class="text-xs text-blue-700 dark:text-blue-300">{{ basename($invoice->file_path) }}</p>
+                            </div>
+                        </div>
+                    @endif
+                    
                     <div class="relative border-2 border-dashed border-gray-300 dark:border-neutral-600 rounded-lg p-8 text-center cursor-pointer hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/10 transition-colors" onclick="document.getElementById('receipt-input').click()">
                         <input
                             id="receipt-input"
@@ -164,9 +142,6 @@
                             <p class="text-xs text-gray-500 mt-1">PDF, JPG, or PNG (Max 5MB)</p>
                         @endif
                     </div>
-                    @if($invoice && $invoice->file_path && !$receiptFile)
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Current receipt: {{ basename($invoice->file_path) }}</p>
-                    @endif
                     @error('receiptFile') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                 </div>
 
@@ -176,7 +151,7 @@
                         type="submit"
                         class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-semibold"
                     >
-                        {{ $invoice ? 'Update Invoices' : 'Submit Invoices' }}
+                        {{ $invoice ? 'Update' : 'Submit' }}
                     </button>
                     <a href="{{ route('invoices') }}" class="px-6 py-3 border border-gray-300 dark:border-neutral-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors font-semibold">
                         Cancel

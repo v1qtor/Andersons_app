@@ -77,13 +77,13 @@
                         @enderror
                     </div>
 
-                    <flux:button
+                    <x-flux.button
                         variant="primary"
                         type="submit"
                         class="w-full"
                     >
                         {{ __('Continue') }}
-                    </flux:button>
+                    </x-flux.button>
                 </div>
 
                 <div class="mt-5 space-x-0.5 text-sm leading-5 text-center">

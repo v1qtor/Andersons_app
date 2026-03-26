@@ -16,6 +16,7 @@ class Settings extends Component
     public string $name = '';
     public string $email = '';
     public string $phone_number = '';
+    public string $address = '';
     public string $iban = '';
     public bool $showIban = false;
 
@@ -43,6 +44,7 @@ class Settings extends Component
         $this->name = $user->name;
         $this->email = $user->email;
         $this->phone_number = $user->phone_number ?? '';
+        $this->address = $user->address ?? '';
         $this->iban = $user->iban ?? '';
 
         // Load notification settings from database
@@ -82,6 +84,7 @@ class Settings extends Component
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . Auth::id(),
             'phone_number' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500',
             'iban' => 'nullable|string|max:50',
         ]);
 
@@ -90,6 +93,7 @@ class Settings extends Component
             'name' => $this->name,
             'email' => $this->email,
             'phone_number' => $this->phone_number,
+            'address' => $this->address,
             'iban' => $this->iban,
         ]);
 

@@ -1,89 +1,25 @@
 <div class="w-full max-w-7xl mx-auto" x-data x-effect="document.body.style.overflow = @if($viewInvoice) 'hidden' @else '' @endif">
-    <!-- Success Message Toast with Alpine.js for auto-dismiss -->
-    @if (session('status') || session('message') || session('error'))
-        <div x-data="{ show: true }" x-init="setTimeout(() => { show = false }, 3000)" x-show="show"
-             class="fixed top-4 right-4 @if(session('error')) bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 @else bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 @endif border rounded-lg shadow-lg p-4 max-w-md z-50"
-             style="animation: slideIn 0.3s ease-out;"
-             @change="show = true; setTimeout(() => { show = false }, 3000)">
-            <div class="flex items-center gap-3">
-                <svg class="w-5 h-5 @if(session('error')) text-red-600 dark:text-red-400 @else text-green-600 dark:text-green-400 @endif flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                </svg>
-                <p class="@if(session('error')) text-red-800 dark:text-red-300 @else text-green-800 dark:text-green-300 @endif font-medium">{{ session('status') ?? session('message') ?? session('error') }}</p>
-            </div>
-        </div>
-        <style>
-            @keyframes slideIn {
-                from {
-                    transform: translateX(400px);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-            }
-            @keyframes slideOut {
-                from {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-                to {
-                    transform: translateX(400px);
-                    opacity: 0;
-                }
-            }
-            [x-cloak] { display: none; }
-        </style>
-    @endif
+    <x-ui.flash-alert fixed="true" />
 
-    <!-- Status Update Confirmation Modal -->
-    @if($updateStatusInvoiceId)
-        <div class="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 flex items-center justify-center p-4">
-            <div class="bg-white dark:bg-neutral-800 rounded-xl max-w-md w-full">
-                <div class="p-6 border-b border-gray-200 dark:border-neutral-700">
-                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">Mark as Paid</h2>
-                </div>
+    <x-confirm-action-modal
+        :show="$updateStatusInvoiceId !== null"
+        title="Mark as Paid"
+        message="Are you sure you want to mark this invoice as paid?"
+        cancelAction="closeStatusUpdateModal"
+        confirmAction="confirmCurrentStatusUpdate"
+        confirmLabel="Mark Paid"
+        confirmTone="success"
+    />
 
-                <div class="p-6">
-                    <p class="text-gray-700 dark:text-gray-300 mb-6">Are you sure you want to mark this invoice as paid?</p>
-                </div>
-
-                <div class="flex gap-3 p-6 border-t border-gray-200 dark:border-neutral-700">
-                    <button wire:click="$set('updateStatusInvoiceId', null)" class="flex-1 px-4 py-2 border border-gray-300 dark:border-neutral-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors font-medium">
-                        Cancel
-                    </button>
-                    <button wire:click="updateInvoiceStatus({{ $updateStatusInvoiceId }})" class="flex-1 px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition-colors font-medium">
-                        Mark Paid
-                    </button>
-                </div>
-            </div>
-        </div>
-    @endif
-
-    <!-- Delete Confirmation Modal -->
-    @if($deleteInvoiceId)
-        <div class="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 flex items-center justify-center p-4">
-            <div class="bg-white dark:bg-neutral-800 rounded-xl max-w-md w-full">
-                <div class="p-6 border-b border-gray-200 dark:border-neutral-700">
-                    <h2 class="text-xl font-bold text-gray-900 dark:text-white">Delete Invoice</h2>
-                </div>
-
-                <div class="p-6">
-                    <p class="text-gray-700 dark:text-gray-300 mb-6">Are you sure you want to delete this invoice? This action cannot be undone.</p>
-                </div>
-
-                <div class="flex gap-3 p-6 border-t border-gray-200 dark:border-neutral-700">
-                    <button wire:click="$set('deleteInvoiceId', null)" class="flex-1 px-4 py-2 border border-gray-300 dark:border-neutral-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors font-medium">
-                        Cancel
-                    </button>
-                    <button wire:click="deleteInvoice({{ $deleteInvoiceId }})" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">
-                        Delete
-                    </button>
-                </div>
-            </div>
-        </div>
-    @endif
+    <x-confirm-action-modal
+        :show="$deleteInvoiceId !== null"
+        title="Delete Invoice"
+        message="Are you sure you want to delete this invoice? This action cannot be undone."
+        cancelAction="closeDeleteModal"
+        confirmAction="confirmCurrentDelete"
+        confirmLabel="Delete"
+        confirmTone="danger"
+    />
 
     <!-- View Invoice Modal -->
     @if($viewInvoice)
@@ -172,7 +108,7 @@
                 <p class="text-gray-600 dark:text-gray-400">{{ $isAdmin ? 'Review and process submitted invoices' : 'Track your submitted invoices and reimbursement status' }}</p>
             </div>
             <a href="{{ route('invoices.create') }}" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-semibold">
-                + Submit Invoices
+                + Submit Invoice
             </a>
         </div>
 
@@ -252,7 +188,7 @@
                 <!-- Admin View: Card-based Layout -->
                 <div class="space-y-4">
                     @foreach($invoices as $invoice)
-                        <div class="rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow @if($invoice->is_paid) bg-green-50 dark:bg-green-900/10 border border-green-300 dark:border-green-700 @else bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 @endif">
+                        <div class="rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow @if($invoice->is_paid) bg-green-100 dark:bg-green-800/40 border border-green-500 dark:border-green-600 @else bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 @endif">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                                 <!-- Left Column: Details -->
                                 <div class="space-y-4">
@@ -311,11 +247,13 @@
                                                     {{ $showIbanInvoiceId === $invoice->id ? 'Hide' : 'Show' }}
                                                 </button>
                                             </div>
-                                            @if($showIbanInvoiceId === $invoice->id)
-                                                <p class="text-2xl font-mono font-bold text-gray-900 dark:text-white break-all">{{ $invoice->user->iban }}</p>
-                                            @else
-                                                <p class="text-lg text-gray-600 dark:text-gray-400 font-mono">•••• •••• •••• {{ substr($invoice->user->iban, -4) }}</p>
-                                            @endif
+                                            <div class="min-h-[44px] flex items-center">
+                                                @if($showIbanInvoiceId === $invoice->id)
+                                                    <p class="text-2xl font-mono font-bold text-gray-900 dark:text-white break-all">{{ $invoice->user->iban }}</p>
+                                                @else
+                                                    <p class="text-lg text-gray-600 dark:text-gray-400 font-mono">•••• •••• •••• {{ substr($invoice->user->iban, -4) }}</p>
+                                                @endif
+                                            </div>
                                         </div>
                                     @else
                                         <div class="bg-gray-50 dark:bg-neutral-700 border border-gray-200 dark:border-neutral-600 rounded-lg p-4">
@@ -325,14 +263,11 @@
                                     @endif
 
                                     <!-- Action Buttons -->
-                                    <div class="flex gap-2 pt-2">
-                                        <flux:button variant="ghost" size="sm" wire:click="viewInvoice({{ $invoice->id }})" icon="eye" class="flex-1">
-                                            View Details
-                                        </flux:button>
+                                    <div class="flex justify-end pt-2">
                                         @if(!$invoice->is_paid)
-                                            <flux:button variant="primary" size="sm" wire:click="confirmStatusUpdate({{ $invoice->id }})" icon="check-circle" class="flex-1">
+                                            <x-flux.button variant="primary" size="sm" wire:click="confirmStatusUpdate({{ $invoice->id }})" icon="check-circle" class="px-8">
                                                 Mark Paid
-                                            </flux:button>
+                                            </x-flux.button>
                                         @endif
                                     </div>
                                 </div>
@@ -344,10 +279,10 @@
                                     <!-- Edit/Delete buttons (admin can edit and delete any invoice) -->
                                     <div class="flex gap-1">
                                         <flux:tooltip content="{{ __('Edit') }}" position="top">
-                                            <flux:button variant="ghost" size="sm" :href="route('invoices.edit', $invoice->id)" wire:navigate icon="pencil" />
+                                            <x-flux.button variant="ghost" size="sm" :href="route('invoices.edit', $invoice->id)" wire:navigate icon="pencil" />
                                         </flux:tooltip>
                                         <flux:tooltip content="{{ __('Delete') }}" position="top">
-                                            <flux:button variant="ghost" size="sm" wire:click="$set('deleteInvoiceId', {{ $invoice->id }})" icon="trash" class="!text-red-600 hover:!text-red-700 dark:!text-red-400" />
+                                            <x-flux.button variant="ghost" size="sm" wire:click="$set('deleteInvoiceId', {{ $invoice->id }})" icon="trash" class="!text-red-600 hover:!text-red-700 dark:!text-red-400" />
                                         </flux:tooltip>
                                     </div>
                                     <a href="{{ route('receipts.show', ['path' => str_replace('receipts/', '', $invoice->file_path)]) }}" target="_blank" class="inline-flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 underline">
@@ -362,10 +297,10 @@
                                     <!-- Edit/Delete buttons (admin can edit and delete any invoice) -->
                                     <div class="flex gap-1">
                                         <flux:tooltip content="{{ __('Edit') }}" position="top">
-                                            <flux:button variant="ghost" size="sm" :href="route('invoices.edit', $invoice->id)" wire:navigate icon="pencil" />
+                                            <x-flux.button variant="ghost" size="sm" :href="route('invoices.edit', $invoice->id)" wire:navigate icon="pencil" />
                                         </flux:tooltip>
                                         <flux:tooltip content="{{ __('Delete') }}" position="top">
-                                            <flux:button variant="ghost" size="sm" wire:click="$set('deleteInvoiceId', {{ $invoice->id }})" icon="trash" class="!text-red-600 hover:!text-red-700 dark:!text-red-400" />
+                                            <x-flux.button variant="ghost" size="sm" wire:click="$set('deleteInvoiceId', {{ $invoice->id }})" icon="trash" class="!text-red-600 hover:!text-red-700 dark:!text-red-400" />
                                         </flux:tooltip>
                                     </div>
                                 </div>
@@ -421,14 +356,14 @@
                                         <td class="px-6 py-4 text-sm">
                                             <div class="flex items-center justify-end gap-1">
                                                 <flux:tooltip content="{{ __('View') }}" position="top">
-                                                    <flux:button variant="ghost" size="sm" wire:click="viewInvoice({{ $invoice->id }})" icon="eye" />
+                                                    <x-flux.button variant="ghost" size="sm" wire:click="viewInvoice({{ $invoice->id }})" icon="eye" />
                                                 </flux:tooltip>
                                                 @if(!$invoice->is_paid || $isAdmin)
                                                     <flux:tooltip content="{{ __('Edit') }}" position="top">
-                                                        <flux:button variant="ghost" size="sm" :href="route('invoices.edit', $invoice->id)" wire:navigate icon="pencil" />
+                                                        <x-flux.button variant="ghost" size="sm" :href="route('invoices.edit', $invoice->id)" wire:navigate icon="pencil" />
                                                     </flux:tooltip>
                                                     <flux:tooltip content="{{ __('Delete') }}" position="top">
-                                                        <flux:button variant="ghost" size="sm" wire:click="$set('deleteInvoiceId', {{ $invoice->id }})" icon="trash" class="!text-red-600 hover:!text-red-700 dark:!text-red-400" />
+                                                        <x-flux.button variant="ghost" size="sm" wire:click="$set('deleteInvoiceId', {{ $invoice->id }})" icon="trash" class="!text-red-600 hover:!text-red-700 dark:!text-red-400" />
                                                     </flux:tooltip>
                                                 @endif
                                             </div>
@@ -442,40 +377,19 @@
 
                 <!-- Summary Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 p-6">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Total Reports</p>
-                        <p class="text-3xl font-bold text-gray-900 dark:text-white">{{ $invoices->count() }}</p>
-                    </div>
-                    <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 p-6">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Pending Total</p>
-                        <p class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">£{{ number_format($invoices->where('is_paid', false)->sum('amount'), 2) }}</p>
-                    </div>
-                    <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 p-6">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Paid Amount (This Month)</p>
-                        <p class="text-3xl font-bold text-green-700 dark:text-green-400">£{{ number_format($thisMonthPaidTotal, 2) }}</p>
-                    </div>
+                    <x-ui.stat-card label="Total Reports">{{ $invoices->count() }}</x-ui.stat-card>
+                    <x-ui.stat-card label="Pending Total" tone="yellow">£{{ number_format($invoices->where('is_paid', false)->sum('amount'), 2) }}</x-ui.stat-card>
+                    <x-ui.stat-card label="Paid Amount (This Month)" tone="green">£{{ number_format($thisMonthPaidTotal, 2) }}</x-ui.stat-card>
                 </div>
             @endif
 
             <!-- Admin View: Summary Cards -->
             @if($isAdmin)
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 p-6">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Total Invoices</p>
-                        <p class="text-3xl font-bold text-gray-900 dark:text-white">{{ $invoices->count() }}</p>
-                    </div>
-                    <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 p-6">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Pending</p>
-                        <p class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">{{ $invoices->where('is_paid', false)->count() }}</p>
-                    </div>
-                    <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 p-6">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Total Pending Amount</p>
-                        <p class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">£{{ number_format($invoices->where('is_paid', false)->sum('amount'), 2) }}</p>
-                    </div>
-                    <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 p-6">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Total Paid Amount (This Month)</p>
-                        <p class="text-3xl font-bold text-green-700 dark:text-green-400">£{{ number_format($thisMonthPaidTotal, 2) }}</p>
-                    </div>
+                    <x-ui.stat-card label="Total Invoices">{{ $invoices->count() }}</x-ui.stat-card>
+                    <x-ui.stat-card label="Pending" tone="yellow">{{ $invoices->where('is_paid', false)->count() }}</x-ui.stat-card>
+                    <x-ui.stat-card label="Total Pending Amount" tone="yellow">£{{ number_format($invoices->where('is_paid', false)->sum('amount'), 2) }}</x-ui.stat-card>
+                    <x-ui.stat-card label="Total Paid (This Month)" tone="green">£{{ number_format($thisMonthPaidTotal, 2) }}</x-ui.stat-card>
                 </div>
             @endif
         @endif

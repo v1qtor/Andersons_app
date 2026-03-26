@@ -132,55 +132,6 @@
         </div>
     </div>
 
-    <!-- Toast Notifications -->
-    <div
-        x-data="{
-            toasts: [],
-            add(message, type) {
-                const id = Date.now();
-                this.toasts.push({ id, message, type, show: true });
-                setTimeout(() => {
-                    const t = this.toasts.find(t => t.id === id);
-                    if (t) t.show = false;
-                    setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 600);
-                }, 5000);
-            }
-        }"
-        @toast.window="add($event.detail.message, $event.detail.type)"
-        class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"
-    >
-        <template x-for="toast in toasts" :key="toast.id">
-            <div
-                x-show="toast.show"
-                x-transition:leave="transition ease-in duration-500"
-                x-transition:leave-start="opacity-100 translate-x-0"
-                x-transition:leave-end="opacity-0 translate-x-24"
-                :class="toast.type === 'error'
-                    ? 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
-                    : 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'"
-                class="rounded-lg shadow-lg p-4 max-w-md"
-            >
-                <div class="flex items-center gap-3">
-                    <template x-if="toast.type !== 'error'">
-                        <svg class="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                        </svg>
-                    </template>
-                    <template x-if="toast.type === 'error'">
-                        <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-9a1 1 0 012 0v4a1 1 0 01-2 0V9zm1-4a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" />
-                        </svg>
-                    </template>
-                    <p
-                        :class="toast.type === 'error' ? 'text-red-800 dark:text-red-300' : 'text-green-800 dark:text-green-300'"
-                        class="font-medium"
-                        x-text="toast.message"
-                    ></p>
-                </div>
-            </div>
-        </template>
-    </div>
-
     <div class="space-y-8">
         <!-- Page Header -->
         <div class="mb-8">
@@ -193,8 +144,8 @@
             <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Personal Information</h2>
 
             <form wire:submit="updatePersonalInfo" class="space-y-6">
+                <!-- Row 1: Full Name & Email -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Full Name -->
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Full Name</label>
                         <input
@@ -205,7 +156,6 @@
                         @error('name') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                     </div>
 
-                    <!-- Email Address -->
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Email Address</label>
                         <input
@@ -215,8 +165,10 @@
                         >
                         @error('email') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                     </div>
+                </div>
 
-                    <!-- Phone Number -->
+                <!-- Row 2: Phone Number & IBAN -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Phone Number</label>
                         <input
@@ -226,43 +178,60 @@
                         >
                     </div>
 
-                    <!-- Change Password -->
-                    <div class="flex flex-col justify-end">
-                        <button
-                            type="button"
-                            @click="showPasswordModal = true"
-                            class="w-full px-4 py-3 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-200 transition-colors font-semibold text-sm flex items-center justify-center gap-2"
-                        >
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                            Change Password
-                        </button>
-                    </div>
-
-                </div>
-
-                <!-- IBAN (full width) -->
-                <div>
-                    <div class="flex items-center justify-between mb-2">
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300">IBAN</label>
-                        <button type="button" wire:click="toggleShowIban" class="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300">
-                            {{ $showIban ? 'Hide' : 'Show' }}
-                        </button>
-                    </div>
-                    @if($showIban)
-                        <input
-                            wire:model="iban"
-                            type="text"
-                            placeholder="GB29 NWBK 6016 1331 9268 19"
-                            class="w-full px-4 py-3 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                        >
-                    @else
-                        <div class="w-full px-4 py-3 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 rounded-lg bg-gray-50 dark:bg-neutral-700 flex items-center">
-                            <p class="text-gray-600 dark:text-gray-400 font-mono">{{ $iban ? '•••• •••• •••• ' . substr($iban, -4) : 'No IBAN set' }}</p>
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300">IBAN</label>
+                            <button type="button" wire:click="toggleShowIban" class="inline-flex items-center gap-1 px-3 py-1 rounded-md bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition-colors font-medium text-xs">
+                                @if($showIban)
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0114 19c5.523 0 10-4.477 10-10S19.523 -1 14 -1s-10 4.477-10 10a9.99 9.99 0 001.25 4.9M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                    Hide
+                                @else
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                    Show
+                                @endif
+                            </button>
                         </div>
-                    @endif
+                        @if($showIban)
+                            <input
+                                wire:model="iban"
+                                type="text"
+                                placeholder="GB29 NWBK 6016 1331 9268 19"
+                                class="w-full px-4 py-3 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                            >
+                        @else
+                            <div class="w-full px-4 py-3 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 rounded-lg bg-gray-50 dark:bg-neutral-700 flex items-center">
+                                <p class="text-gray-600 dark:text-gray-400 font-mono text-sm">{{ $iban ? '•••• •••• •••• ' . substr($iban, -4) : 'No IBAN set' }}</p>
+                            </div>
+                        @endif
+                    </div>
                 </div>
 
-                <!-- Save Button -->
+                <!-- Row 3: Address (full width) -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Address</label>
+                    <textarea
+                        wire:model="address"
+                        rows="3"
+                        placeholder="Enter your address"
+                        class="w-full px-4 py-3 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                    ></textarea>
+                    @error('address') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
+                </div>
+
+
+                <!-- Row 4: Change Password Button -->
+                <div>
+                    <button
+                        type="button"
+                        @click="showPasswordModal = true"
+                        class="w-full px-4 py-3 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-700 rounded-lg hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition-colors font-semibold text-sm flex items-center justify-center gap-2"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                        Change Password
+                    </button>
+                </div>
+
+                <!-- Row 6: Save Button -->
                 <div class="flex">
                     <button
                         type="submit"

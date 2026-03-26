@@ -79,12 +79,12 @@
 
                 {{-- Actions --}}
                 <div class="flex gap-2 pt-2">
-                    <flux:button type="submit" variant="primary" class="flex-1">
+                    <x-flux.button type="submit" variant="primary" class="flex-1">
                         {{ __('Create Meal') }}
-                    </flux:button>
-                    <flux:button type="button" variant="ghost" wire:click="$set('showModal', false)">
+                    </x-flux.button>
+                    <x-flux.button type="button" variant="ghost" wire:click="$set('showModal', false)">
                         {{ __('Cancel') }}
-                    </flux:button>
+                    </x-flux.button>
                 </div>
             </form>
         </div>

@@ -2,15 +2,15 @@
     {{-- View Toggle + New Task --}}
     <div class="flex items-center justify-between gap-2 mb-4">
         <div class="flex items-center gap-2">
-            <flux:button size="sm" :variant="$view === 'day' ? 'primary' : 'ghost'" wire:click="setView('day')">
+            <x-flux.button size="sm" :variant="$view === 'day' ? 'primary' : 'ghost'" wire:click="setView('day')">
                 {{ __('Day') }}
-            </flux:button>
-            <flux:button size="sm" :variant="$view === 'week' ? 'primary' : 'ghost'" wire:click="setView('week')">
+            </x-flux.button>
+            <x-flux.button size="sm" :variant="$view === 'week' ? 'primary' : 'ghost'" wire:click="setView('week')">
                 {{ __('Week') }}
-            </flux:button>
-            <flux:button size="sm" :variant="$view === 'month' ? 'primary' : 'ghost'" wire:click="setView('month')">
+            </x-flux.button>
+            <x-flux.button size="sm" :variant="$view === 'month' ? 'primary' : 'ghost'" wire:click="setView('month')">
                 {{ __('Month') }}
-            </flux:button>
+            </x-flux.button>
         </div>
         <div class="flex items-center gap-2">
             <div class="inline-flex rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden">
@@ -33,9 +33,9 @@
                     {{ __('All Tasks') }}
                 </button>
             </div>
-            <flux:button size="sm" variant="primary" wire:click="openCreateModal" icon="plus">
+            <x-flux.button size="sm" variant="primary" wire:click="openCreateModal" icon="plus">
                 {{ __('New Task') }}
-            </flux:button>
+            </x-flux.button>
         </div>
     </div>
 
@@ -64,12 +64,12 @@
                             </p>
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
-                            <flux:button size="sm" variant="primary" wire:click="acceptCollaborationRequest({{ $req->id }})">
+                            <x-flux.button size="sm" variant="primary" wire:click="acceptCollaborationRequest({{ $req->id }})">
                                 {{ __('Accept') }}
-                            </flux:button>
-                            <flux:button size="sm" variant="ghost" wire:click="declineCollaborationRequest({{ $req->id }})">
+                            </x-flux.button>
+                            <x-flux.button size="sm" variant="ghost" wire:click="declineCollaborationRequest({{ $req->id }})">
                                 {{ __('Decline') }}
-                            </flux:button>
+                            </x-flux.button>
                         </div>
                     </div>
                 @endforeach
@@ -80,18 +80,18 @@
     {{-- Navigation + Period Label --}}
     <div class="rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-zinc-800 p-6 mb-6">
         <div class="flex items-center justify-between mb-6">
-            <flux:button variant="ghost" size="sm" wire:click="previousPeriod" icon="chevron-left" />
+            <x-flux.button variant="ghost" size="sm" wire:click="previousPeriod" icon="chevron-left" />
 
             <div class="flex items-center gap-3">
                 <h3 class="text-xl font-bold text-neutral-900 dark:text-neutral-100">
                     {{ $this->periodLabel }}
                 </h3>
-                <flux:button variant="ghost" size="sm" wire:click="goToToday">
+                <x-flux.button variant="ghost" size="sm" wire:click="goToToday">
                     {{ __('Today') }}
-                </flux:button>
+                </x-flux.button>
             </div>
 
-            <flux:button variant="ghost" size="sm" wire:click="nextPeriod" icon="chevron-right" />
+            <x-flux.button variant="ghost" size="sm" wire:click="nextPeriod" icon="chevron-right" />
         </div>
 
         {{-- People Filter --}}
@@ -120,9 +120,9 @@
                 @endforeach
 
                 @if (count($selectedPeople) > 0)
-                    <flux:button variant="ghost" size="sm" wire:click="clearFilters">
+                    <x-flux.button variant="ghost" size="sm" wire:click="clearFilters">
                         {{ __('Clear Filters') }}
-                    </flux:button>
+                    </x-flux.button>
                 @endif
             </div>
         </div>
@@ -339,9 +339,9 @@
             @endphp
             <div class="space-y-4">
                 <div class="flex justify-end">
-                    <flux:button size="sm" variant="primary" wire:click="openCreateModal('{{ $dateStr }}')" icon="plus">
+                    <x-flux.button size="sm" variant="primary" wire:click="openCreateModal('{{ $dateStr }}')" icon="plus">
                         {{ __('Add Task') }}
-                    </flux:button>
+                    </x-flux.button>
                 </div>
 
                 {{-- Trips --}}
@@ -403,8 +403,8 @@
                             </div>
                             @if ($isAdmin || $task->users->where('id', auth()->id())->first()?->pivot?->is_owner)
                                 <div class="flex items-center gap-1 shrink-0">
-                                    <flux:button size="sm" variant="ghost" wire:click="openEditModal({{ $task->id }})" icon="pencil-square" />
-                                    <flux:button size="sm" variant="ghost" wire:click="confirmDelete({{ $task->id }})" icon="trash" class="!text-red-500 hover:!text-red-700" />
+                                    <x-flux.button size="sm" variant="ghost" wire:click="openEditModal({{ $task->id }})" icon="pencil-square" />
+                                    <x-flux.button size="sm" variant="ghost" wire:click="confirmDelete({{ $task->id }})" icon="trash" class="!text-red-500 hover:!text-red-700" />
                                 </div>
                             @endif
                         </div>
@@ -414,9 +414,9 @@
                                     ✓ {{ __('Completed') }}
                                 </span>
                             @elseif ($isAdmin || $task->users->contains('id', auth()->id()))
-                                <flux:button size="sm" variant="primary" wire:click="markComplete({{ $task->id }})" icon="check">
+                                <x-flux.button size="sm" variant="primary" wire:click="markComplete({{ $task->id }})" icon="check">
                                     {{ __('Mark Complete') }}
-                                </flux:button>
+                                </x-flux.button>
                             @endif
                         </div>
                     </div>
@@ -497,10 +497,10 @@
                         {{ \Carbon\Carbon::parse($selectedDay)->format('l, j F Y') }}
                     </h3>
                     <div class="flex items-center gap-2">
-                        <flux:button size="sm" variant="primary" wire:click="openCreateModal('{{ $selectedDay }}')" icon="plus">
+                        <x-flux.button size="sm" variant="primary" wire:click="openCreateModal('{{ $selectedDay }}')" icon="plus">
                             {{ __('Add Task') }}
-                        </flux:button>
-                        <flux:button variant="ghost" size="sm" wire:click="closeDay" icon="x-mark" />
+                        </x-flux.button>
+                        <x-flux.button variant="ghost" size="sm" wire:click="closeDay" icon="x-mark" />
                     </div>
                 </div>
 
@@ -571,8 +571,8 @@
                                             </div>
                                             @if ($isAdmin || $task->users->where('id', auth()->id())->first()?->pivot?->is_owner)
                                                 <div class="flex items-center gap-1 shrink-0">
-                                                    <flux:button size="sm" variant="ghost" wire:click="openEditModal({{ $task->id }})" icon="pencil-square" />
-                                                    <flux:button size="sm" variant="ghost" wire:click="confirmDelete({{ $task->id }})" icon="trash" class="!text-red-500 hover:!text-red-700" />
+                                                    <x-flux.button size="sm" variant="ghost" wire:click="openEditModal({{ $task->id }})" icon="pencil-square" />
+                                                    <x-flux.button size="sm" variant="ghost" wire:click="confirmDelete({{ $task->id }})" icon="trash" class="!text-red-500 hover:!text-red-700" />
                                                 </div>
                                             @endif
                                         </div>
@@ -582,9 +582,9 @@
                                                     ✓ {{ __('Completed') }}
                                                 </span>
                                             @elseif ($isAdmin || $task->users->contains('id', auth()->id()))
-                                                <flux:button size="sm" variant="primary" wire:click="markComplete({{ $task->id }})" icon="check">
+                                                <x-flux.button size="sm" variant="primary" wire:click="markComplete({{ $task->id }})" icon="check">
                                                     {{ __('Mark Complete') }}
-                                                </flux:button>
+                                                </x-flux.button>
                                             @endif
                                         </div>
                                     </div>

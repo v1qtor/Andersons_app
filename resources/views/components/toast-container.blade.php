@@ -113,6 +113,18 @@
                 window.showToast = (title, message, type = 'info') => {
                     this.addToast(title, message, type);
                 };
+
+                // Bridge Livewire browser events: $this->dispatch('toast', message: '...', type: 'success')
+                if (!window.__globalToastEventListenerRegistered) {
+                    window.addEventListener('toast', (event) => {
+                        const detail = event.detail || {};
+                        const type = detail.type || 'info';
+                        const title = detail.title || (type === 'error' ? 'Error' : 'Success');
+                        const message = detail.message || '';
+                        this.addToast(title, message, type);
+                    });
+                    window.__globalToastEventListenerRegistered = true;
+                }
             }
         }
     }
