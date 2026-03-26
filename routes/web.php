@@ -9,12 +9,13 @@ use App\Livewire\Meals\MealPlanning;
 use App\Livewire\Meals\MealSchedule;
 use App\Livewire\Schedule;
 use App\Livewire\Settings;
+use App\Livewire\Dashboard;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
 Route::redirect('/', '/login');
 
-Route::view('dashboard', 'dashboard')
+Route::get('dashboard', Dashboard::class)
     ->middleware(['auth'])
     ->name('dashboard');
 
