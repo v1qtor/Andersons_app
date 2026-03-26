@@ -140,10 +140,10 @@
                     @error('description') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                 </div>
 
-                <!-- Receipt File Upload (Optional) -->
+                <!-- Receipt File Upload -->
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Receipt / Proof of Purchase <span class="text-gray-500 text-xs font-normal">(Optional)</span>
+                        Receipt / Proof of Purchase <span class="text-red-600">*</span>
                     </label>
                     <div class="relative border-2 border-dashed border-gray-300 dark:border-neutral-600 rounded-lg p-8 text-center cursor-pointer hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/10 transition-colors" onclick="document.getElementById('receipt-input').click()">
                         <input

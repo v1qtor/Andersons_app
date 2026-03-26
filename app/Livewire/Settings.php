@@ -17,6 +17,7 @@ class Settings extends Component
     public string $email = '';
     public string $phone_number = '';
     public string $iban = '';
+    public bool $showIban = false;
 
     public string $newAllergy = '';
     public string $newPreference = '';
@@ -93,6 +94,14 @@ class Settings extends Component
         ]);
 
         $this->dispatch('toast', message: 'Personal information updated successfully!', type: 'success');
+    }
+
+    /**
+     * Toggle IBAN visibility.
+     */
+    public function toggleShowIban(): void
+    {
+        $this->showIban = !$this->showIban;
     }
 
     /**

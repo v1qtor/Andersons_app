@@ -77,7 +77,7 @@ class InvoiceForm extends Component
         }
         
         $this->validate([
-            'receiptFile' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'receiptFile' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
             'billDate' => 'required|date|before_or_equal:today',
             'category' => 'required|string',
             'description' => 'nullable|string|max:1000',

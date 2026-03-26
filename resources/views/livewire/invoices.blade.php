@@ -1,4 +1,4 @@
-<div class="w-full max-w-7xl mx-auto">
+<div class="w-full max-w-7xl mx-auto" x-data x-effect="document.body.style.overflow = @if($viewInvoice) 'hidden' @else '' @endif">
     <!-- Success Message Toast with Alpine.js for auto-dismiss -->
     @if (session('status') || session('message') || session('error'))
         <div x-data="{ show: true }" x-init="setTimeout(() => { show = false }, 3000)" x-show="show"
@@ -53,7 +53,7 @@
                     <button wire:click="$set('updateStatusInvoiceId', null)" class="flex-1 px-4 py-2 border border-gray-300 dark:border-neutral-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors font-medium">
                         Cancel
                     </button>
-                    <button wire:click="updateInvoiceStatus({{ $updateStatusInvoiceId }})" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                    <button wire:click="updateInvoiceStatus({{ $updateStatusInvoiceId }})" class="flex-1 px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition-colors font-medium">
                         Mark Paid
                     </button>
                 </div>
@@ -87,7 +87,7 @@
 
     <!-- View Invoice Modal -->
     @if($viewInvoice)
-        <div class="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 flex items-center justify-center p-4">
+        <div class="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 flex items-center justify-center p-4" @click.self="$wire.closeView()" @keydown.escape.window="$wire.closeView()">
             <div class="bg-white dark:bg-neutral-800 rounded-xl max-w-2xl w-full max-h-96 overflow-y-auto">
                 <div class="sticky top-0 bg-white dark:bg-neutral-800 border-b border-gray-200 dark:border-neutral-700 p-6 flex justify-between items-center">
                     <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Expense Report Details</h2>
@@ -122,7 +122,7 @@
                         </div>
                         <div>
                             <p class="text-sm text-gray-600 dark:text-gray-400">Status</p>
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium @if($viewInvoice->is_paid) bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 @else bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 @endif">
+                            <span class="inline-flex items-center px-4 py-2 rounded-full text-lg font-bold @if($viewInvoice->is_paid) bg-green-200 text-green-900 dark:bg-green-800 dark:text-green-100 @else bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 @endif">
                                 @if($viewInvoice->is_paid)
                                     ✓ Paid
                                 @else
@@ -262,7 +262,7 @@
                                             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $invoice->user->name ?? 'Unknown' }}</h3>
                                             <p class="text-sm text-gray-500 dark:text-gray-400">{{ $invoice->bill_date->format('M d, Y') }}</p>
                                         </div>
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium @if($invoice->is_paid) bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 @else bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 @endif">
+                                        <span class="inline-flex items-center px-4 py-2 rounded-full text-lg font-bold @if($invoice->is_paid) bg-green-200 text-green-900 dark:bg-green-800 dark:text-green-100 @else bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 @endif">
                                             @if($invoice->is_paid)
                                                 ✓ Paid
                                             @else
@@ -306,15 +306,15 @@
                                     @if($invoice->user && $invoice->user->iban)
                                         <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                                             <div class="flex items-center justify-between mb-2">
-                                                <p class="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide">IBAN</p>
-                                                <button wire:click="toggleShowIban({{ $invoice->id }})" class="text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
+                                                <p class="text-sm font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wide">IBAN</p>
+                                                <button wire:click="toggleShowIban({{ $invoice->id }})" class="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
                                                     {{ $showIbanInvoiceId === $invoice->id ? 'Hide' : 'Show' }}
                                                 </button>
                                             </div>
                                             @if($showIbanInvoiceId === $invoice->id)
-                                                <p class="text-lg font-mono font-semibold text-gray-900 dark:text-white break-all">{{ $invoice->user->iban }}</p>
+                                                <p class="text-2xl font-mono font-bold text-gray-900 dark:text-white break-all">{{ $invoice->user->iban }}</p>
                                             @else
-                                                <p class="text-sm text-gray-600 dark:text-gray-400 font-mono">•••• •••• •••• {{ substr($invoice->user->iban, -4) }}</p>
+                                                <p class="text-lg text-gray-600 dark:text-gray-400 font-mono">•••• •••• •••• {{ substr($invoice->user->iban, -4) }}</p>
                                             @endif
                                         </div>
                                     @else
@@ -338,15 +338,36 @@
                                 </div>
                             </div>
 
-                            <!-- Divider -->
+                            <!-- Divider with Receipt and Actions -->
                             @if($invoice->file_path)
-                                <div class="border-t border-gray-200 dark:border-neutral-700 pt-4">
+                                <div class="border-t border-gray-200 dark:border-neutral-700 pt-4 flex items-center justify-between">
+                                    <!-- Edit/Delete buttons (admin can edit and delete any invoice) -->
+                                    <div class="flex gap-1">
+                                        <flux:tooltip content="{{ __('Edit') }}" position="top">
+                                            <flux:button variant="ghost" size="sm" :href="route('invoices.edit', $invoice->id)" wire:navigate icon="pencil" />
+                                        </flux:tooltip>
+                                        <flux:tooltip content="{{ __('Delete') }}" position="top">
+                                            <flux:button variant="ghost" size="sm" wire:click="$set('deleteInvoiceId', {{ $invoice->id }})" icon="trash" class="!text-red-600 hover:!text-red-700 dark:!text-red-400" />
+                                        </flux:tooltip>
+                                    </div>
                                     <a href="{{ route('receipts.show', ['path' => str_replace('receipts/', '', $invoice->file_path)]) }}" target="_blank" class="inline-flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 underline">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                         </svg>
                                         View Receipt
                                     </a>
+                                </div>
+                            @else
+                                <div class="border-t border-gray-200 dark:border-neutral-700 pt-4 flex items-center justify-start">
+                                    <!-- Edit/Delete buttons (admin can edit and delete any invoice) -->
+                                    <div class="flex gap-1">
+                                        <flux:tooltip content="{{ __('Edit') }}" position="top">
+                                            <flux:button variant="ghost" size="sm" :href="route('invoices.edit', $invoice->id)" wire:navigate icon="pencil" />
+                                        </flux:tooltip>
+                                        <flux:tooltip content="{{ __('Delete') }}" position="top">
+                                            <flux:button variant="ghost" size="sm" wire:click="$set('deleteInvoiceId', {{ $invoice->id }})" icon="trash" class="!text-red-600 hover:!text-red-700 dark:!text-red-400" />
+                                        </flux:tooltip>
+                                    </div>
                                 </div>
                             @endif
                         </div>
@@ -369,7 +390,7 @@
                             </thead>
                             <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
                                 @foreach($invoices as $invoice)
-                                    <tr class="transition-colors @if($invoice->is_paid) bg-green-50 dark:bg-green-900/10 hover:bg-green-100 dark:hover:bg-green-900/20 @else hover:bg-gray-50 dark:hover:bg-neutral-700/50 @endif">
+                                    <tr class="transition-colors @if($invoice->is_paid) bg-green-100 dark:bg-green-900/20 hover:bg-green-200 dark:hover:bg-green-900/30 @else hover:bg-gray-50 dark:hover:bg-neutral-700/50 @endif">
                                         <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-300">
                                             {{ $invoice->bill_date->format('M d, Y') }}
                                         </td>
@@ -389,7 +410,7 @@
                                             £{{ number_format($invoice->amount, 2) }}
                                         </td>
                                         <td class="px-6 py-4 text-sm">
-                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium @if($invoice->is_paid) bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 @else bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 @endif">
+                                            <span class="inline-flex items-center px-4 py-2 rounded-full text-lg font-bold @if($invoice->is_paid) bg-green-200 text-green-900 dark:bg-green-800 dark:text-green-100 @else bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 @endif">
                                                 @if($invoice->is_paid)
                                                     ✓ Paid
                                                 @else
@@ -402,7 +423,7 @@
                                                 <flux:tooltip content="{{ __('View') }}" position="top">
                                                     <flux:button variant="ghost" size="sm" wire:click="viewInvoice({{ $invoice->id }})" icon="eye" />
                                                 </flux:tooltip>
-                                                @if(!$invoice->is_paid)
+                                                @if(!$invoice->is_paid || $isAdmin)
                                                     <flux:tooltip content="{{ __('Edit') }}" position="top">
                                                         <flux:button variant="ghost" size="sm" :href="route('invoices.edit', $invoice->id)" wire:navigate icon="pencil" />
                                                     </flux:tooltip>
@@ -430,8 +451,8 @@
                         <p class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">£{{ number_format($invoices->where('is_paid', false)->sum('amount'), 2) }}</p>
                     </div>
                     <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 p-6">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Paid Amount</p>
-                        <p class="text-3xl font-bold text-green-600 dark:text-green-400">£{{ number_format($invoices->where('is_paid', true)->sum('amount'), 2) }}</p>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Paid Amount (This Month)</p>
+                        <p class="text-3xl font-bold text-green-700 dark:text-green-400">£{{ number_format($thisMonthPaidTotal, 2) }}</p>
                     </div>
                 </div>
             @endif
@@ -452,8 +473,8 @@
                         <p class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">£{{ number_format($invoices->where('is_paid', false)->sum('amount'), 2) }}</p>
                     </div>
                     <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 p-6">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Total Paid Amount</p>
-                        <p class="text-3xl font-bold text-green-600 dark:text-green-400">£{{ number_format($invoices->where('is_paid', true)->sum('amount'), 2) }}</p>
+                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Total Paid Amount (This Month)</p>
+                        <p class="text-3xl font-bold text-green-700 dark:text-green-400">£{{ number_format($thisMonthPaidTotal, 2) }}</p>
                     </div>
                 </div>
             @endif
