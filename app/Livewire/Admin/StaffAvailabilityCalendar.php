@@ -22,7 +22,7 @@ class StaffAvailabilityCalendar extends Component
 
     public function mount()
     {
-        if (Auth::user()->role?->name !== 'admin') {
+        if (Auth::user()->role?->name !== 'Admin') {
             abort(403);
         }
         $this->currentWeekStart = Carbon::now()->startOfWeek()->format('Y-m-d');
@@ -41,7 +41,14 @@ class StaffAvailabilityCalendar extends Component
     public function getStaffUsersProperty()
     {
         return User::with('unavailabilityPeriods')
-            ->whereHas('role', fn($q) => $q->where('name', 'staff'))
+            ->whereHas('role', fn($q) => $q->where('name', 'Staff'))
+            ->get();
+    }
+
+    public function getPeriodsProperty()
+    {
+        return UnavailabilityPeriod::where('userId', Auth::id())
+            ->orderBy('startDate')
             ->get();
     }
 
@@ -117,9 +124,12 @@ class StaffAvailabilityCalendar extends Component
         session()->flash('success', 'Period removed.');
     }
 
-    public function getPeriodForDate($userId, $date)
+    public function getPeriodForDate($date, $userId = null)
     {
-        $user = $this->staffUsers->find($userId);
+        $targetUserId = $userId ?? Auth::id();
+        $user = $this->staffUsers->find($targetUserId)
+            ?? User::with('unavailabilityPeriods')->find($targetUserId);
+
         if (!$user) return null;
 
         return $user->unavailabilityPeriods->first(function ($period) use ($date) {
