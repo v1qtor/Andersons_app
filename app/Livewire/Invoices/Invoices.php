@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Livewire\Invoices;
 
 use App\Models\Receipt;
 use Illuminate\Support\Facades\Auth;
@@ -150,7 +150,7 @@ class Invoices extends Component
         $invoices = $this->getInvoices();
         $viewInvoice = $this->viewInvoiceId ? Receipt::find($this->viewInvoiceId) : null;
 
-        return view('livewire.invoices', [
+        return view('livewire.invoices.invoices', [
             'invoices' => $invoices,
             'viewInvoice' => $viewInvoice,
             'isAdmin' => $this->isAdmin(),

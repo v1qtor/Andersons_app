@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Livewire\Invoices;
 
 use App\Models\Receipt;
 use App\Models\Category;
@@ -152,7 +152,7 @@ class InvoiceForm extends Component
 
     public function render()
     {
-        return view('livewire.invoice-form', [
+        return view('livewire.invoices.invoice-form', [
             'categories' => Category::whereNotIn('name', ['Other', 'other'])->get(),
         ]);
     }

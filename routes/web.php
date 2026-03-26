@@ -3,8 +3,8 @@
 use App\Livewire\Admin\UserCreate;
 use App\Livewire\Admin\UserEdit;
 use App\Livewire\Admin\UserIndex;
-use App\Livewire\InvoiceForm;
-use App\Livewire\Invoices;
+use App\Livewire\Invoices\InvoiceForm;
+use App\Livewire\Invoices\Invoices;
 use App\Livewire\Meals\MealPlanning;
 use App\Livewire\Meals\MealSchedule;
 use App\Livewire\Schedule;
