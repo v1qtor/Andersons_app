@@ -22,13 +22,13 @@ class TaskFactory extends Factory
         return [
             'title' => fake()->sentence(4),
             'description' => fake()->optional()->paragraph(),
-            'startDate' => $startDate,
-            'endDate' => fake()->optional()->dateTimeBetween($startDate, '+3 months'),
-            'taskCategoryId' => TaskCategory::inRandomOrder()->first()?->taskCategoryId ?? TaskCategory::factory(),
-            'taskPriorityId' => TaskPriority::inRandomOrder()->first()?->taskPriorityId,
-            'isComplete' => fake()->boolean(30),
+            'start_date' => $startDate,
+            'end_date' => fake()->optional()->dateTimeBetween($startDate, '+3 months'),
+            'task_category_id' => TaskCategory::inRandomOrder()->first()?->id ?? TaskCategory::factory(),
+            'task_priority_id' => TaskPriority::inRandomOrder()->first()?->id,
+            'is_complete' => fake()->boolean(30),
             'date' => fake()->dateTimeBetween('now', '+1 month'),
-            'recurringTaskId' => null,
+            'recurring_task_id' => null,
         ];
     }
 }

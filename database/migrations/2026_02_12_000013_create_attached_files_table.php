@@ -9,8 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('attached_files', function (Blueprint $table) {
-            $table->id('attachedFileId');
-            $table->string('filePath');
+            $table->id();
+            $table->string('file_path');
             $table->timestamps();
         });
     }

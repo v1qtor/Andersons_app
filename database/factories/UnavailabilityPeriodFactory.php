@@ -18,9 +18,9 @@ class UnavailabilityPeriodFactory extends Factory
         $startDate = fake()->dateTimeBetween('+1 week', '+1 month');
 
         return [
-            'userId' => User::inRandomOrder()->first()?->userId ?? User::factory(),
-            'startDate' => $startDate,
-            'endDate' => fake()->dateTimeBetween($startDate, '+2 months'),
+            'user_id' => User::inRandomOrder()->first()?->id ?? User::factory(),
+            'start_date' => $startDate,
+            'end_date' => fake()->dateTimeBetween($startDate, '+2 months'),
             'description' => fake()->sentence(),
         ];
     }

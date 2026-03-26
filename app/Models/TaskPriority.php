@@ -10,14 +10,12 @@ class TaskPriority extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'taskPriorityId';
-
     protected $fillable = [
         'name',
     ];
 
     public function tasks(): HasMany
     {
-        return $this->hasMany(Task::class, 'taskPriorityId', 'taskPriorityId');
+        return $this->hasMany(Task::class);
     }
 }

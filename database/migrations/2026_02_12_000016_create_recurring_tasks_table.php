@@ -9,9 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('recurring_tasks', function (Blueprint $table) {
-            $table->id('recurringTaskId');
-            $table->foreignId('repeatabilityTypeId')->constrained('repeatability_types', 'repeatabilityTypeId')->onUpdate('cascade')->onDelete('restrict');
-            $table->dateTime('endDate')->nullable();
+            $table->id();
+            $table->foreignId('repeatability_type_id')->constrained()->onUpdate('cascade')->onDelete('restrict');
+            $table->dateTime('end_date')->nullable();
             $table->timestamps();
         });
     }

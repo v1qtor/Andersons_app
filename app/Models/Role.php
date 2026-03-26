@@ -10,8 +10,6 @@ class Role extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'roleId';
-
     protected $fillable = [
         'name',
         'color',
@@ -19,6 +17,6 @@ class Role extends Model
 
     public function users(): HasMany
     {
-        return $this->hasMany(User::class, 'roleId', 'roleId');
+        return $this->hasMany(User::class);
     }
 }

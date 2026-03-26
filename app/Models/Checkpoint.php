@@ -11,22 +11,20 @@ class Checkpoint extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'checkpointId';
-
     protected $fillable = [
         'location',
         'address',
         'coordinates',
-        'folderId',
+        'folder_id',
     ];
 
     public function folder(): BelongsTo
     {
-        return $this->belongsTo(Folder::class, 'folderId', 'folderId');
+        return $this->belongsTo(Folder::class);
     }
 
     public function trips(): BelongsToMany
     {
-        return $this->belongsToMany(Trip::class, 'trip_checkpoints', 'checkpointId', 'tripId')->withPivot('arrivalDate', 'isConfirmed', 'order');
+        return $this->belongsToMany(Trip::class, 'trip_checkpoints')->withPivot('arrival_date', 'is_confirmed', 'order');
     }
 }

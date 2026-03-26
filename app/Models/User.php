@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -17,21 +18,19 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
 
-    protected $primaryKey = 'userId';
-
     /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
      */
     protected $fillable = [
-        'roleId',
+        'role_id',
         'name',
         'email',
         'password',
         'iban',
-        'phoneNumber',
-        'countryId',
+        'phone_number',
+        'is_active',
     ];
 
     /**
@@ -45,6 +44,15 @@ class User extends Authenticatable
     ];
 
     /**
+     * The accessors to append to the model's array form.
+     *
+     * @var list<string>
+     */
+    protected $appends = [
+        'initials',
+    ];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -54,68 +62,74 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
     }
 
     /**
      * Get the user's initials
      */
-    public function initials(): string
+    protected function initials(): Attribute
     {
-        return Str::of($this->name)
+        return Attribute::get(fn () => Str::of($this->name)
             ->explode(' ')
             ->take(2)
             ->map(fn ($word) => Str::substr($word, 0, 1))
-            ->implode('');
+            ->implode(''));
     }
 
     public function role(): BelongsTo
     {
-        return $this->belongsTo(Role::class, 'roleId', 'roleId');
-    }
-
-    public function country(): BelongsTo
-    {
-        return $this->belongsTo(Country::class, 'countryId', 'countryId');
+        return $this->belongsTo(Role::class);
     }
 
     public function unavailabilityPeriods(): HasMany
     {
-        return $this->hasMany(UnavailabilityPeriod::class, 'userId', 'userId');
+        return $this->hasMany(UnavailabilityPeriod::class);
     }
 
     public function receipts(): HasMany
     {
-        return $this->hasMany(Receipt::class, 'userId', 'userId');
+        return $this->hasMany(Receipt::class);
     }
 
     public function allergies(): BelongsToMany
     {
-        return $this->belongsToMany(Allergy::class, 'user_allergies', 'userId', 'allergyId');
+        return $this->belongsToMany(Allergy::class, 'user_allergies');
     }
 
     public function mealSubscriptions(): BelongsToMany
     {
-        return $this->belongsToMany(PlannedMeal::class, 'meal_subscriptions', 'userId', 'plannedMealId')->withPivot('guestName');
+        return $this->belongsToMany(PlannedMeal::class, 'meal_subscriptions')->withPivot('guest_name');
     }
 
     public function tasks(): BelongsToMany
     {
-        return $this->belongsToMany(Task::class, 'user_tasks', 'userId', 'taskId')->withPivot('isOwner');
+        return $this->belongsToMany(Task::class, 'user_tasks')->withPivot('is_owner');
     }
 
     public function notificationSettings(): BelongsToMany
     {
-        return $this->belongsToMany(NotificationType::class, 'notification_settings', 'userId', 'notificationTypeId')->withPivot('value');
+        return $this->belongsToMany(NotificationType::class, 'notification_settings')->withPivot('value');
     }
 
     public function trips(): BelongsToMany
     {
-        return $this->belongsToMany(Trip::class, 'user_trips', 'userId', 'tripId')->withPivot('isOrganizer');
+        return $this->belongsToMany(Trip::class, 'user_trips')->withPivot('is_organizer');
     }
 
     public function preferences(): HasMany
     {
-        return $this->hasMany(Preference::class, 'userId', 'userId');
+        return $this->hasMany(Preference::class);
+    }
+
+    public function sentCollaborationRequests(): HasMany
+    {
+        return $this->hasMany(CollaborationRequest::class, 'requester_id');
+    }
+
+    public function receivedCollaborationRequests(): HasMany
+    {
+        return $this->hasMany(CollaborationRequest::class, 'target_user_id');
     }
 }

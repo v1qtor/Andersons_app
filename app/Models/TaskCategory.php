@@ -10,14 +10,12 @@ class TaskCategory extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'taskCategoryId';
-
     protected $fillable = [
         'name',
     ];
 
     public function tasks(): HasMany
     {
-        return $this->hasMany(Task::class, 'taskCategoryId', 'taskCategoryId');
+        return $this->hasMany(Task::class);
     }
 }

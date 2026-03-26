@@ -11,28 +11,28 @@ class PlannedMeal extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'plannedMealId';
-
     protected $fillable = [
-        'mealId',
-        'dateTime',
+        'meal_id',
+        'date_time',
         'notes',
+        'is_prepared',
     ];
 
     protected function casts(): array
     {
         return [
-            'dateTime' => 'datetime',
+            'date_time'   => 'datetime',
+            'is_prepared' => 'boolean',
         ];
     }
 
     public function meal(): BelongsTo
     {
-        return $this->belongsTo(Meal::class, 'mealId', 'mealId');
+        return $this->belongsTo(Meal::class);
     }
 
     public function subscribers(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'meal_subscriptions', 'plannedMealId', 'userId')->withPivot('guestName');
+        return $this->belongsToMany(User::class, 'meal_subscriptions')->withPivot('guest_name', 'confirmed')->withTimestamps();
     }
 }

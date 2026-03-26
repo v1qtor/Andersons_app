@@ -12,10 +12,25 @@ class CategoryFactory extends Factory
 {
     protected $model = Category::class;
 
+    private static int $index = 0;
+
+    private static array $categories = [
+        'Groceries',
+        'Food & Catering',
+        'Cleaning Supplies',
+        'Garden Maintenance',
+        'Materials',
+        'Transportation',
+        'Other',
+    ];
+
     public function definition(): array
     {
+        $category = self::$categories[self::$index % count(self::$categories)];
+        self::$index++;
+
         return [
-            'name' => fake()->word(),
+            'name' => $category,
         ];
     }
 }
