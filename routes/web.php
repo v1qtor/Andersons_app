@@ -46,6 +46,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('admin/users/create', UserCreate::class)->name('admin.users.create');
         Route::get('admin/users/{user}/edit', UserEdit::class)->name('admin.users.edit');
         Route::get('admin/meals', MealPlanning::class)->name('admin.meals.index');
+        Route::get('staff-availability', StaffAvailabilityCalendar::class)->name('staff-availability');
     });
 
     // Chef Management
@@ -55,11 +56,6 @@ Route::middleware(['auth'])->group(function () {
 
     // Meal Schedule (Family Member, The Andersons, Staff — and any authenticated user)
     Route::get('meals', MealSchedule::class)->name('meals.index');
-});
-
-// Admin routes – require authentication and admin role
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('staff-availability', StaffAvailabilityCalendar::class)->name('staff-availability');
 });
 
 require __DIR__.'/auth.php';
