@@ -10,39 +10,38 @@ class Receipt extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'receiptId';
-
     protected $fillable = [
-        'categoryId',
-        'userId',
+        'category_id',
+        'user_id',
         'amount',
-        'billDate',
+        'bill_date',
         'description',
-        'isPaid',
-        'filePath',
-        'uploadDate',
-        'paidDate',
+        'is_paid',
+        'file_path',
+        'upload_date',
+        'paid_date',
         'name',
+        'substitute_category',
     ];
 
     protected function casts(): array
     {
         return [
             'amount' => 'float',
-            'billDate' => 'datetime',
-            'isPaid' => 'boolean',
-            'uploadDate' => 'datetime',
-            'paidDate' => 'datetime',
+            'bill_date' => 'datetime',
+            'is_paid' => 'boolean',
+            'upload_date' => 'datetime',
+            'paid_date' => 'datetime',
         ];
     }
 
     public function category(): BelongsTo
     {
-        return $this->belongsTo(Category::class, 'categoryId', 'categoryId');
+        return $this->belongsTo(Category::class);
     }
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'userId', 'userId');
+        return $this->belongsTo(User::class);
     }
 }

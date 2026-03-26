@@ -10,14 +10,12 @@ class Location extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'locationId';
-
     protected $fillable = [
         'name',
     ];
 
     public function tasks(): BelongsToMany
     {
-        return $this->belongsToMany(Task::class, 'task_locations', 'locationId', 'taskId');
+        return $this->belongsToMany(Task::class, 'task_locations');
     }
 }

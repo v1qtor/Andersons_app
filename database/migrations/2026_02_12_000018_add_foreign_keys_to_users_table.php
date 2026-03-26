@@ -9,16 +9,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->foreign('roleId')->references('roleId')->on('roles')->onUpdate('cascade')->onDelete('restrict');
-            $table->foreign('countryId')->references('countryId')->on('countries')->onUpdate('cascade')->onDelete('set null');
+            $table->foreign('role_id')->references('id')->on('roles')->onUpdate('cascade')->onDelete('restrict');
         });
     }
 
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropForeign(['roleId']);
-            $table->dropForeign(['countryId']);
+            $table->dropForeign(['role_id']);
         });
     }
 };

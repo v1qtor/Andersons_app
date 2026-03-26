@@ -17,7 +17,7 @@ class NotificationFactory extends Factory
         return [
             'title' => fake()->optional()->sentence(4),
             'description' => fake()->optional()->sentence(),
-            'isMail' => fake()->boolean(),
+            'is_mail' => fake()->boolean(),
         ];
     }
 }

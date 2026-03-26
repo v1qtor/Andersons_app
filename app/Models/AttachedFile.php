@@ -10,14 +10,12 @@ class AttachedFile extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'attachedFileId';
-
     protected $fillable = [
-        'filePath',
+        'file_path',
     ];
 
     public function trips(): HasMany
     {
-        return $this->hasMany(Trip::class, 'attachedFileId', 'attachedFileId');
+        return $this->hasMany(Trip::class);
     }
 }

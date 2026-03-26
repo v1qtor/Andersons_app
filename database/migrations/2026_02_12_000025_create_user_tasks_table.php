@@ -9,10 +9,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('user_tasks', function (Blueprint $table) {
-            $table->foreignId('userId')->constrained('users', 'userId')->onUpdate('cascade')->onDelete('cascade');
-            $table->foreignId('taskId')->constrained('tasks', 'taskId')->onUpdate('cascade')->onDelete('cascade');
-            $table->boolean('isOwner');
-            $table->primary(['userId', 'taskId']);
+            $table->foreignId('user_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('task_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->boolean('is_owner');
+            $table->primary(['user_id', 'task_id']);
             $table->timestamps();
         });
     }

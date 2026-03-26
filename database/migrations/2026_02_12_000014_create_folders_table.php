@@ -9,8 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('folders', function (Blueprint $table) {
-            $table->id('folderId');
-            $table->string('name');
+            $table->id();
+            $table->string('name')->collation('nocase');
             $table->timestamps();
         });
     }

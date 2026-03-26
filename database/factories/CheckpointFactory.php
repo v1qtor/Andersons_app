@@ -19,7 +19,7 @@ class CheckpointFactory extends Factory
             'location' => fake()->city(),
             'address' => fake()->optional()->address(),
             'coordinates' => fake()->optional()->latitude() . ',' . fake()->longitude(),
-            'folderId' => Folder::inRandomOrder()->first()?->folderId ?? Folder::factory(),
+            'folder_id' => Folder::inRandomOrder()->first()?->id ?? Folder::factory(),
         ];
     }
 }

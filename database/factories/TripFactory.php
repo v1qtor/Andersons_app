@@ -22,12 +22,12 @@ class TripFactory extends Factory
         return [
             'name' => fake()->sentence(3),
             'description' => fake()->optional()->paragraph(),
-            'startDate' => $startDate,
-            'endDate' => fake()->dateTimeBetween($startDate, '+6 months'),
-            'tripCategoryId' => TripCategory::inRandomOrder()->first()?->tripCategoryId,
-            'bufferAlert' => fake()->dateTimeBetween('now', $startDate),
-            'statusId' => Status::inRandomOrder()->first()?->statusId,
-            'attachedFileId' => null,
+            'start_date' => $startDate,
+            'end_date' => fake()->dateTimeBetween($startDate, '+6 months'),
+            'trip_category_id' => TripCategory::inRandomOrder()->first()?->id,
+            'buffer_alert' => fake()->dateTimeBetween('now', $startDate),
+            'status_id' => Status::inRandomOrder()->first()?->id,
+            'attached_file_id' => null,
             'notes' => fake()->optional()->sentence(),
         ];
     }

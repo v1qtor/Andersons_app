@@ -1,3 +1,4 @@
+my_test/
 /.phpunit.cache
 /node_modules
 /public/build
@@ -21,3 +22,7 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+/.claude
+requirments.md
+/frontEndExample
+.DS_Store
