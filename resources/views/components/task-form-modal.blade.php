@@ -26,7 +26,7 @@
             <h3 class="text-xl font-bold text-neutral-900 dark:text-neutral-100">
                 {{ $editingTaskId ? __('Edit Task') : __('New Task') }}
             </h3>
-            <flux:button variant="ghost" size="sm" wire:click="$set('showTaskModal', false)" icon="x-mark" />
+            <x-flux.button variant="ghost" size="sm" wire:click="$set('showTaskModal', false)" icon="x-mark" />
         </div>
 
         <form wire:submit="saveTask" class="p-6 space-y-4">
@@ -220,12 +220,12 @@
             @endif
 
             <div class="flex justify-end gap-3 pt-4 border-t border-neutral-200 dark:border-neutral-700">
-                <flux:button variant="ghost" wire:click="$set('showTaskModal', false)">
+                <x-flux.button variant="ghost" wire:click="$set('showTaskModal', false)">
                     {{ __('Cancel') }}
-                </flux:button>
-                <flux:button type="submit" variant="primary">
+                </x-flux.button>
+                <x-flux.button type="submit" variant="primary">
                     {{ $editingTaskId ? __('Update Task') : __('Create Task') }}
-                </flux:button>
+                </x-flux.button>
             </div>
         </form>
     </div>

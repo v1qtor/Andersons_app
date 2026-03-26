@@ -123,6 +123,18 @@ class Invoices extends Component
         $this->updateStatusInvoiceId = $invoiceId;
     }
 
+    public function closeStatusUpdateModal()
+    {
+        $this->updateStatusInvoiceId = null;
+    }
+
+    public function confirmCurrentStatusUpdate()
+    {
+        if ($this->updateStatusInvoiceId) {
+            $this->updateInvoiceStatus($this->updateStatusInvoiceId);
+        }
+    }
+
     public function updateInvoiceStatus($invoiceId)
     {
         $invoice = Receipt::find($invoiceId);
@@ -139,6 +151,18 @@ class Invoices extends Component
         $this->updateStatusInvoiceId = null;
     }
 
+    public function closeDeleteModal()
+    {
+        $this->deleteInvoiceId = null;
+    }
+
+    public function confirmCurrentDelete()
+    {
+        if ($this->deleteInvoiceId) {
+            $this->deleteInvoice($this->deleteInvoiceId);
+        }
+    }
+
     public function clearFilters()
     {
         $this->filterStatus = '';
@@ -148,20 +172,30 @@ class Invoices extends Component
 
     public function render()
     {
+        $user = Auth::user();
         $invoices = $this->getInvoices();
         $viewInvoice = $this->viewInvoiceId ? Receipt::find($this->viewInvoiceId) : null;
         
         // Calculate this month's paid total
         $now = now();
-        $thisMonthPaidTotal = Receipt::whereBetween('paid_date', [
-            $now->startOfMonth(),
-            $now->endOfMonth()
-        ])->where('is_paid', true)->sum('amount');
+        $isAdmin = $this->isAdmin();
+        
+        // Use date comparison instead of datetime to avoid timezone issues
+        $paidQuery = Receipt::whereYear('paid_date', $now->year)
+            ->whereMonth('paid_date', $now->month)
+            ->where('is_paid', true);
+        
+        // Non-admin users only see their own invoices
+        if (!$isAdmin) {
+            $paidQuery->where('user_id', $user->id);
+        }
+        
+        $thisMonthPaidTotal = $paidQuery->sum('amount');
 
         return view('livewire.invoices', [
             'invoices' => $invoices,
             'viewInvoice' => $viewInvoice,
-            'isAdmin' => $this->isAdmin(),
+            'isAdmin' => $isAdmin,
             'thisMonthPaidTotal' => $thisMonthPaidTotal,
         ]);
     }

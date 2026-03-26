@@ -6,39 +6,13 @@
                 <flux:heading size="xl">{{ __('Users Management') }}</flux:heading>
                 <flux:subheading>{{ __('Manage all users in the system') }}</flux:subheading>
             </div>
-            <flux:button variant="primary" :href="route('admin.users.create')" wire:navigate icon="plus">
+            <x-flux.button variant="primary" :href="route('admin.users.create')" wire:navigate icon="plus">
                 {{ __('Create User') }}
-            </flux:button>
+            </x-flux.button>
         </div>
 
         {{-- Flash Message --}}
-        @if (session('message'))
-            <div
-                x-data="{ show: true }"
-                x-init="setTimeout(() => show = false, 5000)"
-                x-show="show"
-                x-transition:leave="transition ease-in duration-300"
-                x-transition:leave-start="opacity-100"
-                x-transition:leave-end="opacity-0"
-                class="mb-6 rounded-xl border border-green-200 bg-green-50 p-4 text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400"
-            >
-                {{ session('message') }}
-            </div>
-        @endif
-
-        @if (session('error'))
-            <div
-                x-data="{ show: true }"
-                x-init="setTimeout(() => show = false, 5000)"
-                x-show="show"
-                x-transition:leave="transition ease-in duration-300"
-                x-transition:leave-start="opacity-100"
-                x-transition:leave-end="opacity-0"
-                class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400"
-            >
-                {{ session('error') }}
-            </div>
-        @endif
+        <x-ui.flash-alert duration="5000" />
 
         {{-- Search --}}
         <div class="mb-6">
@@ -96,19 +70,19 @@
                             <td class="px-6 py-4">
                                 <div class="flex items-center justify-end gap-1">
                                     <flux:tooltip content="{{ __('Edit') }}" position="top">
-                                        <flux:button variant="ghost" size="sm" wire:click="prepareAction('edit', {{ $user->id }})" icon="pencil" />
+                                        <x-flux.button variant="ghost" size="sm" wire:click="prepareAction('edit', {{ $user->id }})" icon="pencil" />
                                     </flux:tooltip>
                                     @if ($user->is_active)
                                         <flux:tooltip wire:key="toggle-{{ $user->id }}-active" content="{{ __('Deactivate') }}" position="top">
-                                            <flux:button variant="ghost" size="sm" wire:click="prepareAction('toggle', {{ $user->id }})" icon="pause-circle" class="!text-yellow-600 hover:!text-yellow-700 dark:!text-yellow-400" />
+                                            <x-flux.button variant="ghost" size="sm" wire:click="prepareAction('toggle', {{ $user->id }})" icon="pause-circle" class="!text-yellow-600 hover:!text-yellow-700 dark:!text-yellow-400" />
                                         </flux:tooltip>
                                     @else
                                         <flux:tooltip wire:key="toggle-{{ $user->id }}-inactive" content="{{ __('Reactivate') }}" position="top">
-                                            <flux:button variant="ghost" size="sm" wire:click="prepareAction('toggle', {{ $user->id }})" icon="play-circle" class="!text-green-600 hover:!text-green-700 dark:!text-green-400" />
+                                            <x-flux.button variant="ghost" size="sm" wire:click="prepareAction('toggle', {{ $user->id }})" icon="play-circle" class="!text-green-600 hover:!text-green-700 dark:!text-green-400" />
                                         </flux:tooltip>
                                     @endif
                                     <flux:tooltip content="{{ __('Delete') }}" position="top">
-                                        <flux:button variant="ghost" size="sm" wire:click="prepareAction('delete', {{ $user->id }})" icon="trash" class="!text-red-600 hover:!text-red-700 dark:!text-red-400" />
+                                        <x-flux.button variant="ghost" size="sm" wire:click="prepareAction('delete', {{ $user->id }})" icon="trash" class="!text-red-600 hover:!text-red-700 dark:!text-red-400" />
                                     </flux:tooltip>
                                 </div>
                             </td>
@@ -152,8 +126,8 @@
             @endif
 
             <div class="flex gap-2 justify-end">
-                <flux:button variant="ghost" wire:click="cancelAction">{{ __('Cancel') }}</flux:button>
-                <flux:button variant="primary" wire:click="executeAction">{{ __('Confirm') }}</flux:button>
+                <x-flux.button variant="ghost" wire:click="cancelAction">{{ __('Cancel') }}</x-flux.button>
+                <x-flux.button variant="primary" wire:click="executeAction">{{ __('Confirm') }}</x-flux.button>
             </div>
         </div>
     </flux:modal>
