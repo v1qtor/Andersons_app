@@ -5,10 +5,12 @@ namespace App\Livewire\Admin;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Role;
 
+#[Layout('components.layouts.app')]
 class UserIndex extends Component
 {
     use WithPagination;
