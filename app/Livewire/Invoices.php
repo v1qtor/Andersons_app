@@ -97,7 +97,8 @@ class Invoices extends Component
             abort(403);
         }
 
-        if ($invoice->is_paid) {
+        // Only prevent deletion of paid invoices for non-admin users
+        if (!$isAdmin && $invoice->is_paid) {
             session()->flash('error', 'Cannot delete a paid invoice.');
             $this->deleteInvoiceId = null;
             return;
@@ -149,11 +150,19 @@ class Invoices extends Component
     {
         $invoices = $this->getInvoices();
         $viewInvoice = $this->viewInvoiceId ? Receipt::find($this->viewInvoiceId) : null;
+        
+        // Calculate this month's paid total
+        $now = now();
+        $thisMonthPaidTotal = Receipt::whereBetween('paid_date', [
+            $now->startOfMonth(),
+            $now->endOfMonth()
+        ])->where('is_paid', true)->sum('amount');
 
         return view('livewire.invoices', [
             'invoices' => $invoices,
             'viewInvoice' => $viewInvoice,
             'isAdmin' => $this->isAdmin(),
+            'thisMonthPaidTotal' => $thisMonthPaidTotal,
         ]);
     }
 }

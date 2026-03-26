@@ -242,13 +242,24 @@
 
                 <!-- IBAN (full width) -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">IBAN</label>
-                    <input
-                        wire:model="iban"
-                        type="text"
-                        placeholder="GB29 NWBK 6016 1331 9268 19"
-                        class="w-full px-4 py-3 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                    >
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300">IBAN</label>
+                        <button type="button" wire:click="toggleShowIban" class="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300">
+                            {{ $showIban ? 'Hide' : 'Show' }}
+                        </button>
+                    </div>
+                    @if($showIban)
+                        <input
+                            wire:model="iban"
+                            type="text"
+                            placeholder="GB29 NWBK 6016 1331 9268 19"
+                            class="w-full px-4 py-3 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                        >
+                    @else
+                        <div class="w-full px-4 py-3 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 rounded-lg bg-gray-50 dark:bg-neutral-700 flex items-center">
+                            <p class="text-gray-600 dark:text-gray-400 font-mono">{{ $iban ? '•••• •••• •••• ' . substr($iban, -4) : 'No IBAN set' }}</p>
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Save Button -->
