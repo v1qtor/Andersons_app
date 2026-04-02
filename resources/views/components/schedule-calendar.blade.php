@@ -718,5 +718,203 @@
     @if (!empty($showDeleteModal))
         <x-task-delete-modal />
     @endif
-</div>
 
+    {{-- ========== PRINT MODAL ========== --}}
+    @if ($showPrintModal)
+        <div
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+            wire:click.self="closePrintModal"
+            x-data="{
+                init() { document.body.style.overflow = 'hidden' },
+                destroy() { document.body.style.overflow = '' }
+            }"
+            @keydown.escape.window="$wire.closePrintModal()"
+        >
+            <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                {{-- Modal header --}}
+                <div class="sticky top-0 bg-white dark:bg-zinc-800 border-b border-neutral-200 dark:border-neutral-700 p-6 flex items-center justify-between z-10">
+                    <h3 class="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+                        {{ __('Print Schedule') }}
+                    </h3>
+                    <flux:button variant="ghost" size="sm" wire:click="closePrintModal" icon="x-mark" />
+                </div>
+
+                <div class="p-6">
+                    {{-- Print Options --}}
+                    <div class="mb-6 space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-2">
+                                {{ __('Scope') }}
+                            </label>
+                            <div class="inline-flex rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden">
+                                <button
+                                    wire:click="setPrintScope('allTasks')"
+                                    class="px-4 py-2 text-sm font-medium transition-colors
+                                        {{ $printScope === 'allTasks'
+                                            ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                                            : 'bg-white text-neutral-700 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-300 dark:hover:bg-zinc-700' }}"
+                                >
+                                    {{ __('All Tasks') }}
+                                </button>
+                                <button
+                                    wire:click="setPrintScope('myTasks')"
+                                    class="px-4 py-2 text-sm font-medium transition-colors border-l border-neutral-200 dark:border-neutral-700
+                                        {{ $printScope === 'myTasks'
+                                            ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                                            : 'bg-white text-neutral-700 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-300 dark:hover:bg-zinc-700' }}"
+                                >
+                                    {{ __('My Tasks') }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-2">
+                                {{ __('Period') }}
+                            </label>
+                            <div class="inline-flex rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden">
+                                <button
+                                    wire:click="setPrintPeriod('daily')"
+                                    class="px-4 py-2 text-sm font-medium transition-colors
+                                        {{ $printPeriod === 'daily'
+                                            ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                                            : 'bg-white text-neutral-700 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-300 dark:hover:bg-zinc-700' }}"
+                                >
+                                    {{ __('Daily') }}
+                                </button>
+                                <button
+                                    wire:click="setPrintPeriod('weekly')"
+                                    class="px-4 py-2 text-sm font-medium transition-colors border-l border-neutral-200 dark:border-neutral-700
+                                        {{ $printPeriod === 'weekly'
+                                            ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                                            : 'bg-white text-neutral-700 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-300 dark:hover:bg-zinc-700' }}"
+                                >
+                                    {{ __('Weekly') }}
+                                </button>
+                                <button
+                                    wire:click="setPrintPeriod('monthly')"
+                                    class="px-4 py-2 text-sm font-medium transition-colors border-l border-neutral-200 dark:border-neutral-700
+                                        {{ $printPeriod === 'monthly'
+                                            ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                                            : 'bg-white text-neutral-700 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-300 dark:hover:bg-zinc-700' }}"
+                                >
+                                    {{ __('Monthly') }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Print Preview --}}
+                    @if ($printData)
+                        <div class="border border-neutral-200 dark:border-neutral-700 rounded-lg p-6 bg-neutral-50 dark:bg-zinc-900" id="printArea">
+                            <div class="mb-6">
+                                <h2 class="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">
+                                    {{ __('Schedule') }}
+                                </h2>
+                                <p class="text-sm text-neutral-600 dark:text-neutral-400">
+                                    {{ $printData['rangeStart']->format('j M Y') }} - {{ $printData['rangeEnd']->format('j M Y') }}
+                                    · {{ $printData['scope'] === 'myTasks' ? __('My Tasks') : __('All Tasks') }}
+                                </p>
+                            </div>
+
+                            @if ($printData['tasks']->isEmpty())
+                                <div class="text-center py-12 text-neutral-500 dark:text-neutral-400">
+                                    {{ __('No tasks found for the selected period.') }}
+                                </div>
+                            @else
+                                <div class="overflow-x-auto">
+                                    <table class="w-full border-collapse text-xs">
+                                        <thead>
+                                            <tr class="border-b-2 border-neutral-300 dark:border-neutral-600">
+                                                <th class="text-left py-2 px-1.5 text-[10px] font-bold text-neutral-900 dark:text-neutral-100">{{ __('Date') }}</th>
+                                                <th class="text-left py-2 px-1.5 text-[10px] font-bold text-neutral-900 dark:text-neutral-100">{{ __('Time') }}</th>
+                                                <th class="text-left py-2 px-1.5 text-[10px] font-bold text-neutral-900 dark:text-neutral-100">{{ __('Task') }}</th>
+                                                <th class="text-left py-2 px-1.5 text-[10px] font-bold text-neutral-900 dark:text-neutral-100">{{ __('Category') }}</th>
+                                                <th class="text-left py-2 px-1.5 text-[10px] font-bold text-neutral-900 dark:text-neutral-100">{{ __('Priority') }}</th>
+                                                <th class="text-left py-2 px-1.5 text-[10px] font-bold text-neutral-900 dark:text-neutral-100">{{ __('Owner') }}</th>
+                                                <th class="text-left py-2 px-1.5 text-[10px] font-bold text-neutral-900 dark:text-neutral-100">{{ __('Assigned To') }}</th>
+                                                <th class="text-left py-2 px-1.5 text-[10px] font-bold text-neutral-900 dark:text-neutral-100">{{ __('Location') }}</th>
+                                                <th class="text-left py-2 px-1.5 text-[10px] font-bold text-neutral-900 dark:text-neutral-100">{{ __('Status') }}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($printData['tasks'] as $task)
+                                                @php
+                                                    $taskOwner = $task->users->firstWhere('pivot.is_owner', true);
+                                                @endphp
+                                                <tr class="border-b border-neutral-200 dark:border-neutral-700">
+                                                    <td class="py-1.5 px-1.5 text-[10px] text-neutral-900 dark:text-neutral-100 whitespace-nowrap">
+                                                        {{ $task->start_date->format('j M Y') }}
+                                                    </td>
+                                                    <td class="py-1.5 px-1.5 text-[10px] text-neutral-900 dark:text-neutral-100 whitespace-nowrap">
+                                                        {{ $task->start_date->format('H:i') }}@if($task->end_date)-{{ $task->end_date->format('H:i') }}@endif
+                                                    </td>
+                                                    <td class="py-1.5 px-1.5 text-[10px] text-neutral-900 dark:text-neutral-100">
+                                                        <div class="font-semibold">{{ $task->title }}</div>
+                                                        @if ($task->description)
+                                                            <div class="text-[9px] text-neutral-600 dark:text-neutral-400 mt-0.5">{{ Str::limit($task->description, 50) }}</div>
+                                                        @endif
+                                                    </td>
+                                                    <td class="py-1.5 px-1.5 text-[10px] text-neutral-700 dark:text-neutral-300 whitespace-nowrap">
+                                                        {{ $task->taskCategory?->name ?? '-' }}
+                                                    </td>
+                                                    <td class="py-1.5 px-1.5 text-[10px] text-neutral-700 dark:text-neutral-300 whitespace-nowrap">
+                                                        {{ $task->taskPriority?->name ?? '-' }}
+                                                    </td>
+                                                    <td class="py-1.5 px-1.5 text-[10px] text-neutral-700 dark:text-neutral-300 whitespace-nowrap">
+                                                        {{ $taskOwner?->name ?? '-' }}
+                                                    </td>
+                                                    <td class="py-1.5 px-1.5 text-[10px] text-neutral-700 dark:text-neutral-300">
+                                                        @foreach ($task->users as $index => $user)
+                                                            {{ $user->name }}@if(!$loop->last),@endif<br>
+                                                        @endforeach
+                                                    </td>
+                                                    <td class="py-1.5 px-1.5 text-[10px] text-neutral-700 dark:text-neutral-300">
+                                                        @if($task->locations->isNotEmpty())
+                                                            @foreach ($task->locations as $location)
+                                                                {{ $location->name }}@if(!$loop->last),@endif<br>
+                                                            @endforeach
+                                                        @else
+                                                            -
+                                                        @endif
+                                                    </td>
+                                                    <td class="py-1.5 px-1.5 text-[10px] whitespace-nowrap">
+                                                        @if ($task->is_complete)
+                                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300">
+                                                                ✓ {{ __('Done') }}
+                                                            </span>
+                                                        @else
+                                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-neutral-100 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-300">
+                                                                {{ __('Pending') }}
+                                                            </span>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="mt-4 text-xs text-neutral-600 dark:text-neutral-400">
+                                    {{ __('Total Tasks:') }} {{ $printData['tasks']->count() }}
+                                    · {{ __('Completed:') }} {{ $printData['tasks']->where('is_complete', true)->count() }}
+                                    · {{ __('Pending:') }} {{ $printData['tasks']->where('is_complete', false)->count() }}
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+
+                    {{-- Action Buttons --}}
+                    <div class="flex justify-end gap-3 mt-6">
+                        <flux:button variant="ghost" wire:click="closePrintModal">
+                            {{ __('Cancel') }}
+                        </flux:button>
+                        <flux:button variant="primary" onclick="window.print()" icon="printer">
+                            {{ __('Print') }}
+                        </flux:button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+</div>
