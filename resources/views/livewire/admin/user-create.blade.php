@@ -3,7 +3,7 @@
         {{-- Header --}}
         <div class="mb-8">
             <div class="flex items-center gap-3 mb-2">
-                <flux:button variant="ghost" size="sm" :href="route('admin.users.index')" wire:navigate icon="arrow-left">
+                <flux:button variant="ghost" size="sm" :href="route('admin.panel')" wire:navigate icon="arrow-left">
                     {{ __('Back') }}
                 </flux:button>
             </div>
@@ -17,7 +17,7 @@
                 <x-admin.user-form :isEdit="false" :roles="$roles" />
 
                 <div class="flex items-center justify-end gap-3 mt-8 pt-6 border-t border-neutral-200 dark:border-neutral-700">
-                    <flux:button variant="ghost" :href="route('admin.users.index')" wire:navigate>
+                    <flux:button variant="ghost" :href="route('admin.panel')" wire:navigate>
                         {{ __('Cancel') }}
                     </flux:button>
                     <flux:button variant="primary" type="submit">
