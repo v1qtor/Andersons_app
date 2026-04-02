@@ -13,6 +13,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 #[Layout('components.layouts.app')]
@@ -49,6 +50,11 @@ class ScheduleCalendar extends Component
 
     public bool $showDeleteModal = false;
     public ?int $deletingTaskId = null;
+
+    // ─── Print Modal ────────────────────────────────────────────
+    public bool $showPrintModal = false;
+    public string $printScope = 'allTasks'; // allTasks, myTasks
+    public string $printPeriod = 'weekly'; // daily, weekly, monthly
 
     public function mount(): void
     {
@@ -417,6 +423,81 @@ class ScheduleCalendar extends Component
         }
 
         $task->update(['is_complete' => true]);
+    }
+
+    // ─── Print Methods ────────────────────────────────────────
+
+    #[On('openPrintModal')]
+    public function openPrintModal(): void
+    {
+        $this->showPrintModal = true;
+    }
+
+    public function closePrintModal(): void
+    {
+        $this->showPrintModal = false;
+    }
+
+    public function setPrintScope(string $scope): void
+    {
+        $this->printScope = $scope;
+    }
+
+    public function setPrintPeriod(string $period): void
+    {
+        $this->printPeriod = $period;
+    }
+
+    public function getPrintData(): array
+    {
+        // Determine date range based on period
+        $start = Carbon::create($this->year, $this->month, $this->day);
+        
+        [$rangeStart, $rangeEnd] = match ($this->printPeriod) {
+            'daily' => [
+                $start->copy()->startOfDay(),
+                $start->copy()->endOfDay(),
+            ],
+            'weekly' => [
+                $start->copy()->startOfWeek(Carbon::MONDAY),
+                $start->copy()->endOfWeek(Carbon::SUNDAY),
+            ],
+            'monthly' => [
+                Carbon::create($this->year, $this->month, 1)->startOfDay(),
+                Carbon::create($this->year, $this->month, 1)->endOfMonth()->endOfDay(),
+            ],
+        };
+
+        // Build query
+        $query = Task::with(['users', 'locations', 'taskCategory', 'taskPriority'])
+            ->where(function ($q) use ($rangeStart, $rangeEnd) {
+                $q->whereBetween('date', [$rangeStart, $rangeEnd])
+                    ->orWhere(function ($q2) use ($rangeStart, $rangeEnd) {
+                        $q2->where('start_date', '<=', $rangeEnd)
+                            ->where('end_date', '>=', $rangeStart);
+                    })
+                    ->orWhere(function ($q2) use ($rangeStart, $rangeEnd) {
+                        $q2->whereNull('end_date')
+                            ->whereBetween('start_date', [$rangeStart, $rangeEnd]);
+                    });
+            });
+
+        // Apply scope filter
+        if ($this->printScope === 'myTasks') {
+            $query->whereHas('users', function ($q) {
+                $q->where('users.id', Auth::id());
+            });
+        }
+
+        $tasks = $query->orderBy('start_date')->get();
+
+        return [
+            'tasks' => $tasks,
+            'rangeStart' => $rangeStart,
+            'rangeEnd' => $rangeEnd,
+            'scope' => $this->printScope,
+            'period' => $this->printPeriod,
+        ];
     }
 
     private function resetForm(): void
@@ -789,6 +870,9 @@ class ScheduleCalendar extends Component
                 ->toArray();
         }
 
+        // Print data
+        $printData = $this->showPrintModal ? $this->getPrintData() : null;
+
         return view('components.schedule-calendar', [
             'tasks' => $tasks,
             'meals' => $meals,
@@ -807,6 +891,7 @@ class ScheduleCalendar extends Component
             'isAdmin' => $this->isAdmin(),
             'pendingIncomingRequests' => $pendingIncomingRequests,
             'pendingOutgoingUserIds' => $pendingOutgoingUserIds,
+            'printData' => $printData,
         ]);
     }
 }

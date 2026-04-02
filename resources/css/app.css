@@ -92,3 +92,55 @@ select:focus[data-flux-control] {
     min-width: 1.25rem !important;
     min-height: 1.25rem !important;
 }
+
+/* Print Styles for Schedule */
+@media print {
+    @page {
+        size: landscape;
+        margin: 1cm;
+    }
+    
+    body * {
+        visibility: hidden;
+    }
+    
+    #printArea, #printArea * {
+        visibility: visible;
+    }
+    
+    #printArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: white !important;
+    }
+    
+    .dark\:bg-zinc-900 {
+        background: white !important;
+    }
+    
+    .dark\:text-neutral-100,
+    .dark\:text-neutral-300,
+    .dark\:text-neutral-400 {
+        color: black !important;
+    }
+    
+    .dark\:border-neutral-700,
+    .dark\:border-neutral-600 {
+        border-color: #d1d5db !important;
+    }
+    
+    table {
+        page-break-inside: auto;
+    }
+    
+    tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+    
+    thead {
+        display: table-header-group;
+    }
+}
