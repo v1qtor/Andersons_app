@@ -202,7 +202,18 @@
                                 @endif
                                 @if ($hasTasks)
                                     @foreach (array_slice($dayEvents['tasks'], 0, 2) as $task)
-                                        <div class="text-[10px] leading-tight px-1 py-0.5 rounded truncate {{ $task->is_complete ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' }}">
+                                        @php
+                                            $taskOwner = $task->users->firstWhere('pivot.is_owner', true);
+                                            $ownerColor = $taskOwner?->role?->color ?? '#6366f1';
+                                            // Convert hex to RGB for opacity
+                                            $r = hexdec(substr($ownerColor, 1, 2));
+                                            $g = hexdec(substr($ownerColor, 3, 2));
+                                            $b = hexdec(substr($ownerColor, 5, 2));
+                                        @endphp
+                                        <div class="text-[10px] leading-tight px-1 py-0.5 rounded truncate"
+                                             style="{{ $task->is_complete 
+                                                 ? 'background-color: rgb(34 197 94 / 0.2); color: rgb(22 101 52);' 
+                                                 : 'background-color: rgba(' . $r . ', ' . $g . ', ' . $b . ', 0.2); color: ' . $ownerColor . ';' }}">
                                             <span class="font-medium">{{ $task->start_date->format('H:i') }}</span> {{ $task->title }}
                                         </div>
                                     @endforeach
@@ -326,14 +337,22 @@
                                         $isTask = ($event['type'] ?? 'task') === 'task';
                                         $isMeal = ($event['type'] ?? '') === 'meal';
                                         $model = $event['model'];
+                                        
+                                        if ($isTask) {
+                                            $taskOwner = $model->users->firstWhere('pivot.is_owner', true);
+                                            $ownerColor = $taskOwner?->role?->color ?? '#6366f1';
+                                            $r = hexdec(substr($ownerColor, 1, 2));
+                                            $g = hexdec(substr($ownerColor, 3, 2));
+                                            $b = hexdec(substr($ownerColor, 5, 2));
+                                        }
                                     @endphp
                                     <div class="absolute z-10 px-px overflow-hidden"
                                          style="top: {{ $event['topPercent'] }}%; height: {{ $event['heightPercent'] }}%; left: {{ $event['leftPercent'] }}%; width: {{ $event['widthPercent'] }}%;">
                                         @if ($isTask)
-                                            <div class="h-full rounded-sm px-1 py-0.5 overflow-hidden border-l-2
-                                                {{ $model->is_complete
-                                                    ? 'bg-green-100 border-green-500 text-green-800 dark:bg-green-900/50 dark:border-green-400 dark:text-green-300'
-                                                    : 'bg-blue-100 border-blue-500 text-blue-800 dark:bg-blue-900/50 dark:border-blue-400 dark:text-blue-300' }}">
+                                            <div class="h-full rounded-sm px-1 py-0.5 overflow-hidden border-l-2"
+                                                 style="{{ $model->is_complete
+                                                     ? 'background-color: rgb(34 197 94 / 0.2); border-color: rgb(34 197 94); color: rgb(22 101 52);'
+                                                     : 'background-color: rgba(' . $r . ', ' . $g . ', ' . $b . ', 0.2); border-color: ' . $ownerColor . '; color: ' . $ownerColor . ';' }}">
                                                 <div class="text-[9px] font-semibold leading-tight truncate">
                                                     {{ $model->start_date->format('H:i') }} {{ $model->title }}
                                                 </div>
@@ -399,7 +418,17 @@
 
                 {{-- Tasks --}}
                 @foreach ($dayEvents['tasks'] ?? [] as $task)
-                    <div class="p-4 rounded-lg border-2 {{ $task->is_complete ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700' : 'border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700' }}">
+                    @php
+                        $taskOwner = $task->users->firstWhere('pivot.is_owner', true);
+                        $ownerColor = $taskOwner?->role?->color ?? '#6366f1';
+                        $r = hexdec(substr($ownerColor, 1, 2));
+                        $g = hexdec(substr($ownerColor, 3, 2));
+                        $b = hexdec(substr($ownerColor, 5, 2));
+                    @endphp
+                    <div class="p-4 rounded-lg border-2"
+                         style="{{ $task->is_complete 
+                             ? 'border-color: rgb(34 197 94); background-color: rgb(34 197 94 / 0.1);' 
+                             : 'border-color: ' . $ownerColor . '; background-color: rgba(' . $r . ', ' . $g . ', ' . $b . ', 0.1);' }}">
                         <div class="flex items-start justify-between gap-2">
                             <div class="flex-1">
                                 <div class="flex items-center gap-2 mb-1">
@@ -565,14 +594,24 @@
                             <h4 class="font-bold text-neutral-900 dark:text-neutral-100 mb-3">✓ {{ __('Tasks') }}</h4>
                             <div class="space-y-3">
                                 @foreach ($dayDetails['tasks'] as $task)
-                                    <div class="p-4 rounded-lg border-2 {{ $task->is_complete ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700' : 'border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700' }}">
+                                    @php
+                                        $taskOwner = $task->users->firstWhere('pivot.is_owner', true);
+                                        $ownerColor = $taskOwner?->role?->color ?? '#6366f1';
+                                        $r = hexdec(substr($ownerColor, 1, 2));
+                                        $g = hexdec(substr($ownerColor, 3, 2));
+                                        $b = hexdec(substr($ownerColor, 5, 2));
+                                    @endphp
+                                    <div class="p-4 rounded-lg border-2"
+                                         style="{{ $task->is_complete 
+                                             ? 'border-color: rgb(34 197 94); background-color: rgb(34 197 94 / 0.1);' 
+                                             : 'border-color: ' . $ownerColor . '; background-color: rgba(' . $r . ', ' . $g . ', ' . $b . ', 0.1);' }}">
                                         <div class="flex items-start justify-between gap-2">
                                             <div class="flex-1">
                                                 <div class="flex items-center gap-2 mb-1">
                                                     <span class="font-semibold text-lg text-neutral-900 dark:text-neutral-100">{{ $task->title }}</span>
                                                 </div>
                                                 <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-2">
-                                                    🕐 {{ $task->start_date->format('j M Y, H:i') }}@if($task->end_date) – {{ $task->end_date->format('j M Y, H:i') }}@endif
+                                                    � {{ $task->start_date->format('j M Y, H:i') }}@if($task->end_date) – {{ $task->end_date->format('j M Y, H:i') }}@endif
                                                 </div>
                                                 @if ($task->description)
                                                     <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $task->description }}</p>
