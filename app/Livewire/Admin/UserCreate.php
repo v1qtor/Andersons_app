@@ -41,7 +41,7 @@ class UserCreate extends Component
 
         session()->flash('message', __('User created successfully.'));
 
-        $this->redirect(route('admin.users.index'), navigate: true);
+        $this->redirect(route('admin.panel'), navigate: true);
     }
 
     public function render()
