@@ -155,25 +155,14 @@ class AdminPanel extends Component
             return;
         }
 
-        // Create new entity record
-        $modelClass::create([
-            'name' => $this->newEntityName,
-        ]);
-
-        // Display success flash message
-        $entityLabel = str_replace('_', ' ', $entityType);
-        // Remove trailing 's' or 'ies' and make singular
-        if (str_ends_with($entityLabel, 'ies')) {
-            $entityLabel = substr($entityLabel, 0, -3) . 'y';
-        } else {
-            $entityLabel = rtrim($entityLabel, 's');
-        }
-        $entityLabel = ucfirst($entityLabel); // Capitalize
-        session()->flash('message', __($entityLabel . ' created successfully.'));
-
-        // Reset creation state
-        $this->creatingNew = false;
-        $this->newEntityName = '';
+        // Show password confirmation modal before creating
+        $this->pendingAction = 'create_entity';
+        $this->confirmPassword = '';
+        $this->passwordError = '';
+        $this->showConfirmModal = true;
+        
+        // Store entity type in session
+        session()->put('pending_entity_type', $entityType);
     }
 
     public function cancelCreating(): void
@@ -210,25 +199,15 @@ class AdminPanel extends Component
             return;
         }
 
-        // Update entity record
-        $entity = $modelClass::findOrFail($id);
-        $entity->update([
-            'name' => $this->editingValue,
-        ]);
-
-        // Display success flash message
-        $entityLabel = str_replace('_', ' ', $entityType);
-        // Remove trailing 's' or 'ies' and make singular
-        if (str_ends_with($entityLabel, 'ies')) {
-            $entityLabel = substr($entityLabel, 0, -3) . 'y';
-        } else {
-            $entityLabel = rtrim($entityLabel, 's');
-        }
-        $entityLabel = ucfirst($entityLabel); // Capitalize
-        session()->flash('message', __($entityLabel . ' updated successfully.'));
-
-        // Reset editing state
-        $this->cancelEditing();
+        // Show password confirmation modal before updating
+        $this->pendingAction = 'edit_entity';
+        $this->pendingEntityId = $id;
+        $this->confirmPassword = '';
+        $this->passwordError = '';
+        $this->showConfirmModal = true;
+        
+        // Store entity type in session
+        session()->put('pending_entity_type', $entityType);
     }
 
     public function cancelEditing(): void
@@ -269,7 +248,11 @@ class AdminPanel extends Component
         }
 
         // Handle different action types
-        if ($this->pendingAction === 'delete_entity') {
+        if ($this->pendingAction === 'create_entity') {
+            $this->executeCreateEntity();
+        } elseif ($this->pendingAction === 'edit_entity') {
+            $this->executeEditEntity();
+        } elseif ($this->pendingAction === 'delete_entity') {
             $this->deleteEntity();
         } elseif ($this->pendingAction === 'delete') {
             $this->deleteUser($this->pendingUserId);
@@ -282,6 +265,76 @@ class AdminPanel extends Component
         }
 
         $this->cancelAction();
+    }
+
+    private function executeCreateEntity(): void
+    {
+        $entityType = session()->get('pending_entity_type');
+        
+        if (!$entityType) {
+            session()->flash('error', __('Invalid entity type.'));
+            return;
+        }
+        
+        $modelClass = $this->getEntityModel($entityType);
+        
+        // Create new entity record
+        $modelClass::create([
+            'name' => $this->newEntityName,
+        ]);
+
+        // Display success flash message
+        $entityLabel = str_replace('_', ' ', $entityType);
+        // Remove trailing 's' or 'ies' and make singular
+        if (str_ends_with($entityLabel, 'ies')) {
+            $entityLabel = substr($entityLabel, 0, -3) . 'y';
+        } else {
+            $entityLabel = rtrim($entityLabel, 's');
+        }
+        $entityLabel = ucfirst($entityLabel); // Capitalize
+        session()->flash('message', __($entityLabel . ' created successfully.'));
+
+        // Reset creation state
+        $this->creatingNew = false;
+        $this->newEntityName = '';
+        
+        // Clean up session
+        session()->forget('pending_entity_type');
+    }
+
+    private function executeEditEntity(): void
+    {
+        $entityType = session()->get('pending_entity_type');
+        
+        if (!$entityType) {
+            session()->flash('error', __('Invalid entity type.'));
+            return;
+        }
+        
+        $modelClass = $this->getEntityModel($entityType);
+        $entity = $modelClass::findOrFail($this->pendingEntityId);
+        
+        // Update entity record
+        $entity->update([
+            'name' => $this->editingValue,
+        ]);
+
+        // Display success flash message
+        $entityLabel = str_replace('_', ' ', $entityType);
+        // Remove trailing 's' or 'ies' and make singular
+        if (str_ends_with($entityLabel, 'ies')) {
+            $entityLabel = substr($entityLabel, 0, -3) . 'y';
+        } else {
+            $entityLabel = rtrim($entityLabel, 's');
+        }
+        $entityLabel = ucfirst($entityLabel); // Capitalize
+        session()->flash('message', __($entityLabel . ' updated successfully.'));
+
+        // Reset editing state
+        $this->cancelEditing();
+        
+        // Clean up session
+        session()->forget('pending_entity_type');
     }
 
     private function deleteEntity(): void
