@@ -6,6 +6,11 @@
                 <flux:heading size="xl">{{ __('Schedule') }}</flux:heading>
                 <flux:subheading>{{ __('Household calendar with tasks, meals and trips') }}</flux:subheading>
             </div>
+            <div>
+                <flux:button size="sm" variant="ghost" wire:click="$dispatch('openPrintModal')" icon="printer">
+                    {{ __('Print') }}
+                </flux:button>
+            </div>
         </div>
 
         {{-- Reusable Calendar Component --}}
