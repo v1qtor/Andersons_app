@@ -13,6 +13,30 @@
             </flux:button>
         </div>
         <div class="flex items-center gap-2">
+            {{-- Ownership sub-filter (only visible when My Tasks is active) --}}
+            @if ($showMyTasksOnly)
+                <div class="inline-flex rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden">
+                    <button
+                        wire:click="setMyTaskOwnershipFilter('owner')"
+                        class="px-2.5 py-1 text-xs font-medium transition-colors
+                            {{ $myTaskOwnershipFilter === 'owner'
+                                ? 'bg-indigo-500 text-white dark:bg-indigo-400'
+                                : 'bg-white text-neutral-600 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-400 dark:hover:bg-zinc-700' }}"
+                    >
+                        {{ __('Owner') }}
+                    </button>
+                    <button
+                        wire:click="setMyTaskOwnershipFilter('not-owned')"
+                        class="px-2.5 py-1 text-xs font-medium transition-colors border-l border-neutral-200 dark:border-neutral-700
+                            {{ $myTaskOwnershipFilter === 'not-owned'
+                                ? 'bg-indigo-500 text-white dark:bg-indigo-400'
+                                : 'bg-white text-neutral-600 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-400 dark:hover:bg-zinc-700' }}"
+                    >
+                        {{ __('Not Owned') }}
+                    </button>
+                </div>
+            @endif
+
             <div class="inline-flex rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden">
                 <button
                     wire:click="setMyTasksOnly(true)"
@@ -33,6 +57,7 @@
                     {{ __('All Tasks') }}
                 </button>
             </div>
+
             <flux:button size="sm" variant="primary" wire:click="openCreateModal" icon="plus">
                 {{ __('New Task') }}
             </flux:button>
@@ -104,7 +129,9 @@
                 @foreach ($users as $user)
                     @php
                         $isSelected = in_array($user->id, $selectedPeople);
-                        $roleColor = $user->role?->color ?? '#6366f1';
+                        $normalizedName = strtolower(trim($user->name));
+                        $isAndersonFamilyMember = in_array($normalizedName, ['emily anderson', 'james anderson', 'sophie anderson'], true);
+                        $roleColor = $isAndersonFamilyMember ? '#948d3b' : ($user->role?->color ?? '#6366f1');
                     @endphp
                     <button
                         wire:click="togglePerson({{ $user->id }})"
