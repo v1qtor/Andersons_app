@@ -65,7 +65,7 @@ class UserEdit extends Component
 
         session()->flash('message', __('User updated successfully.'));
 
-        $this->redirect(route('admin.users.index'), navigate: true);
+        $this->redirect(route('admin.panel'), navigate: true);
     }
 
     public function confirmDelete(): void
@@ -94,7 +94,7 @@ class UserEdit extends Component
         $this->user->delete();
 
         session()->flash('message', __('User deleted successfully.'));
-        $this->redirect(route('admin.users.index'), navigate: true);
+        $this->redirect(route('admin.panel'), navigate: true);
     }
 
     public function cancelDelete(): void
