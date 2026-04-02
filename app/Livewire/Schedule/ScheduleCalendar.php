@@ -18,7 +18,7 @@ use Livewire\Component;
 #[Layout('components.layouts.app')]
 class ScheduleCalendar extends Component
 {
-    public string $view = 'month'; // day, week, month
+    public string $view = 'week'; // day, week, month
 
     public int $year;
     public int $month;
@@ -27,6 +27,8 @@ class ScheduleCalendar extends Component
     public array $selectedPeople = [];
 
     public bool $showMyTasksOnly = false;
+
+    public string $myTaskOwnershipFilter = 'all'; // 'all', 'owner', 'not-owned'
 
     public ?string $selectedDay = null;
 
@@ -123,6 +125,13 @@ class ScheduleCalendar extends Component
     public function setMyTasksOnly(bool $value): void
     {
         $this->showMyTasksOnly = $value;
+        // Reset ownership filter when switching between My Tasks / All Tasks
+        $this->myTaskOwnershipFilter = 'all';
+    }
+
+    public function setMyTaskOwnershipFilter(string $filter): void
+    {
+        $this->myTaskOwnershipFilter = $filter;
     }
 
     public function openDay(string $date): void
@@ -500,6 +509,19 @@ class ScheduleCalendar extends Component
             $query->whereHas('users', function ($q) {
                 $q->where('users.id', Auth::id());
             });
+
+            // Apply ownership sub-filter when My Tasks is active
+            if ($this->myTaskOwnershipFilter === 'owner') {
+                $query->whereHas('users', function ($q) {
+                    $q->where('users.id', Auth::id())
+                      ->where('user_tasks.is_owner', true);
+                });
+            } elseif ($this->myTaskOwnershipFilter === 'not-owned') {
+                $query->whereHas('users', function ($q) {
+                    $q->where('users.id', Auth::id())
+                      ->where('user_tasks.is_owner', false);
+                });
+            }
         }
 
         if (! empty($this->selectedPeople)) {
