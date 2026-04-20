@@ -8,35 +8,6 @@
             </div>
         </div>
 
-        {{-- Flash Message --}}
-        @if (session('message'))
-            <div
-                x-data="{ show: true }"
-                x-init="setTimeout(() => show = false, 5000)"
-                x-show="show"
-                x-transition:leave="transition ease-in duration-300"
-                x-transition:leave-start="opacity-100"
-                x-transition:leave-end="opacity-0"
-                class="mb-6 rounded-xl border border-green-200 bg-green-50 p-4 text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400"
-            >
-                {{ session('message') }}
-            </div>
-        @endif
-
-        @if (session('error'))
-            <div
-                x-data="{ show: true }"
-                x-init="setTimeout(() => show = false, 5000)"
-                x-show="show"
-                x-transition:leave="transition ease-in duration-300"
-                x-transition:leave-start="opacity-100"
-                x-transition:leave-end="opacity-0"
-                class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400"
-            >
-                {{ session('error') }}
-            </div>
-        @endif
-
         {{-- Tab Navigation --}}
         <div class="mb-6 border-b border-neutral-200 dark:border-neutral-700">
             <nav class="flex gap-2 overflow-x-auto">
@@ -637,6 +608,55 @@
                 </table>
             </div>
         @endif
+    </div>
+
+    <!-- Toast Notifications -->
+    <div
+        x-data="{
+            toasts: [],
+            add(message, type) {
+                const id = Date.now();
+                this.toasts.push({ id, message, type, show: true });
+                setTimeout(() => {
+                    const t = this.toasts.find(t => t.id === id);
+                    if (t) t.show = false;
+                    setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 600);
+                }, 5000);
+            }
+        }"
+        @toast.window="add($event.detail.message, $event.detail.type)"
+        class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"
+    >
+        <template x-for="toast in toasts" :key="toast.id">
+            <div
+                x-show="toast.show"
+                x-transition:leave="transition ease-in duration-500"
+                x-transition:leave-start="opacity-100 translate-x-0"
+                x-transition:leave-end="opacity-0 translate-x-24"
+                :class="toast.type === 'error'
+                    ? 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
+                    : 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'"
+                class="rounded-lg shadow-lg p-4 max-w-md"
+            >
+                <div class="flex items-center gap-3">
+                    <template x-if="toast.type !== 'error'">
+                        <svg class="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                    </template>
+                    <template x-if="toast.type === 'error'">
+                        <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-9a1 1 0 012 0v4a1 1 0 01-2 0V9zm1-4a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" />
+                        </svg>
+                    </template>
+                    <p
+                        :class="toast.type === 'error' ? 'text-red-800 dark:text-red-300' : 'text-green-800 dark:text-green-300'"
+                        class="font-medium"
+                        x-text="toast.message"
+                    ></p>
+                </div>
+            </div>
+        </template>
     </div>
 
     {{-- Password Confirmation Modal --}}
