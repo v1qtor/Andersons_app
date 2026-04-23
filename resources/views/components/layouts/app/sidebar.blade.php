@@ -20,7 +20,7 @@
                         <flux:navlist.item icon="document-text" :href="route('invoices')" :current="request()->routeIs('invoices*')" wire:navigate>{{ __('Invoices') }}</flux:navlist.item>
                     @endif
                     @if(auth()->user()->role && auth()->user()->role->name === 'Admin')
-                        <flux:navlist.item icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>{{ __('Users') }}</flux:navlist.item>
+                        <flux:navlist.item icon="cog-6-tooth" :href="route('admin.panel')" :current="request()->routeIs('admin.panel') || request()->routeIs('admin.users.*')" wire:navigate>{{ __('Admin Panel') }}</flux:navlist.item>
                         <flux:navlist.item icon="fire" :href="route('admin.meals.index')" :current="request()->routeIs('admin.meals.*')" wire:navigate>{{ __('Meals') }}</flux:navlist.item>
                     @endif
                     @if(auth()->user()->role && auth()->user()->role->name === 'Chef')
