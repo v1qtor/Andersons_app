@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Receipt;
+use App\Models\UserNotification;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -147,6 +148,22 @@ class Invoices extends Component
         }
 
         $invoice->update(['is_paid' => true, 'paid_date' => now()]);
+
+        // Notify the invoice creator (staff member who submitted it)
+        if ($invoice->user) {
+            $admin = Auth::user();
+            $notification = UserNotification::create([
+                'user_id' => $invoice->user->id,
+                'from_user_id' => $admin->id,
+                'title' => 'Invoice Approved',
+                'message' => $admin->name . ' approved your invoice for £' . number_format($invoice->amount, 2),
+                'type' => 'invoice_paid',
+                'action_url' => '/invoices',
+            ]);
+
+            broadcast(new \App\Events\NotificationCreated($notification));
+        }
+
         session()->flash('message', 'Invoice marked as paid successfully.');
         $this->updateStatusInvoiceId = null;
     }

@@ -10,6 +10,7 @@ use App\Models\TaskCategory;
 use App\Models\TaskPriority;
 use App\Models\Trip;
 use App\Models\User;
+use App\Models\UserNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -329,7 +330,31 @@ class ScheduleCalendar extends Component
                     }
                 }
 
+                // Get previously assigned users to detect new assignments
+                $previousUserIds = $task->users()->pluck('users.id')->toArray();
+                $newUserIds = array_keys($syncData);
+                $addedUserIds = array_diff($newUserIds, $previousUserIds);
+
                 $task->users()->sync($syncData);
+
+                // Notify newly assigned users
+                if (! empty($addedUserIds)) {
+                    foreach ($addedUserIds as $userId) {
+                        // Don't notify the owner if they're not an actual staff member or admin
+                        if ($userId !== $ownerId || $userId !== Auth::id()) {
+                            $notification = UserNotification::create([
+                                'user_id' => $userId,
+                                'from_user_id' => Auth::id(),
+                                'title' => 'Task Assigned',
+                                'message' => Auth::user()->name . ' assigned you a task: ' . $task->title,
+                                'type' => 'task_assigned',
+                                'action_url' => '/schedule',
+                            ]);
+
+                            broadcast(new \App\Events\NotificationCreated($notification));
+                        }
+                    }
+                }
             }
         } else {
             $task = Task::create($data);
@@ -356,6 +381,24 @@ class ScheduleCalendar extends Component
 
             // Sync locations
             $task->locations()->sync($this->selectedLocationIds);
+
+            // Notify newly assigned users (admin task assignment only)
+            if ($this->isAdmin() && ! empty($this->assignedUserIds)) {
+                foreach ($this->assignedUserIds as $userId) {
+                    if ($userId !== $ownerId) { // Don't notify the owner
+                        $notification = UserNotification::create([
+                            'user_id' => $userId,
+                            'from_user_id' => Auth::id(),
+                            'title' => 'Task Assigned',
+                            'message' => Auth::user()->name . ' assigned you a task: ' . $task->title,
+                            'type' => 'task_assigned',
+                            'action_url' => '/schedule',
+                        ]);
+
+                        broadcast(new \App\Events\NotificationCreated($notification));
+                    }
+                }
+            }
         }
 
         // Non-admin: send collaboration requests for selected users
@@ -378,6 +421,19 @@ class ScheduleCalendar extends Component
                         'target_user_id' => $targetUserId,
                         'status' => 'pending',
                     ]);
+
+                    // Create and broadcast notification to the target user
+                    $requesterName = Auth::user()->name;
+                    $notification = UserNotification::create([
+                        'user_id' => $targetUserId,
+                        'from_user_id' => Auth::id(),
+                        'title' => 'Collaboration Request',
+                        'message' => $requesterName . ' is requesting your collaboration on: ' . $task->title,
+                        'type' => 'collaboration_request',
+                        'action_url' => '/schedule',
+                    ]);
+
+                    broadcast(new \App\Events\NotificationCreated($notification));
                 }
             }
         }
