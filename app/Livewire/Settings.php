@@ -29,7 +29,8 @@ class Settings extends Component
 
     public array $notifications = [
         'tripDelayAlerts' => ['email' => true, 'popup' => true],
-        'taskReminders' => ['email' => false, 'popup' => true],
+        'taskAssignments' => ['email' => false, 'popup' => true],
+        'collaborationRequests' => ['email' => true, 'popup' => true],
         'receiptApprovals' => ['email' => true, 'popup' => false],
         'dinnerSignups' => ['email' => true, 'popup' => true],
     ];
@@ -56,7 +57,8 @@ class Settings extends Component
             // Parse stored notification settings
             $category = match ($typeId) {
                 1 => 'tripDelayAlerts',
-                2 => 'taskReminders',
+                2 => 'taskAssignments',
+                5 => 'collaborationRequests',
                 3 => 'receiptApprovals',
                 4 => 'dinnerSignups',
                 default => null
@@ -97,7 +99,7 @@ class Settings extends Component
             'iban' => $this->iban,
         ]);
 
-        $this->dispatch('toast', message: 'Personal information updated successfully!', type: 'success');
+        session()->flash('status', 'Personal information updated successfully!');
     }
 
     /**
@@ -121,7 +123,8 @@ class Settings extends Component
         // Get notification type ID based on category
         $notificationTypeId = match ($category) {
             'tripDelayAlerts' => 1,
-            'taskReminders' => 2,
+            'taskAssignments' => 2,
+            'collaborationRequests' => 5,
             'receiptApprovals' => 3,
             'dinnerSignups' => 4,
             default => null

@@ -481,30 +481,24 @@
 
     {{-- Day Details Modal --}}
     @if ($selectedDay && $dayDetails)
-        <div
-            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-            wire:click.self="closeDay"
-            x-data="{
-                init() { document.body.style.overflow = 'hidden' },
-                destroy() { document.body.style.overflow = '' }
-            }"
-            @keydown.escape.window="$wire.closeDay()"
+        <x-ui.detail-modal
+            :show="true"
+            :title="\Carbon\Carbon::parse($selectedDay)->format('l, j F Y')"
+            maxWidth="max-w-3xl"
+            closeAction="closeDay"
+            escapeAction="$wire.closeDay()"
+            :lockBodyScroll="true"
+            panelClass="rounded-2xl shadow-2xl max-h-[80vh]"
+            titleClass="text-xl font-bold text-neutral-900 dark:text-neutral-100"
+            headerClass="z-10"
         >
-            <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[80vh] overflow-y-auto">
-                {{-- Modal header --}}
-                <div class="sticky top-0 bg-white dark:bg-zinc-800 border-b border-neutral-200 dark:border-neutral-700 p-6 flex items-center justify-between z-10">
-                    <h3 class="text-xl font-bold text-neutral-900 dark:text-neutral-100">
-                        {{ \Carbon\Carbon::parse($selectedDay)->format('l, j F Y') }}
-                    </h3>
-                    <div class="flex items-center gap-2">
-                        <x-flux.button size="sm" variant="primary" wire:click="openCreateModal('{{ $selectedDay }}')" icon="plus">
-                            {{ __('Add Task') }}
-                        </x-flux.button>
-                        <x-flux.button variant="ghost" size="sm" wire:click="closeDay" icon="x-mark" />
-                    </div>
-                </div>
+            <x-slot:headerActions>
+                <x-flux.button size="sm" variant="primary" wire:click="openCreateModal('{{ $selectedDay }}')" icon="plus">
+                    {{ __('Add Task') }}
+                </x-flux.button>
+            </x-slot:headerActions>
 
-                <div class="p-6 space-y-6">
+            <div class="space-y-6">
                     {{-- Trips --}}
                     @if (! empty($dayDetails['trips']))
                         <div>
@@ -626,9 +620,8 @@
                             {{ __('No activities scheduled for this day.') }}
                         </div>
                     @endif
-                </div>
             </div>
-        </div>
+        </x-ui.detail-modal>
     @endif
 
     {{-- ========== CREATE / EDIT TASK MODAL ========== --}}
