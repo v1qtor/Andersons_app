@@ -15,7 +15,7 @@ class RoleFactory extends Factory
     private static int $index = 0;
 
     private static array $roles = [
-        ['name' => 'Family Member',  'color' => '#059669'],
+        ['name' => 'Family Member',  'color' => '#ec4899'],
         ['name' => 'The Andersons',  'color' => '#d97706'],
         ['name' => 'Staff',          'color' => '#0284c7'],
         ['name' => 'Chef',           'color' => '#7c3aed'],
