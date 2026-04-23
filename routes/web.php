@@ -16,6 +16,11 @@ use Laravel\Fortify\Features;
 
 Route::redirect('/', '/login');
 
+// Broadcasting authentication route - must be before other routes and inside auth middleware
+Route::middleware(['auth'])->group(function () {
+    Broadcast::routes();
+});
+
 Route::get('dashboard', Dashboard::class)
     ->middleware(['auth'])
     ->name('dashboard');

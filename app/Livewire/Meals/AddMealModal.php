@@ -5,6 +5,8 @@ namespace App\Livewire\Meals;
 use App\Models\Meal;
 use App\Models\PlannedMeal;
 use App\Models\User;
+use App\Models\UserNotification;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class AddMealModal extends Component
@@ -63,6 +65,42 @@ class AddMealModal extends Component
 
         if (!empty($this->invitees)) {
             $plannedMeal->subscribers()->attach($this->invitees);
+        }
+
+        // Notify chef if not added by chef
+        $currentUser = Auth::user();
+        $isChef = $currentUser && $currentUser->role && $currentUser->role->name === 'Chef';
+        
+        if (!$isChef) {
+            $chef = User::whereHas('role', fn ($q) => $q->where('name', 'Chef'))->first();
+            if ($chef) {
+                $notification = UserNotification::create([
+                    'user_id' => $chef->id,
+                    'from_user_id' => $currentUser->id,
+                    'title' => 'New Meal Scheduled',
+                    'message' => $currentUser->name . ' scheduled a meal: ' . $meal->name . ' on ' . $plannedMeal->date_time->format('M d, H:i'),
+                    'type' => 'meal_assignment',
+                    'action_url' => '/meals',
+                ]);
+
+                broadcast(new \App\Events\NotificationCreated($notification));
+            }
+        }
+
+        // Notify all invitees
+        if (!empty($this->invitees)) {
+            foreach ($this->invitees as $inviteeId) {
+                $notification = UserNotification::create([
+                    'user_id' => $inviteeId,
+                    'from_user_id' => $currentUser->id,
+                    'title' => 'You\'re Invited to a Meal',
+                    'message' => 'You\'ve been invited to ' . $meal->name . ' on ' . $plannedMeal->date_time->format('M d, H:i'),
+                    'type' => 'meal_assignment',
+                    'action_url' => '/meals',
+                ]);
+
+                broadcast(new \App\Events\NotificationCreated($notification));
+            }
         }
 
         $this->showModal = false;

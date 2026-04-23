@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Receipt;
 use App\Models\Category;
+use App\Models\UserNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
@@ -130,6 +131,20 @@ class InvoiceForm extends Component
                 'amount' => $amountValue,
                 'file_path' => $receiptFilePath ?? $this->invoice->file_path,
             ]);
+
+            // Notify invoice owner if admin makes changes
+            if ($isAdmin && $this->invoice->user_id !== $user->id) {
+                $notification = UserNotification::create([
+                    'user_id' => $this->invoice->user_id,
+                    'from_user_id' => $user->id,
+                    'title' => 'Invoice Modified',
+                    'message' => $user->name . ' updated your invoice for £' . number_format($this->invoice->amount, 2),
+                    'type' => 'invoice_changed',
+                    'action_url' => '/invoices',
+                ]);
+
+                broadcast(new \App\Events\NotificationCreated($notification));
+            }
 
             session()->flash('message', 'Invoice updated successfully.');
         } else {
