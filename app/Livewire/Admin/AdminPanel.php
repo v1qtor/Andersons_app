@@ -98,14 +98,14 @@ class AdminPanel extends Component
         if ($adminRole && $user->role_id === $adminRole->id) {
             $adminCount = User::where('role_id', $adminRole->id)->count();
             if ($adminCount <= 1) {
-                session()->flash('error', __('Cannot delete the last admin user.'));
+                $this->dispatch('toast', message: __('Cannot delete the last admin user.'), type: 'error');
                 return;
             }
         }
 
         $user->delete();
 
-        session()->flash('message', __('User deleted successfully.'));
+        $this->dispatch('toast', message: __('User deleted successfully.'), type: 'success');
     }
 
     public function toggleActive(int $userId): void
@@ -117,7 +117,7 @@ class AdminPanel extends Component
             if ($adminRole && $user->role_id === $adminRole->id) {
                 $activeAdminCount = User::where('role_id', $adminRole->id)->where('is_active', true)->count();
                 if ($activeAdminCount <= 1) {
-                    session()->flash('error', __('Cannot deactivate the last active admin user.'));
+                    $this->dispatch('toast', message: __('Cannot deactivate the last active admin user.'), type: 'error');
                     return;
                 }
             }
@@ -126,7 +126,7 @@ class AdminPanel extends Component
         $user->update(['is_active' => ! $user->is_active]);
 
         $message = $user->is_active ? __('User activated successfully.') : __('User deactivated successfully.');
-        session()->flash('message', $message);
+        $this->dispatch('toast', message: $message, type: 'success');
     }
 
     // Inline creation methods
@@ -151,29 +151,18 @@ class AdminPanel extends Component
         // Check for duplicate names
         $exists = $modelClass::where('name', $this->newEntityName)->exists();
         if ($exists) {
-            session()->flash('error', __('Name already exists.'));
+            $this->dispatch('toast', message: __('Name already exists.'), type: 'error');
             return;
         }
 
-        // Create new entity record
-        $modelClass::create([
-            'name' => $this->newEntityName,
-        ]);
-
-        // Display success flash message
-        $entityLabel = str_replace('_', ' ', $entityType);
-        // Remove trailing 's' or 'ies' and make singular
-        if (str_ends_with($entityLabel, 'ies')) {
-            $entityLabel = substr($entityLabel, 0, -3) . 'y';
-        } else {
-            $entityLabel = rtrim($entityLabel, 's');
-        }
-        $entityLabel = ucfirst($entityLabel); // Capitalize
-        session()->flash('message', __($entityLabel . ' created successfully.'));
-
-        // Reset creation state
-        $this->creatingNew = false;
-        $this->newEntityName = '';
+        // Show password confirmation modal before creating
+        $this->pendingAction = 'create_entity';
+        $this->confirmPassword = '';
+        $this->passwordError = '';
+        $this->showConfirmModal = true;
+        
+        // Store entity type in session
+        session()->put('pending_entity_type', $entityType);
     }
 
     public function cancelCreating(): void
@@ -206,29 +195,19 @@ class AdminPanel extends Component
             ->where('id', '!=', $id)
             ->exists();
         if ($exists) {
-            session()->flash('error', __('Name already exists.'));
+            $this->dispatch('toast', message: __('Name already exists.'), type: 'error');
             return;
         }
 
-        // Update entity record
-        $entity = $modelClass::findOrFail($id);
-        $entity->update([
-            'name' => $this->editingValue,
-        ]);
-
-        // Display success flash message
-        $entityLabel = str_replace('_', ' ', $entityType);
-        // Remove trailing 's' or 'ies' and make singular
-        if (str_ends_with($entityLabel, 'ies')) {
-            $entityLabel = substr($entityLabel, 0, -3) . 'y';
-        } else {
-            $entityLabel = rtrim($entityLabel, 's');
-        }
-        $entityLabel = ucfirst($entityLabel); // Capitalize
-        session()->flash('message', __($entityLabel . ' updated successfully.'));
-
-        // Reset editing state
-        $this->cancelEditing();
+        // Show password confirmation modal before updating
+        $this->pendingAction = 'edit_entity';
+        $this->pendingEntityId = $id;
+        $this->confirmPassword = '';
+        $this->passwordError = '';
+        $this->showConfirmModal = true;
+        
+        // Store entity type in session
+        session()->put('pending_entity_type', $entityType);
     }
 
     public function cancelEditing(): void
@@ -244,8 +223,8 @@ class AdminPanel extends Component
         $error = $this->validateRelationships($entityType, $id);
         
         if ($error) {
-            // If relationships exist, display error flash message with count
-            session()->flash('error', __($error));
+            // If relationships exist, display error toast message with count
+            $this->dispatch('toast', message: __($error), type: 'error');
             return;
         }
         
@@ -269,7 +248,11 @@ class AdminPanel extends Component
         }
 
         // Handle different action types
-        if ($this->pendingAction === 'delete_entity') {
+        if ($this->pendingAction === 'create_entity') {
+            $this->executeCreateEntity();
+        } elseif ($this->pendingAction === 'edit_entity') {
+            $this->executeEditEntity();
+        } elseif ($this->pendingAction === 'delete_entity') {
             $this->deleteEntity();
         } elseif ($this->pendingAction === 'delete') {
             $this->deleteUser($this->pendingUserId);
@@ -284,27 +267,23 @@ class AdminPanel extends Component
         $this->cancelAction();
     }
 
-    private function deleteEntity(): void
+    private function executeCreateEntity(): void
     {
         $entityType = session()->get('pending_entity_type');
         
         if (!$entityType) {
-            session()->flash('error', __('Invalid entity type.'));
+            $this->dispatch('toast', message: __('Invalid entity type.'), type: 'error');
             return;
         }
         
         $modelClass = $this->getEntityModel($entityType);
-        $entity = $modelClass::find($this->pendingEntityId);
         
-        if (!$entity) {
-            session()->flash('error', __('Entity not found.'));
-            return;
-        }
-        
-        // Delete the entity
-        $entity->delete();
-        
-        // Display success flash message
+        // Create new entity record
+        $modelClass::create([
+            'name' => $this->newEntityName,
+        ]);
+
+        // Display success toast message
         $entityLabel = str_replace('_', ' ', $entityType);
         // Remove trailing 's' or 'ies' and make singular
         if (str_ends_with($entityLabel, 'ies')) {
@@ -313,7 +292,81 @@ class AdminPanel extends Component
             $entityLabel = rtrim($entityLabel, 's');
         }
         $entityLabel = ucfirst($entityLabel); // Capitalize
-        session()->flash('message', __($entityLabel . ' deleted successfully.'));
+        $this->dispatch('toast', message: __($entityLabel . ' created successfully.'), type: 'success');
+
+        // Reset creation state
+        $this->creatingNew = false;
+        $this->newEntityName = '';
+        
+        // Clean up session
+        session()->forget('pending_entity_type');
+    }
+
+    private function executeEditEntity(): void
+    {
+        $entityType = session()->get('pending_entity_type');
+        
+        if (!$entityType) {
+            $this->dispatch('toast', message: __('Invalid entity type.'), type: 'error');
+            return;
+        }
+        
+        $modelClass = $this->getEntityModel($entityType);
+        $entity = $modelClass::findOrFail($this->pendingEntityId);
+        
+        // Update entity record
+        $entity->update([
+            'name' => $this->editingValue,
+        ]);
+
+        // Display success toast message
+        $entityLabel = str_replace('_', ' ', $entityType);
+        // Remove trailing 's' or 'ies' and make singular
+        if (str_ends_with($entityLabel, 'ies')) {
+            $entityLabel = substr($entityLabel, 0, -3) . 'y';
+        } else {
+            $entityLabel = rtrim($entityLabel, 's');
+        }
+        $entityLabel = ucfirst($entityLabel); // Capitalize
+        $this->dispatch('toast', message: __($entityLabel . ' updated successfully.'), type: 'success');
+
+        // Reset editing state
+        $this->cancelEditing();
+        
+        // Clean up session
+        session()->forget('pending_entity_type');
+    }
+
+    private function deleteEntity(): void
+    {
+        $entityType = session()->get('pending_entity_type');
+        
+        if (!$entityType) {
+            $this->dispatch('toast', message: __('Invalid entity type.'), type: 'error');
+            return;
+        }
+        
+        $modelClass = $this->getEntityModel($entityType);
+        $entity = $modelClass::find($this->pendingEntityId);
+        
+        if (!$entity) {
+            $this->dispatch('toast', message: __('Entity not found.'), type: 'error');
+            return;
+        }
+        
+        // Delete the entity
+        $entity->delete();
+        
+        // Display success toast message
+        $entityLabel = str_replace('_', ' ', $entityType);
+        // Remove trailing 's' or 'ies' and make singular
+        if (str_ends_with($entityLabel, 'ies')) {
+            $entityLabel = substr($entityLabel, 0, -3) . 'y';
+        } else {
+            $entityLabel = rtrim($entityLabel, 's');
+        }
+        $entityLabel = ucfirst($entityLabel); // Capitalize
+        $this->dispatch('toast', message: __($entityLabel . ' deleted successfully.'), type: 'success');
         
         // Clean up session
         session()->forget('pending_entity_type');
@@ -406,8 +459,8 @@ class AdminPanel extends Component
             'color' => $this->editingColor,
         ]);
 
-        // Display success flash message
-        session()->flash('message', __('Role color updated successfully.'));
+        // Display success toast message
+        $this->dispatch('toast', message: __('Role color updated successfully.'), type: 'success');
 
         // Reset editing state
         $this->editingColorRoleId = null;
