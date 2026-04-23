@@ -3,9 +3,9 @@
         {{-- Header --}}
         <div class="mb-8">
             <div class="flex items-center gap-3 mb-2">
-                <flux:button variant="ghost" size="sm" :href="route('admin.users.index')" wire:navigate icon="arrow-left">
+                <x-flux.button variant="ghost" size="sm" :href="route('admin.panel')" wire:navigate icon="arrow-left">
                     {{ __('Back') }}
-                </flux:button>
+                </x-flux.button>
             </div>
             <flux:heading size="xl">{{ __('Create User') }}</flux:heading>
             <flux:subheading>{{ __('Add a new user to the system') }}</flux:subheading>
@@ -17,12 +17,12 @@
                 <x-admin.user-form :isEdit="false" :roles="$roles" />
 
                 <div class="flex items-center justify-end gap-3 mt-8 pt-6 border-t border-neutral-200 dark:border-neutral-700">
-                    <flux:button variant="ghost" :href="route('admin.users.index')" wire:navigate>
+                    <x-flux.button variant="ghost" :href="route('admin.panel')" wire:navigate>
                         {{ __('Cancel') }}
-                    </flux:button>
-                    <flux:button variant="primary" type="submit">
+                    </x-flux.button>
+                    <x-flux.button variant="primary" type="submit">
                         {{ __('Create User') }}
-                    </flux:button>
+                    </x-flux.button>
                 </div>
             </form>
         </div>
