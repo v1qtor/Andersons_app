@@ -99,47 +99,52 @@ select:focus[data-flux-control] {
         size: landscape;
         margin: 1cm;
     }
-    
+
     body * {
         visibility: hidden;
     }
-    
+
     #printArea, #printArea * {
-        visibility: visible;
+        visibility: visible !important;
     }
-    
+
     #printArea {
-        position: absolute;
+        position: fixed !important;
         left: 0;
         top: 0;
         width: 100%;
+        height: auto;
+        z-index: 99999;
         background: white !important;
+        overflow: visible !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
     }
-    
+
     .dark\:bg-zinc-900 {
         background: white !important;
     }
-    
+
     .dark\:text-neutral-100,
     .dark\:text-neutral-300,
     .dark\:text-neutral-400 {
         color: black !important;
     }
-    
+
     .dark\:border-neutral-700,
     .dark\:border-neutral-600 {
         border-color: #d1d5db !important;
     }
-    
+
     table {
         page-break-inside: auto;
     }
-    
+
     tr {
         page-break-inside: avoid;
         page-break-after: auto;
     }
-    
+
     thead {
         display: table-header-group;
     }
