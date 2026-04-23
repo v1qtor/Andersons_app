@@ -46,7 +46,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('admin/users/create', UserCreate::class)->name('admin.users.create');
         Route::get('admin/users/{user}/edit', UserEdit::class)->name('admin.users.edit');
         Route::get('admin/meals', MealPlanning::class)->name('admin.meals.index');
-        Route::get('admin/staff-availability', StaffAvailabilityCalendar::class)->name('staff-availability');
+        Route::get('admin/staff-availability', StaffAvailabilityCalendar::class)->name('admin.staff-availability');
     });
 
     // Chef Management
