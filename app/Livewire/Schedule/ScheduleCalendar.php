@@ -54,7 +54,9 @@ class ScheduleCalendar extends Component
     // ─── Print Modal ────────────────────────────────────────────
     public bool $showPrintModal = false;
     public string $printScope = 'allTasks'; // allTasks, myTasks
-    public string $printPeriod = 'weekly'; // daily, weekly, monthly
+    public string $printPeriod = 'weekly'; // daily, weekly, monthly, custom
+    public string $printCustomStart = '';
+    public string $printCustomEnd = '';
 
     public function mount(): void
     {
@@ -452,21 +454,33 @@ class ScheduleCalendar extends Component
     {
         // Determine date range based on period
         $start = Carbon::create($this->year, $this->month, $this->day);
-        
-        [$rangeStart, $rangeEnd] = match ($this->printPeriod) {
-            'daily' => [
-                $start->copy()->startOfDay(),
-                $start->copy()->endOfDay(),
-            ],
-            'weekly' => [
-                $start->copy()->startOfWeek(Carbon::MONDAY),
-                $start->copy()->endOfWeek(Carbon::SUNDAY),
-            ],
-            'monthly' => [
-                Carbon::create($this->year, $this->month, 1)->startOfDay(),
-                Carbon::create($this->year, $this->month, 1)->endOfMonth()->endOfDay(),
-            ],
-        };
+
+        if ($this->printPeriod === 'custom') {
+            if (! $this->printCustomStart || ! $this->printCustomEnd) {
+                return ['tasks' => collect(), 'rangeStart' => null, 'rangeEnd' => null, 'scope' => $this->printScope, 'period' => 'custom'];
+            }
+            $rangeStart = Carbon::parse($this->printCustomStart)->startOfDay();
+            $rangeEnd   = Carbon::parse($this->printCustomEnd)->endOfDay();
+        } else {
+            [$rangeStart, $rangeEnd] = match ($this->printPeriod) {
+                'daily' => [
+                    $start->copy()->startOfDay(),
+                    $start->copy()->endOfDay(),
+                ],
+                'weekly' => [
+                    $start->copy()->startOfWeek(Carbon::MONDAY),
+                    $start->copy()->endOfWeek(Carbon::SUNDAY),
+                ],
+                'monthly' => [
+                    Carbon::create($this->year, $this->month, 1)->startOfDay(),
+                    Carbon::create($this->year, $this->month, 1)->endOfMonth()->endOfDay(),
+                ],
+                default => [
+                    $start->copy()->startOfWeek(Carbon::MONDAY),
+                    $start->copy()->endOfWeek(Carbon::SUNDAY),
+                ],
+            };
+        }
 
         // Build query
         $query = Task::with(['users', 'locations', 'taskCategory', 'taskPriority'])

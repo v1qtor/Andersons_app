@@ -726,7 +726,42 @@
             wire:click.self="closePrintModal"
             x-data="{
                 init() { document.body.style.overflow = 'hidden' },
-                destroy() { document.body.style.overflow = '' }
+                destroy() { document.body.style.overflow = '' },
+                doPrint() {
+                    const el = document.getElementById('printArea');
+                    if (!el) return;
+                    const css = `
+                        @page { size: landscape; margin: 1.5cm 1cm; }
+                        * { box-sizing: border-box; margin: 0; padding: 0; }
+                        body { font-family: Arial, sans-serif; font-size: 10pt; color: #111; background: white; }
+                        h2 { font-size: 16pt; font-weight: 700; margin-bottom: 4px; }
+                        p { font-size: 9pt; color: #555; margin-bottom: 16px; }
+                        div { background: white !important; border: none !important; border-radius: 0 !important; padding: 0 !important; }
+                        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+                        thead { display: table-header-group; }
+                        th:nth-child(1), td:nth-child(1) { width: 8%; }
+                        th:nth-child(2), td:nth-child(2) { width: 8%; }
+                        th:nth-child(3), td:nth-child(3) { width: 20%; }
+                        th:nth-child(4), td:nth-child(4) { width: 9%; }
+                        th:nth-child(5), td:nth-child(5) { width: 7%; }
+                        th:nth-child(6), td:nth-child(6) { width: 10%; }
+                        th:nth-child(7), td:nth-child(7) { width: 14%; }
+                        th:nth-child(8), td:nth-child(8) { width: 10%; }
+                        th:nth-child(9), td:nth-child(9) { width: 7%; }
+                        th { font-size: 8pt; font-weight: 700; text-align: left; padding: 5px 6px; background: #f9fafb !important; border-bottom: 2px solid #d1d5db !important; color: #111 !important; }
+                        td { font-size: 8pt; padding: 5px 6px; border-bottom: 1px solid #e5e7eb !important; vertical-align: top; word-wrap: break-word; color: #111 !important; background: white !important; }
+                        tr { page-break-inside: avoid; }
+                        span { display: inline-flex; align-items: center; padding: 2px 6px; border-radius: 9999px; font-size: 7pt; font-weight: 600; }
+                        .bg-green-100 { background: #dcfce7 !important; color: #166534 !important; }
+                        .bg-neutral-100 { background: #f3f4f6 !important; color: #374151 !important; }
+                    `;
+                    const win = window.open('', '_blank', 'width=1200,height=900');
+                    if (!win) { alert('Lütfen tarayıcınızda pop-up izni verin.'); return; }
+                    win.document.write('<html><head><meta charset=utf-8><title>Schedule</title><style>' + css + '</style></head><body>' + el.innerHTML + '</body></html>');
+                    win.document.close();
+                    win.focus();
+                    setTimeout(() => { win.print(); win.close(); }, 500);
+                }
             }"
             @keydown.escape.window="$wire.closePrintModal()"
         >
@@ -772,40 +807,75 @@
                             <label class="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-2">
                                 {{ __('Period') }}
                             </label>
-                            <div class="inline-flex rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden">
-                                <button
-                                    wire:click="setPrintPeriod('daily')"
-                                    class="px-4 py-2 text-sm font-medium transition-colors
-                                        {{ $printPeriod === 'daily'
-                                            ? 'bg-indigo-600 text-white dark:bg-indigo-500'
-                                            : 'bg-white text-neutral-700 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-300 dark:hover:bg-zinc-700' }}"
-                                >
-                                    {{ __('Daily') }}
-                                </button>
-                                <button
-                                    wire:click="setPrintPeriod('weekly')"
-                                    class="px-4 py-2 text-sm font-medium transition-colors border-l border-neutral-200 dark:border-neutral-700
-                                        {{ $printPeriod === 'weekly'
-                                            ? 'bg-indigo-600 text-white dark:bg-indigo-500'
-                                            : 'bg-white text-neutral-700 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-300 dark:hover:bg-zinc-700' }}"
-                                >
-                                    {{ __('Weekly') }}
-                                </button>
-                                <button
-                                    wire:click="setPrintPeriod('monthly')"
-                                    class="px-4 py-2 text-sm font-medium transition-colors border-l border-neutral-200 dark:border-neutral-700
-                                        {{ $printPeriod === 'monthly'
-                                            ? 'bg-indigo-600 text-white dark:bg-indigo-500'
-                                            : 'bg-white text-neutral-700 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-300 dark:hover:bg-zinc-700' }}"
-                                >
-                                    {{ __('Monthly') }}
-                                </button>
+                            <div class="flex flex-wrap items-center gap-3">
+                                <div class="inline-flex rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden">
+                                    <button
+                                        wire:click="setPrintPeriod('daily')"
+                                        class="px-4 py-2 text-sm font-medium transition-colors
+                                            {{ $printPeriod === 'daily'
+                                                ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                                                : 'bg-white text-neutral-700 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-300 dark:hover:bg-zinc-700' }}"
+                                    >
+                                        {{ __('Daily') }}
+                                    </button>
+                                    <button
+                                        wire:click="setPrintPeriod('weekly')"
+                                        class="px-4 py-2 text-sm font-medium transition-colors border-l border-neutral-200 dark:border-neutral-700
+                                            {{ $printPeriod === 'weekly'
+                                                ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                                                : 'bg-white text-neutral-700 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-300 dark:hover:bg-zinc-700' }}"
+                                    >
+                                        {{ __('Weekly') }}
+                                    </button>
+                                    <button
+                                        wire:click="setPrintPeriod('monthly')"
+                                        class="px-4 py-2 text-sm font-medium transition-colors border-l border-neutral-200 dark:border-neutral-700
+                                            {{ $printPeriod === 'monthly'
+                                                ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                                                : 'bg-white text-neutral-700 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-300 dark:hover:bg-zinc-700' }}"
+                                    >
+                                        {{ __('Monthly') }}
+                                    </button>
+                                    <button
+                                        wire:click="setPrintPeriod('custom')"
+                                        class="px-4 py-2 text-sm font-medium transition-colors border-l border-neutral-200 dark:border-neutral-700
+                                            {{ $printPeriod === 'custom'
+                                                ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                                                : 'bg-white text-neutral-700 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-300 dark:hover:bg-zinc-700' }}"
+                                    >
+                                        {{ __('Custom') }}
+                                    </button>
+                                </div>
+
+                                {{-- Custom date range pickers --}}
+                                @if ($printPeriod === 'custom')
+                                    <div class="flex items-center gap-2">
+                                        <input
+                                            type="date"
+                                            wire:model.live="printCustomStart"
+                                            class="px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-zinc-800 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                        >
+                                        <span class="text-neutral-400 dark:text-neutral-500 text-sm font-medium">→</span>
+                                        <input
+                                            type="date"
+                                            wire:model.live="printCustomEnd"
+                                            class="px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-zinc-800 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                        >
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>
 
+                    {{-- Custom range warning --}}
+                    @if ($printPeriod === 'custom' && (! $printCustomStart || ! $printCustomEnd))
+                        <div class="mb-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 text-sm text-amber-700 dark:text-amber-300">
+                            {{ __('Please select both a start and end date to generate the preview.') }}
+                        </div>
+                    @endif
+
                     {{-- Print Preview --}}
-                    @if ($printData)
+                    @if ($printData && $printData['rangeStart'])
                         <div class="border border-neutral-200 dark:border-neutral-700 rounded-lg p-6 bg-neutral-50 dark:bg-zinc-900" id="printArea">
                             <div class="mb-6">
                                 <h2 class="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">
@@ -909,7 +979,7 @@
                         <flux:button variant="ghost" wire:click="closePrintModal">
                             {{ __('Cancel') }}
                         </flux:button>
-                        <flux:button variant="primary" onclick="window.print()" icon="printer">
+                        <flux:button variant="primary" icon="printer" x-on:click="doPrint()">
                             {{ __('Print') }}
                         </flux:button>
                     </div>
@@ -918,3 +988,4 @@
         </div>
     @endif
 </div>
+
