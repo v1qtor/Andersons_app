@@ -68,7 +68,7 @@
                             </td>
                             <td class="px-6 py-4 text-neutral-600 dark:text-neutral-400">{{ $user->phone_number ?? '—' }}</td>
                             <td class="px-6 py-4">
-                                <div class="flex items-center justify-end gap-1">
+                                <x-ui.row-actions>
                                     <flux:tooltip content="{{ __('Edit') }}" position="top">
                                         <x-flux.button variant="ghost" size="sm" wire:click="prepareAction('edit', {{ $user->id }})" icon="pencil" />
                                     </flux:tooltip>
@@ -84,7 +84,7 @@
                                     <flux:tooltip content="{{ __('Delete') }}" position="top">
                                         <x-flux.button variant="ghost" size="sm" wire:click="prepareAction('delete', {{ $user->id }})" icon="trash" class="!text-red-600 hover:!text-red-700 dark:!text-red-400" />
                                     </flux:tooltip>
-                                </div>
+                                </x-ui.row-actions>
                             </td>
                         </tr>
                     @empty

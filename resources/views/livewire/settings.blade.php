@@ -24,6 +24,8 @@
     @password-updated.window="showPasswordModal = false"
 >
 
+    <x-ui.flash-alert fixed="true" />
+
     <x-settings.confirm-remove-modal />
 
     <!-- Change Password Modal -->
@@ -284,28 +286,55 @@
                     </div>
                 </div>
 
-                <!-- Task Reminders -->
+                <!-- Task Assignments -->
                 <div class="flex items-center justify-between py-4 border-t border-gray-100 dark:border-neutral-700">
                     <div>
-                        <p class="text-sm font-semibold text-gray-900 dark:text-white">Task Reminders</p>
+                        <p class="text-sm font-semibold text-gray-900 dark:text-white">Task Assignment</p>
                     </div>
                     <div class="flex gap-16">
                         <!-- Email Toggle -->
                         <div class="flex justify-center w-20">
                             <button 
-                                wire:click="toggleNotification('taskReminders', 'email')"
-                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['taskReminders']['email']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
+                                wire:click="toggleNotification('taskAssignments', 'email')"
+                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['taskAssignments']['email']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['taskReminders']['email']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
+                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['taskAssignments']['email']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
                             </button>
                         </div>
                         <!-- Popup Toggle -->
                         <div class="flex justify-center w-20">
                             <button 
-                                wire:click="toggleNotification('taskReminders', 'popup')"
-                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['taskReminders']['popup']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
+                                wire:click="toggleNotification('taskAssignments', 'popup')"
+                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['taskAssignments']['popup']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['taskReminders']['popup']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
+                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['taskAssignments']['popup']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Collaboration Requests -->
+                <div class="flex items-center justify-between py-4 border-t border-gray-100 dark:border-neutral-700">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-900 dark:text-white">Collaboration Request</p>
+                    </div>
+                    <div class="flex gap-16">
+                        <!-- Email Toggle -->
+                        <div class="flex justify-center w-20">
+                            <button 
+                                wire:click="toggleNotification('collaborationRequests', 'email')"
+                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['collaborationRequests']['email']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['collaborationRequests']['email']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
+                            </button>
+                        </div>
+                        <!-- Popup Toggle -->
+                        <div class="flex justify-center w-20">
+                            <button 
+                                wire:click="toggleNotification('collaborationRequests', 'popup')"
+                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['collaborationRequests']['popup']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['collaborationRequests']['popup']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
                             </button>
                         </div>
                     </div>
