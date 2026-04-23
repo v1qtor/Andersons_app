@@ -85,7 +85,7 @@ class User extends Authenticatable
 
     public function unavailabilityPeriods(): HasMany
     {
-        return $this->hasMany(UnavailabilityPeriod::class);
+    return $this->hasMany(UnavailabilityPeriod::class);
     }
 
     public function receipts(): HasMany

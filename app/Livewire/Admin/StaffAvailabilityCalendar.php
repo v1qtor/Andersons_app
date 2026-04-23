@@ -14,7 +14,6 @@ class StaffAvailabilityCalendar extends Component
     public $showModal = false;
     public $editingId = null;
 
-    // Form fields
     public $selectedUserId = '';
     public $startDate = '';
     public $endDate = '';
@@ -38,17 +37,13 @@ class StaffAvailabilityCalendar extends Component
         return $days;
     }
 
-    public function getStaffUsersProperty()
+    public function getAllUsersProperty()
     {
+        // All roles except Admin can have unavailability
         return User::with('unavailabilityPeriods')
-            ->whereHas('role', fn($q) => $q->where('name', 'Staff'))
-            ->get();
-    }
-
-    public function getPeriodsProperty()
-    {
-        return UnavailabilityPeriod::where('userId', Auth::id())
-            ->orderBy('startDate')
+            ->whereHas('role', fn($q) => $q->whereIn('name', [
+                'Staff', 'Chef', 'Family Member', 'The Andersons'
+            ]))
             ->get();
     }
 
@@ -72,26 +67,28 @@ class StaffAvailabilityCalendar extends Component
     public function openCreate($date = null, $userId = null)
     {
         $this->reset(['editingId', 'startDate', 'endDate', 'description', 'selectedUserId']);
-        $this->startDate = $date ?? '';
+        $this->startDate      = $date ?? '';
+        $this->endDate        = $date ?? '';
         $this->selectedUserId = $userId ?? '';
-        $this->showModal = true;
+        $this->showModal      = true;
     }
 
     public function openEdit($periodId)
     {
         $period = UnavailabilityPeriod::findOrFail($periodId);
-        $this->editingId = $period->unavailabilityPeriodId;
-        $this->selectedUserId = $period->userId;
-        $this->startDate = $period->startDate->format('Y-m-d');
-        $this->endDate = $period->endDate->format('Y-m-d');
-        $this->description = $period->description ?? '';
-        $this->showModal = true;
+
+        $this->editingId      = $period->id;
+        $this->selectedUserId = $period->user_id;
+        $this->startDate      = $period->start_date->format('Y-m-d');
+        $this->endDate        = $period->end_date->format('Y-m-d');
+        $this->description    = $period->description ?? '';
+        $this->showModal      = true;
     }
 
     public function save()
     {
         $this->validate([
-            'selectedUserId' => 'required|exists:users,userId',
+            'selectedUserId' => 'required|exists:users,id',
             'startDate'      => 'required|date',
             'endDate'        => 'required|date|after_or_equal:startDate',
             'description'    => 'nullable|string|max:255',
@@ -99,16 +96,16 @@ class StaffAvailabilityCalendar extends Component
 
         if ($this->editingId) {
             UnavailabilityPeriod::findOrFail($this->editingId)->update([
-                'userId'      => $this->selectedUserId,
-                'startDate'   => $this->startDate,
-                'endDate'     => $this->endDate,
+                'user_id'     => $this->selectedUserId,
+                'start_date'  => $this->startDate,
+                'end_date'    => $this->endDate,
                 'description' => $this->description,
             ]);
         } else {
             UnavailabilityPeriod::create([
-                'userId'      => $this->selectedUserId,
-                'startDate'   => $this->startDate,
-                'endDate'     => $this->endDate,
+                'user_id'     => $this->selectedUserId,
+                'start_date'  => $this->startDate,
+                'end_date'    => $this->endDate,
                 'description' => $this->description,
             ]);
         }
@@ -124,18 +121,15 @@ class StaffAvailabilityCalendar extends Component
         session()->flash('success', 'Period removed.');
     }
 
-    public function getPeriodForDate($date, $userId = null)
+    public function getPeriodForDate($userId, $date)
     {
-        $targetUserId = $userId ?? Auth::id();
-        $user = $this->staffUsers->find($targetUserId)
-            ?? User::with('unavailabilityPeriods')->find($targetUserId);
-
+        $user = $this->allUsers->firstWhere('id', $userId);
         if (!$user) return null;
 
         return $user->unavailabilityPeriods->first(function ($period) use ($date) {
             return Carbon::parse($date)->between(
-                $period->startDate->startOfDay(),
-                $period->endDate->endOfDay()
+                $period->start_date->copy()->startOfDay(),
+                $period->end_date->copy()->endOfDay()
             );
         });
     }

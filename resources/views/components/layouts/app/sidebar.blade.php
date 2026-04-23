@@ -22,12 +22,15 @@
                     @if(auth()->user()->role && auth()->user()->role->name === 'Admin')
                         <flux:navlist.item icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>{{ __('Users') }}</flux:navlist.item>
                         <flux:navlist.item icon="fire" :href="route('admin.meals.index')" :current="request()->routeIs('admin.meals.*')" wire:navigate>{{ __('Meals') }}</flux:navlist.item>
+                        <flux:navlist.item icon="calendar-days" :href="route('admin.staff-availability')" :current="request()->routeIs('admin.staff-availability')" wire:navigate>{{ __('Staff Availability') }}</flux:navlist.item>
                     @endif
                     @if(auth()->user()->role && auth()->user()->role->name === 'Chef')
                         <flux:navlist.item icon="fire" :href="route('chef.meals.index')" :current="request()->routeIs('chef.meals.*')" wire:navigate>{{ __('Meals') }}</flux:navlist.item>
+                        <flux:navlist.item icon="check-circle" :href="route('unavailability.index')" :current="request()->routeIs('unavailability.index')" wire:navigate>{{ __('My Unavailability') }}</flux:navlist.item>
                     @endif
                     @if(auth()->user()->role && in_array(auth()->user()->role->name, ['Family Member', 'The Andersons', 'Staff']))
                         <flux:navlist.item icon="fire" :href="route('meals.index')" :current="request()->routeIs('meals.index')" wire:navigate>{{ __('Meals') }}</flux:navlist.item>
+                        <flux:navlist.item icon="check-circle" :href="route('unavailability.index')" :current="request()->routeIs('unavailability.index')" wire:navigate>{{ __('My Unavailability') }}</flux:navlist.item>
                     @endif
                 </flux:navlist.group>
     </flux:navlist>
