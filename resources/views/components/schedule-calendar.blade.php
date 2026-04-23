@@ -2,17 +2,41 @@
     {{-- View Toggle + New Task --}}
     <div class="flex items-center justify-between gap-2 mb-4">
         <div class="flex items-center gap-2">
-            <flux:button size="sm" :variant="$view === 'day' ? 'primary' : 'ghost'" wire:click="setView('day')">
+            <x-flux.button size="sm" :variant="$view === 'day' ? 'primary' : 'ghost'" wire:click="setView('day')">
                 {{ __('Day') }}
-            </flux:button>
-            <flux:button size="sm" :variant="$view === 'week' ? 'primary' : 'ghost'" wire:click="setView('week')">
+            </x-flux.button>
+            <x-flux.button size="sm" :variant="$view === 'week' ? 'primary' : 'ghost'" wire:click="setView('week')">
                 {{ __('Week') }}
-            </flux:button>
-            <flux:button size="sm" :variant="$view === 'month' ? 'primary' : 'ghost'" wire:click="setView('month')">
+            </x-flux.button>
+            <x-flux.button size="sm" :variant="$view === 'month' ? 'primary' : 'ghost'" wire:click="setView('month')">
                 {{ __('Month') }}
-            </flux:button>
+            </x-flux.button>
         </div>
         <div class="flex items-center gap-2">
+            {{-- Ownership sub-filter (only visible when My Tasks is active) --}}
+            @if ($showMyTasksOnly)
+                <div class="inline-flex rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden">
+                    <button
+                        wire:click="setMyTaskOwnershipFilter('owner')"
+                        class="px-2.5 py-1 text-xs font-medium transition-colors
+                            {{ $myTaskOwnershipFilter === 'owner'
+                                ? 'bg-indigo-500 text-white dark:bg-indigo-400'
+                                : 'bg-white text-neutral-600 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-400 dark:hover:bg-zinc-700' }}"
+                    >
+                        {{ __('Owner') }}
+                    </button>
+                    <button
+                        wire:click="setMyTaskOwnershipFilter('not-owned')"
+                        class="px-2.5 py-1 text-xs font-medium transition-colors border-l border-neutral-200 dark:border-neutral-700
+                            {{ $myTaskOwnershipFilter === 'not-owned'
+                                ? 'bg-indigo-500 text-white dark:bg-indigo-400'
+                                : 'bg-white text-neutral-600 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-400 dark:hover:bg-zinc-700' }}"
+                    >
+                        {{ __('Not Owned') }}
+                    </button>
+                </div>
+            @endif
+
             <div class="inline-flex rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden">
                 <button
                     wire:click="setMyTasksOnly(true)"
@@ -33,9 +57,9 @@
                     {{ __('All Tasks') }}
                 </button>
             </div>
-            <flux:button size="sm" variant="primary" wire:click="openCreateModal" icon="plus">
+            <x-flux.button size="sm" variant="primary" wire:click="openCreateModal" icon="plus">
                 {{ __('New Task') }}
-            </flux:button>
+            </x-flux.button>
         </div>
     </div>
 
@@ -64,12 +88,12 @@
                             </p>
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
-                            <flux:button size="sm" variant="primary" wire:click="acceptCollaborationRequest({{ $req->id }})">
+                            <x-flux.button size="sm" variant="primary" wire:click="acceptCollaborationRequest({{ $req->id }})">
                                 {{ __('Accept') }}
-                            </flux:button>
-                            <flux:button size="sm" variant="ghost" wire:click="declineCollaborationRequest({{ $req->id }})">
+                            </x-flux.button>
+                            <x-flux.button size="sm" variant="ghost" wire:click="declineCollaborationRequest({{ $req->id }})">
                                 {{ __('Decline') }}
-                            </flux:button>
+                            </x-flux.button>
                         </div>
                     </div>
                 @endforeach
@@ -80,18 +104,18 @@
     {{-- Navigation + Period Label --}}
     <div class="rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-zinc-800 p-6 mb-6">
         <div class="flex items-center justify-between mb-6">
-            <flux:button variant="ghost" size="sm" wire:click="previousPeriod" icon="chevron-left" />
+            <x-flux.button variant="ghost" size="sm" wire:click="previousPeriod" icon="chevron-left" />
 
             <div class="flex items-center gap-3">
                 <h3 class="text-xl font-bold text-neutral-900 dark:text-neutral-100">
                     {{ $this->periodLabel }}
                 </h3>
-                <flux:button variant="ghost" size="sm" wire:click="goToToday">
+                <x-flux.button variant="ghost" size="sm" wire:click="goToToday">
                     {{ __('Today') }}
-                </flux:button>
+                </x-flux.button>
             </div>
 
-            <flux:button variant="ghost" size="sm" wire:click="nextPeriod" icon="chevron-right" />
+            <x-flux.button variant="ghost" size="sm" wire:click="nextPeriod" icon="chevron-right" />
         </div>
 
         {{-- People Filter --}}
@@ -104,7 +128,9 @@
                 @foreach ($users as $user)
                     @php
                         $isSelected = in_array($user->id, $selectedPeople);
-                        $roleColor = $user->role?->color ?? '#6366f1';
+                        $normalizedName = strtolower(trim($user->name));
+                        $isAndersonFamilyMember = in_array($normalizedName, ['emily anderson', 'james anderson', 'sophie anderson'], true);
+                        $roleColor = $isAndersonFamilyMember ? '#948d3b' : ($user->role?->color ?? '#6366f1');
                     @endphp
                     <button
                         wire:click="togglePerson({{ $user->id }})"
@@ -120,9 +146,9 @@
                 @endforeach
 
                 @if (count($selectedPeople) > 0)
-                    <flux:button variant="ghost" size="sm" wire:click="clearFilters">
+                    <x-flux.button variant="ghost" size="sm" wire:click="clearFilters">
                         {{ __('Clear Filters') }}
-                    </flux:button>
+                    </x-flux.button>
                 @endif
             </div>
         </div>
@@ -175,7 +201,18 @@
                                 @endif
                                 @if ($hasTasks)
                                     @foreach (array_slice($dayEvents['tasks'], 0, 2) as $task)
-                                        <div class="text-[10px] leading-tight px-1 py-0.5 rounded truncate {{ $task->is_complete ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' }}">
+                                        @php
+                                            $taskOwner = $task->users->firstWhere('pivot.is_owner', true);
+                                            $ownerColor = $taskOwner?->role?->color ?? '#6366f1';
+                                            // Convert hex to RGB for opacity
+                                            $r = hexdec(substr($ownerColor, 1, 2));
+                                            $g = hexdec(substr($ownerColor, 3, 2));
+                                            $b = hexdec(substr($ownerColor, 5, 2));
+                                        @endphp
+                                        <div class="text-[10px] leading-tight px-1 py-0.5 rounded truncate"
+                                             style="{{ $task->is_complete 
+                                                 ? 'background-color: rgb(34 197 94 / 0.2); color: rgb(22 101 52);' 
+                                                 : 'background-color: rgba(' . $r . ', ' . $g . ', ' . $b . ', 0.2); color: ' . $ownerColor . ';' }}">
                                             <span class="font-medium">{{ $task->start_date->format('H:i') }}</span> {{ $task->title }}
                                         </div>
                                     @endforeach
@@ -299,14 +336,22 @@
                                         $isTask = ($event['type'] ?? 'task') === 'task';
                                         $isMeal = ($event['type'] ?? '') === 'meal';
                                         $model = $event['model'];
+                                        
+                                        if ($isTask) {
+                                            $taskOwner = $model->users->firstWhere('pivot.is_owner', true);
+                                            $ownerColor = $taskOwner?->role?->color ?? '#6366f1';
+                                            $r = hexdec(substr($ownerColor, 1, 2));
+                                            $g = hexdec(substr($ownerColor, 3, 2));
+                                            $b = hexdec(substr($ownerColor, 5, 2));
+                                        }
                                     @endphp
                                     <div class="absolute z-10 px-px overflow-hidden"
                                          style="top: {{ $event['topPercent'] }}%; height: {{ $event['heightPercent'] }}%; left: {{ $event['leftPercent'] }}%; width: {{ $event['widthPercent'] }}%;">
                                         @if ($isTask)
-                                            <div class="h-full rounded-sm px-1 py-0.5 overflow-hidden border-l-2
-                                                {{ $model->is_complete
-                                                    ? 'bg-green-100 border-green-500 text-green-800 dark:bg-green-900/50 dark:border-green-400 dark:text-green-300'
-                                                    : 'bg-blue-100 border-blue-500 text-blue-800 dark:bg-blue-900/50 dark:border-blue-400 dark:text-blue-300' }}">
+                                            <div class="h-full rounded-sm px-1 py-0.5 overflow-hidden border-l-2"
+                                                 style="{{ $model->is_complete
+                                                     ? 'background-color: rgb(34 197 94 / 0.2); border-color: rgb(34 197 94); color: rgb(22 101 52);'
+                                                     : 'background-color: rgba(' . $r . ', ' . $g . ', ' . $b . ', 0.2); border-color: ' . $ownerColor . '; color: ' . $ownerColor . ';' }}">
                                                 <div class="text-[9px] font-semibold leading-tight truncate">
                                                     {{ $model->start_date->format('H:i') }} {{ $model->title }}
                                                 </div>
@@ -339,9 +384,9 @@
             @endphp
             <div class="space-y-4">
                 <div class="flex justify-end">
-                    <flux:button size="sm" variant="primary" wire:click="openCreateModal('{{ $dateStr }}')" icon="plus">
+                    <x-flux.button size="sm" variant="primary" wire:click="openCreateModal('{{ $dateStr }}')" icon="plus">
                         {{ __('Add Task') }}
-                    </flux:button>
+                    </x-flux.button>
                 </div>
 
                 {{-- Trips --}}
@@ -372,7 +417,17 @@
 
                 {{-- Tasks --}}
                 @foreach ($dayEvents['tasks'] ?? [] as $task)
-                    <div class="p-4 rounded-lg border-2 {{ $task->is_complete ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700' : 'border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700' }}">
+                    @php
+                        $taskOwner = $task->users->firstWhere('pivot.is_owner', true);
+                        $ownerColor = $taskOwner?->role?->color ?? '#6366f1';
+                        $r = hexdec(substr($ownerColor, 1, 2));
+                        $g = hexdec(substr($ownerColor, 3, 2));
+                        $b = hexdec(substr($ownerColor, 5, 2));
+                    @endphp
+                    <div class="p-4 rounded-lg border-2"
+                         style="{{ $task->is_complete 
+                             ? 'border-color: rgb(34 197 94); background-color: rgb(34 197 94 / 0.1);' 
+                             : 'border-color: ' . $ownerColor . '; background-color: rgba(' . $r . ', ' . $g . ', ' . $b . ', 0.1);' }}">
                         <div class="flex items-start justify-between gap-2">
                             <div class="flex-1">
                                 <div class="flex items-center gap-2 mb-1">
@@ -403,8 +458,8 @@
                             </div>
                             @if ($isAdmin || $task->users->where('id', auth()->id())->first()?->pivot?->is_owner)
                                 <div class="flex items-center gap-1 shrink-0">
-                                    <flux:button size="sm" variant="ghost" wire:click="openEditModal({{ $task->id }})" icon="pencil-square" />
-                                    <flux:button size="sm" variant="ghost" wire:click="confirmDelete({{ $task->id }})" icon="trash" class="!text-red-500 hover:!text-red-700" />
+                                    <x-flux.button size="sm" variant="ghost" wire:click="openEditModal({{ $task->id }})" icon="pencil-square" />
+                                    <x-flux.button size="sm" variant="ghost" wire:click="confirmDelete({{ $task->id }})" icon="trash" class="!text-red-500 hover:!text-red-700" />
                                 </div>
                             @endif
                         </div>
@@ -414,9 +469,9 @@
                                     ✓ {{ __('Completed') }}
                                 </span>
                             @elseif ($isAdmin || $task->users->contains('id', auth()->id()))
-                                <flux:button size="sm" variant="primary" wire:click="markComplete({{ $task->id }})" icon="check">
+                                <x-flux.button size="sm" variant="primary" wire:click="markComplete({{ $task->id }})" icon="check">
                                     {{ __('Mark Complete') }}
-                                </flux:button>
+                                </x-flux.button>
                             @endif
                         </div>
                     </div>
@@ -481,30 +536,24 @@
 
     {{-- Day Details Modal --}}
     @if ($selectedDay && $dayDetails)
-        <div
-            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-            wire:click.self="closeDay"
-            x-data="{
-                init() { document.body.style.overflow = 'hidden' },
-                destroy() { document.body.style.overflow = '' }
-            }"
-            @keydown.escape.window="$wire.closeDay()"
+        <x-ui.detail-modal
+            :show="true"
+            :title="\Carbon\Carbon::parse($selectedDay)->format('l, j F Y')"
+            maxWidth="max-w-3xl"
+            closeAction="closeDay"
+            escapeAction="$wire.closeDay()"
+            :lockBodyScroll="true"
+            panelClass="rounded-2xl shadow-2xl max-h-[80vh]"
+            titleClass="text-xl font-bold text-neutral-900 dark:text-neutral-100"
+            headerClass="z-10"
         >
-            <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[80vh] overflow-y-auto">
-                {{-- Modal header --}}
-                <div class="sticky top-0 bg-white dark:bg-zinc-800 border-b border-neutral-200 dark:border-neutral-700 p-6 flex items-center justify-between z-10">
-                    <h3 class="text-xl font-bold text-neutral-900 dark:text-neutral-100">
-                        {{ \Carbon\Carbon::parse($selectedDay)->format('l, j F Y') }}
-                    </h3>
-                    <div class="flex items-center gap-2">
-                        <flux:button size="sm" variant="primary" wire:click="openCreateModal('{{ $selectedDay }}')" icon="plus">
-                            {{ __('Add Task') }}
-                        </flux:button>
-                        <flux:button variant="ghost" size="sm" wire:click="closeDay" icon="x-mark" />
-                    </div>
-                </div>
+            <x-slot:headerActions>
+                <x-flux.button size="sm" variant="primary" wire:click="openCreateModal('{{ $selectedDay }}')" icon="plus">
+                    {{ __('Add Task') }}
+                </x-flux.button>
+            </x-slot:headerActions>
 
-                <div class="p-6 space-y-6">
+            <div class="space-y-6">
                     {{-- Trips --}}
                     @if (! empty($dayDetails['trips']))
                         <div>
@@ -538,14 +587,24 @@
                             <h4 class="font-bold text-neutral-900 dark:text-neutral-100 mb-3">✓ {{ __('Tasks') }}</h4>
                             <div class="space-y-3">
                                 @foreach ($dayDetails['tasks'] as $task)
-                                    <div class="p-4 rounded-lg border-2 {{ $task->is_complete ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700' : 'border-blue-300 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-700' }}">
+                                    @php
+                                        $taskOwner = $task->users->firstWhere('pivot.is_owner', true);
+                                        $ownerColor = $taskOwner?->role?->color ?? '#6366f1';
+                                        $r = hexdec(substr($ownerColor, 1, 2));
+                                        $g = hexdec(substr($ownerColor, 3, 2));
+                                        $b = hexdec(substr($ownerColor, 5, 2));
+                                    @endphp
+                                    <div class="p-4 rounded-lg border-2"
+                                         style="{{ $task->is_complete 
+                                             ? 'border-color: rgb(34 197 94); background-color: rgb(34 197 94 / 0.1);' 
+                                             : 'border-color: ' . $ownerColor . '; background-color: rgba(' . $r . ', ' . $g . ', ' . $b . ', 0.1);' }}">
                                         <div class="flex items-start justify-between gap-2">
                                             <div class="flex-1">
                                                 <div class="flex items-center gap-2 mb-1">
                                                     <span class="font-semibold text-lg text-neutral-900 dark:text-neutral-100">{{ $task->title }}</span>
                                                 </div>
                                                 <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-2">
-                                                    🕐 {{ $task->start_date->format('j M Y, H:i') }}@if($task->end_date) – {{ $task->end_date->format('j M Y, H:i') }}@endif
+                                                    � {{ $task->start_date->format('j M Y, H:i') }}@if($task->end_date) – {{ $task->end_date->format('j M Y, H:i') }}@endif
                                                 </div>
                                                 @if ($task->description)
                                                     <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{{ $task->description }}</p>
@@ -571,8 +630,8 @@
                                             </div>
                                             @if ($isAdmin || $task->users->where('id', auth()->id())->first()?->pivot?->is_owner)
                                                 <div class="flex items-center gap-1 shrink-0">
-                                                    <flux:button size="sm" variant="ghost" wire:click="openEditModal({{ $task->id }})" icon="pencil-square" />
-                                                    <flux:button size="sm" variant="ghost" wire:click="confirmDelete({{ $task->id }})" icon="trash" class="!text-red-500 hover:!text-red-700" />
+                                                    <x-flux.button size="sm" variant="ghost" wire:click="openEditModal({{ $task->id }})" icon="pencil-square" />
+                                                    <x-flux.button size="sm" variant="ghost" wire:click="confirmDelete({{ $task->id }})" icon="trash" class="!text-red-500 hover:!text-red-700" />
                                                 </div>
                                             @endif
                                         </div>
@@ -582,9 +641,9 @@
                                                     ✓ {{ __('Completed') }}
                                                 </span>
                                             @elseif ($isAdmin || $task->users->contains('id', auth()->id()))
-                                                <flux:button size="sm" variant="primary" wire:click="markComplete({{ $task->id }})" icon="check">
+                                                <x-flux.button size="sm" variant="primary" wire:click="markComplete({{ $task->id }})" icon="check">
                                                     {{ __('Mark Complete') }}
-                                                </flux:button>
+                                                </x-flux.button>
                                             @endif
                                         </div>
                                     </div>
@@ -626,9 +685,8 @@
                             {{ __('No activities scheduled for this day.') }}
                         </div>
                     @endif
-                </div>
             </div>
-        </div>
+        </x-ui.detail-modal>
     @endif
 
     {{-- ========== CREATE / EDIT TASK MODAL ========== --}}
@@ -651,6 +709,275 @@
     {{-- ========== DELETE CONFIRMATION MODAL ========== --}}
     @if (!empty($showDeleteModal))
         <x-task-delete-modal />
+    @endif
+
+    {{-- ========== PRINT MODAL ========== --}}
+    @if ($showPrintModal)
+        <div
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+            wire:click.self="closePrintModal"
+            x-data="{
+                init() { document.body.style.overflow = 'hidden' },
+                destroy() { document.body.style.overflow = '' },
+                doPrint() {
+                    const el = document.getElementById('printArea');
+                    if (!el) return;
+                    const css = `
+                        @page { size: landscape; margin: 1.5cm 1cm; }
+                        * { box-sizing: border-box; margin: 0; padding: 0; }
+                        body { font-family: Arial, sans-serif; font-size: 10pt; color: #111; background: white; }
+                        h2 { font-size: 16pt; font-weight: 700; margin-bottom: 4px; }
+                        p { font-size: 9pt; color: #555; margin-bottom: 16px; }
+                        div { background: white !important; border: none !important; border-radius: 0 !important; padding: 0 !important; }
+                        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+                        thead { display: table-header-group; }
+                        th:nth-child(1), td:nth-child(1) { width: 8%; }
+                        th:nth-child(2), td:nth-child(2) { width: 8%; }
+                        th:nth-child(3), td:nth-child(3) { width: 20%; }
+                        th:nth-child(4), td:nth-child(4) { width: 9%; }
+                        th:nth-child(5), td:nth-child(5) { width: 7%; }
+                        th:nth-child(6), td:nth-child(6) { width: 10%; }
+                        th:nth-child(7), td:nth-child(7) { width: 14%; }
+                        th:nth-child(8), td:nth-child(8) { width: 10%; }
+                        th:nth-child(9), td:nth-child(9) { width: 7%; }
+                        th { font-size: 8pt; font-weight: 700; text-align: left; padding: 5px 6px; background: #f9fafb !important; border-bottom: 2px solid #d1d5db !important; color: #111 !important; }
+                        td { font-size: 8pt; padding: 5px 6px; border-bottom: 1px solid #e5e7eb !important; vertical-align: top; word-wrap: break-word; color: #111 !important; background: white !important; }
+                        tr { page-break-inside: avoid; }
+                        span { display: inline-flex; align-items: center; padding: 2px 6px; border-radius: 9999px; font-size: 7pt; font-weight: 600; }
+                        .bg-green-100 { background: #dcfce7 !important; color: #166534 !important; }
+                        .bg-neutral-100 { background: #f3f4f6 !important; color: #374151 !important; }
+                    `;
+                    const win = window.open('', '_blank', 'width=1200,height=900');
+                    if (!win) { alert('Lütfen tarayıcınızda pop-up izni verin.'); return; }
+                    win.document.write('<html><head><meta charset=utf-8><title>Schedule</title><style>' + css + '</style></head><body>' + el.innerHTML + '</body></html>');
+                    win.document.close();
+                    win.focus();
+                    setTimeout(() => { win.print(); win.close(); }, 500);
+                }
+            }"
+            @keydown.escape.window="$wire.closePrintModal()"
+        >
+            <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                {{-- Modal header --}}
+                <div class="sticky top-0 bg-white dark:bg-zinc-800 border-b border-neutral-200 dark:border-neutral-700 p-6 flex items-center justify-between z-10">
+                    <h3 class="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+                        {{ __('Print Schedule') }}
+                    </h3>
+                    <flux:button variant="ghost" size="sm" wire:click="closePrintModal" icon="x-mark" />
+                </div>
+
+                <div class="p-6">
+                    {{-- Print Options --}}
+                    <div class="mb-6 space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-2">
+                                {{ __('Scope') }}
+                            </label>
+                            <div class="inline-flex rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden">
+                                <button
+                                    wire:click="setPrintScope('allTasks')"
+                                    class="px-4 py-2 text-sm font-medium transition-colors
+                                        {{ $printScope === 'allTasks'
+                                            ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                                            : 'bg-white text-neutral-700 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-300 dark:hover:bg-zinc-700' }}"
+                                >
+                                    {{ __('All Tasks') }}
+                                </button>
+                                <button
+                                    wire:click="setPrintScope('myTasks')"
+                                    class="px-4 py-2 text-sm font-medium transition-colors border-l border-neutral-200 dark:border-neutral-700
+                                        {{ $printScope === 'myTasks'
+                                            ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                                            : 'bg-white text-neutral-700 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-300 dark:hover:bg-zinc-700' }}"
+                                >
+                                    {{ __('My Tasks') }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-2">
+                                {{ __('Period') }}
+                            </label>
+                            <div class="flex flex-wrap items-center gap-3">
+                                <div class="inline-flex rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden">
+                                    <button
+                                        wire:click="setPrintPeriod('daily')"
+                                        class="px-4 py-2 text-sm font-medium transition-colors
+                                            {{ $printPeriod === 'daily'
+                                                ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                                                : 'bg-white text-neutral-700 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-300 dark:hover:bg-zinc-700' }}"
+                                    >
+                                        {{ __('Daily') }}
+                                    </button>
+                                    <button
+                                        wire:click="setPrintPeriod('weekly')"
+                                        class="px-4 py-2 text-sm font-medium transition-colors border-l border-neutral-200 dark:border-neutral-700
+                                            {{ $printPeriod === 'weekly'
+                                                ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                                                : 'bg-white text-neutral-700 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-300 dark:hover:bg-zinc-700' }}"
+                                    >
+                                        {{ __('Weekly') }}
+                                    </button>
+                                    <button
+                                        wire:click="setPrintPeriod('monthly')"
+                                        class="px-4 py-2 text-sm font-medium transition-colors border-l border-neutral-200 dark:border-neutral-700
+                                            {{ $printPeriod === 'monthly'
+                                                ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                                                : 'bg-white text-neutral-700 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-300 dark:hover:bg-zinc-700' }}"
+                                    >
+                                        {{ __('Monthly') }}
+                                    </button>
+                                    <button
+                                        wire:click="setPrintPeriod('custom')"
+                                        class="px-4 py-2 text-sm font-medium transition-colors border-l border-neutral-200 dark:border-neutral-700
+                                            {{ $printPeriod === 'custom'
+                                                ? 'bg-indigo-600 text-white dark:bg-indigo-500'
+                                                : 'bg-white text-neutral-700 hover:bg-neutral-50 dark:bg-zinc-800 dark:text-neutral-300 dark:hover:bg-zinc-700' }}"
+                                    >
+                                        {{ __('Custom') }}
+                                    </button>
+                                </div>
+
+                                {{-- Custom date range pickers --}}
+                                @if ($printPeriod === 'custom')
+                                    <div class="flex items-center gap-2">
+                                        <input
+                                            type="date"
+                                            wire:model.live="printCustomStart"
+                                            class="px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-zinc-800 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                        >
+                                        <span class="text-neutral-400 dark:text-neutral-500 text-sm font-medium">→</span>
+                                        <input
+                                            type="date"
+                                            wire:model.live="printCustomEnd"
+                                            class="px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-zinc-800 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                        >
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Custom range warning --}}
+                    @if ($printPeriod === 'custom' && (! $printCustomStart || ! $printCustomEnd))
+                        <div class="mb-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 text-sm text-amber-700 dark:text-amber-300">
+                            {{ __('Please select both a start and end date to generate the preview.') }}
+                        </div>
+                    @endif
+
+                    {{-- Print Preview --}}
+                    @if ($printData && $printData['rangeStart'])
+                        <div class="border border-neutral-200 dark:border-neutral-700 rounded-lg p-6 bg-neutral-50 dark:bg-zinc-900" id="printArea">
+                            <div class="mb-6">
+                                <h2 class="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">
+                                    {{ __('Schedule') }}
+                                </h2>
+                                <p class="text-sm text-neutral-600 dark:text-neutral-400">
+                                    {{ $printData['rangeStart']->format('j M Y') }} - {{ $printData['rangeEnd']->format('j M Y') }}
+                                    · {{ $printData['scope'] === 'myTasks' ? __('My Tasks') : __('All Tasks') }}
+                                </p>
+                            </div>
+
+                            @if ($printData['tasks']->isEmpty())
+                                <div class="text-center py-12 text-neutral-500 dark:text-neutral-400">
+                                    {{ __('No tasks found for the selected period.') }}
+                                </div>
+                            @else
+                                <div class="overflow-x-auto">
+                                    <table class="w-full border-collapse text-xs">
+                                        <thead>
+                                            <tr class="border-b-2 border-neutral-300 dark:border-neutral-600">
+                                                <th class="text-left py-2 px-1.5 text-[10px] font-bold text-neutral-900 dark:text-neutral-100">{{ __('Date') }}</th>
+                                                <th class="text-left py-2 px-1.5 text-[10px] font-bold text-neutral-900 dark:text-neutral-100">{{ __('Time') }}</th>
+                                                <th class="text-left py-2 px-1.5 text-[10px] font-bold text-neutral-900 dark:text-neutral-100">{{ __('Task') }}</th>
+                                                <th class="text-left py-2 px-1.5 text-[10px] font-bold text-neutral-900 dark:text-neutral-100">{{ __('Category') }}</th>
+                                                <th class="text-left py-2 px-1.5 text-[10px] font-bold text-neutral-900 dark:text-neutral-100">{{ __('Priority') }}</th>
+                                                <th class="text-left py-2 px-1.5 text-[10px] font-bold text-neutral-900 dark:text-neutral-100">{{ __('Owner') }}</th>
+                                                <th class="text-left py-2 px-1.5 text-[10px] font-bold text-neutral-900 dark:text-neutral-100">{{ __('Assigned To') }}</th>
+                                                <th class="text-left py-2 px-1.5 text-[10px] font-bold text-neutral-900 dark:text-neutral-100">{{ __('Location') }}</th>
+                                                <th class="text-left py-2 px-1.5 text-[10px] font-bold text-neutral-900 dark:text-neutral-100">{{ __('Status') }}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($printData['tasks'] as $task)
+                                                @php
+                                                    $taskOwner = $task->users->firstWhere('pivot.is_owner', true);
+                                                @endphp
+                                                <tr class="border-b border-neutral-200 dark:border-neutral-700">
+                                                    <td class="py-1.5 px-1.5 text-[10px] text-neutral-900 dark:text-neutral-100 whitespace-nowrap">
+                                                        {{ $task->start_date->format('j M Y') }}
+                                                    </td>
+                                                    <td class="py-1.5 px-1.5 text-[10px] text-neutral-900 dark:text-neutral-100 whitespace-nowrap">
+                                                        {{ $task->start_date->format('H:i') }}@if($task->end_date)-{{ $task->end_date->format('H:i') }}@endif
+                                                    </td>
+                                                    <td class="py-1.5 px-1.5 text-[10px] text-neutral-900 dark:text-neutral-100">
+                                                        <div class="font-semibold">{{ $task->title }}</div>
+                                                        @if ($task->description)
+                                                            <div class="text-[9px] text-neutral-600 dark:text-neutral-400 mt-0.5">{{ Str::limit($task->description, 50) }}</div>
+                                                        @endif
+                                                    </td>
+                                                    <td class="py-1.5 px-1.5 text-[10px] text-neutral-700 dark:text-neutral-300 whitespace-nowrap">
+                                                        {{ $task->taskCategory?->name ?? '-' }}
+                                                    </td>
+                                                    <td class="py-1.5 px-1.5 text-[10px] text-neutral-700 dark:text-neutral-300 whitespace-nowrap">
+                                                        {{ $task->taskPriority?->name ?? '-' }}
+                                                    </td>
+                                                    <td class="py-1.5 px-1.5 text-[10px] text-neutral-700 dark:text-neutral-300 whitespace-nowrap">
+                                                        {{ $taskOwner?->name ?? '-' }}
+                                                    </td>
+                                                    <td class="py-1.5 px-1.5 text-[10px] text-neutral-700 dark:text-neutral-300">
+                                                        @foreach ($task->users as $index => $user)
+                                                            {{ $user->name }}@if(!$loop->last),@endif<br>
+                                                        @endforeach
+                                                    </td>
+                                                    <td class="py-1.5 px-1.5 text-[10px] text-neutral-700 dark:text-neutral-300">
+                                                        @if($task->locations->isNotEmpty())
+                                                            @foreach ($task->locations as $location)
+                                                                {{ $location->name }}@if(!$loop->last),@endif<br>
+                                                            @endforeach
+                                                        @else
+                                                            -
+                                                        @endif
+                                                    </td>
+                                                    <td class="py-1.5 px-1.5 text-[10px] whitespace-nowrap">
+                                                        @if ($task->is_complete)
+                                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300">
+                                                                ✓ {{ __('Done') }}
+                                                            </span>
+                                                        @else
+                                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-neutral-100 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-300">
+                                                                {{ __('Pending') }}
+                                                            </span>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="mt-4 text-xs text-neutral-600 dark:text-neutral-400">
+                                    {{ __('Total Tasks:') }} {{ $printData['tasks']->count() }}
+                                    · {{ __('Completed:') }} {{ $printData['tasks']->where('is_complete', true)->count() }}
+                                    · {{ __('Pending:') }} {{ $printData['tasks']->where('is_complete', false)->count() }}
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+
+                    {{-- Action Buttons --}}
+                    <div class="flex justify-end gap-3 mt-6">
+                        <flux:button variant="ghost" wire:click="closePrintModal">
+                            {{ __('Cancel') }}
+                        </flux:button>
+                        <flux:button variant="primary" icon="printer" x-on:click="doPrint()">
+                            {{ __('Print') }}
+                        </flux:button>
+                    </div>
+                </div>
+            </div>
+        </div>
     @endif
 </div>
 

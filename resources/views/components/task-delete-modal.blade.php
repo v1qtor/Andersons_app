@@ -15,12 +15,12 @@
                 {{ __('Are you sure you want to delete this task? This action cannot be undone.') }}
             </p>
             <div class="flex justify-center gap-3">
-                <flux:button variant="ghost" wire:click="$set('showDeleteModal', false)">
+                <x-flux.button variant="ghost" wire:click="$set('showDeleteModal', false)">
                     {{ __('Cancel') }}
-                </flux:button>
-                <flux:button variant="danger" wire:click="deleteTask">
+                </x-flux.button>
+                <x-flux.button variant="danger" wire:click="deleteTask">
                     {{ __('Delete') }}
-                </flux:button>
+                </x-flux.button>
             </div>
         </div>
     </div>

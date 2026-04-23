@@ -16,7 +16,9 @@ class Settings extends Component
     public string $name = '';
     public string $email = '';
     public string $phone_number = '';
+    public string $address = '';
     public string $iban = '';
+    public bool $showIban = false;
 
     public string $newAllergy = '';
     public string $newPreference = '';
@@ -27,7 +29,8 @@ class Settings extends Component
 
     public array $notifications = [
         'tripDelayAlerts' => ['email' => true, 'popup' => true],
-        'taskReminders' => ['email' => false, 'popup' => true],
+        'taskAssignments' => ['email' => false, 'popup' => true],
+        'collaborationRequests' => ['email' => true, 'popup' => true],
         'receiptApprovals' => ['email' => true, 'popup' => false],
         'dinnerSignups' => ['email' => true, 'popup' => true],
     ];
@@ -42,6 +45,7 @@ class Settings extends Component
         $this->name = $user->name;
         $this->email = $user->email;
         $this->phone_number = $user->phone_number ?? '';
+        $this->address = $user->address ?? '';
         $this->iban = $user->iban ?? '';
 
         // Load notification settings from database
@@ -53,7 +57,8 @@ class Settings extends Component
             // Parse stored notification settings
             $category = match ($typeId) {
                 1 => 'tripDelayAlerts',
-                2 => 'taskReminders',
+                2 => 'taskAssignments',
+                5 => 'collaborationRequests',
                 3 => 'receiptApprovals',
                 4 => 'dinnerSignups',
                 default => null
@@ -81,6 +86,7 @@ class Settings extends Component
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . Auth::id(),
             'phone_number' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500',
             'iban' => 'nullable|string|max:50',
         ]);
 
@@ -89,10 +95,19 @@ class Settings extends Component
             'name' => $this->name,
             'email' => $this->email,
             'phone_number' => $this->phone_number,
+            'address' => $this->address,
             'iban' => $this->iban,
         ]);
 
-        $this->dispatch('toast', message: 'Personal information updated successfully!', type: 'success');
+        session()->flash('status', 'Personal information updated successfully!');
+    }
+
+    /**
+     * Toggle IBAN visibility.
+     */
+    public function toggleShowIban(): void
+    {
+        $this->showIban = !$this->showIban;
     }
 
     /**
@@ -108,7 +123,8 @@ class Settings extends Component
         // Get notification type ID based on category
         $notificationTypeId = match ($category) {
             'tripDelayAlerts' => 1,
-            'taskReminders' => 2,
+            'taskAssignments' => 2,
+            'collaborationRequests' => 5,
             'receiptApprovals' => 3,
             'dinnerSignups' => 4,
             default => null
