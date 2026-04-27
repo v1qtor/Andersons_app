@@ -9,6 +9,7 @@ use App\Models\Task;
 use App\Models\TaskCategory;
 use App\Models\TaskPriority;
 use App\Models\Trip;
+use App\Models\UnavailabilityPeriod;
 use App\Models\User;
 use App\Models\UserNotification;
 use Carbon\Carbon;
@@ -940,6 +941,18 @@ class ScheduleCalendar extends Component
                 ->toArray();
         }
 
+        // Unavailable users during the selected task date range
+        $unavailableUserIds = [];
+        if ($this->startDate) {
+            $taskStart = Carbon::parse($this->startDate);
+            $taskEnd   = $this->endDate ? Carbon::parse($this->endDate) : $taskStart->copy()->addHour();
+            $unavailableUserIds = UnavailabilityPeriod::where('start_date', '<', $taskEnd)
+                ->where('end_date', '>', $taskStart)
+                ->pluck('user_id')
+                ->unique()
+                ->toArray();
+        }
+
         // Print data
         $printData = $this->showPrintModal ? $this->getPrintData() : null;
 
@@ -961,6 +974,7 @@ class ScheduleCalendar extends Component
             'isAdmin' => $this->isAdmin(),
             'pendingIncomingRequests' => $pendingIncomingRequests,
             'pendingOutgoingUserIds' => $pendingOutgoingUserIds,
+            'unavailableUserIds' => $unavailableUserIds,
             'printData' => $printData,
         ]);
     }
