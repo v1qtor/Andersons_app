@@ -7,11 +7,14 @@ use App\Models\UserNotification;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithPagination;
 use Illuminate\Auth\Access\AuthorizationException;
 
 #[Layout('components.layouts.app')]
 class Invoices extends Component
 {
+    use WithPagination;
+
     public string $filterStatus = '';
     public string $filterDate = '';
     public string $searchName = '';
@@ -28,6 +31,21 @@ class Invoices extends Component
         if (!$user || !$user->role || !in_array($user->role->name, $allowedRoles)) {
             abort(403, __('Unauthorized. Staff access required.'));
         }
+    }
+
+    public function updated_filterStatus()
+    {
+        $this->resetPage();
+    }
+
+    public function updated_filterDate()
+    {
+        $this->resetPage();
+    }
+
+    public function updated_searchName()
+    {
+        $this->resetPage();
     }
 
     public function isAdmin()
@@ -60,7 +78,7 @@ class Invoices extends Component
             });
         }
 
-        return $query->orderBy('created_at', 'desc')->get();
+        return $query->orderBy('created_at', 'desc')->paginate(10);
     }
 
     public function viewInvoice(Receipt $invoice)
@@ -149,8 +167,8 @@ class Invoices extends Component
 
         $invoice->update(['is_paid' => true, 'paid_date' => now()]);
 
-        // Notify the invoice creator (staff member who submitted it)
-        if ($invoice->user) {
+        // Notify the invoice creator (staff member who submitted it) - check preference first
+        if ($invoice->user && $this->userHasInvoiceNotificationsEnabled($invoice->user)) {
             $admin = Auth::user();
             $notification = UserNotification::create([
                 'user_id' => $invoice->user->id,
@@ -166,6 +184,27 @@ class Invoices extends Component
 
         session()->flash('message', 'Invoice marked as paid successfully.');
         $this->updateStatusInvoiceId = null;
+    }
+
+    /**
+     * Check if user has invoice notifications (popup) enabled
+     */
+    private function userHasInvoiceNotificationsEnabled($user): bool
+    {
+        $setting = $user->notificationSettings()
+            ->where('notification_type_id', 3) // receiptApprovals = id 3
+            ->first();
+
+        if (!$setting) {
+            return true; // Default to enabled if not set
+        }
+
+        try {
+            $preferences = json_decode($setting->pivot->value, true);
+            return $preferences['popup'] ?? true;
+        } catch (\Exception $e) {
+            return true; // Default to enabled if decode fails
+        }
     }
 
     public function closeDeleteModal()
@@ -185,12 +224,51 @@ class Invoices extends Component
         $this->filterStatus = '';
         $this->filterDate = '';
         $this->searchName = '';
+        $this->resetPage();
+    }
+
+    /**
+     * Get total invoice counts for summary cards
+     */
+    private function getInvoiceTotals()
+    {
+        $user = Auth::user();
+        $isAdmin = $this->isAdmin();
+
+        $query = $isAdmin 
+            ? Receipt::query()
+            : Receipt::where('user_id', $user->id);
+
+        if ($this->filterStatus) {
+            $query->where('is_paid', $this->filterStatus === 'paid');
+        }
+
+        if ($this->filterDate) {
+            $query->whereDate('bill_date', $this->filterDate);
+        }
+
+        if ($isAdmin && $this->searchName) {
+            $query->whereHas('user', function ($q) {
+                $q->where('name', 'like', '%' . $this->searchName . '%');
+            });
+        }
+
+        $totalCount = $query->count();
+        $pendingCount = $query->where('is_paid', false)->count();
+        $pendingTotal = $query->where('is_paid', false)->sum('amount');
+
+        return [
+            'total' => $totalCount,
+            'pending' => $pendingCount,
+            'pendingAmount' => $pendingTotal,
+        ];
     }
 
     public function render()
     {
         $user = Auth::user();
         $invoices = $this->getInvoices();
+        $totals = $this->getInvoiceTotals();
         $viewInvoice = $this->viewInvoiceId ? Receipt::find($this->viewInvoiceId) : null;
         
         // Calculate this month's paid total
@@ -214,6 +292,7 @@ class Invoices extends Component
             'viewInvoice' => $viewInvoice,
             'isAdmin' => $isAdmin,
             'thisMonthPaidTotal' => $thisMonthPaidTotal,
+            'totals' => $totals,
         ]);
     }
 }

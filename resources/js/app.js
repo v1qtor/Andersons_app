@@ -63,8 +63,6 @@ window.notificationBell = function() {
         },
 
         async clearAll() {
-            if (!confirm('Clear all notifications?')) return;
-
             this.notifications = [];
             this.unreadCount = 0;
 
@@ -165,8 +163,6 @@ window.desktopNotificationBell = function() {
         },
 
         async clearAll() {
-            if (!confirm('Clear all notifications?')) return;
-
             this.notifications = [];
             this.unreadCount = 0;
 
