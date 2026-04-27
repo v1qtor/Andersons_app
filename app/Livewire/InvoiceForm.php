@@ -132,8 +132,8 @@ class InvoiceForm extends Component
                 'file_path' => $receiptFilePath ?? $this->invoice->file_path,
             ]);
 
-            // Notify invoice owner if admin makes changes
-            if ($isAdmin && $this->invoice->user_id !== $user->id) {
+            // Notify invoice owner if admin makes changes - check preference first
+            if ($isAdmin && $this->invoice->user_id !== $user->id && $this->userHasInvoiceNotificationsEnabled($this->invoice->user)) {
                 $notification = UserNotification::create([
                     'user_id' => $this->invoice->user_id,
                     'from_user_id' => $user->id,
@@ -178,5 +178,26 @@ class InvoiceForm extends Component
         return view('livewire.invoice-form', [
             'categories' => Category::whereNotIn('name', ['Other', 'other'])->get(),
         ]);
+    }
+
+    /**
+     * Check if user has invoice notifications (popup) enabled
+     */
+    private function userHasInvoiceNotificationsEnabled($user): bool
+    {
+        $setting = $user->notificationSettings()
+            ->where('notification_type_id', 3) // receiptApprovals = id 3
+            ->first();
+
+        if (!$setting) {
+            return true; // Default to enabled if not set
+        }
+
+        try {
+            $preferences = json_decode($setting->pivot->value, true);
+            return $preferences['popup'] ?? true;
+        } catch (\Exception $e) {
+            return true; // Default to enabled if decode fails
+        }
     }
 }

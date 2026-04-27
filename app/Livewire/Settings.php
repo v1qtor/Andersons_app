@@ -32,7 +32,7 @@ class Settings extends Component
         'taskAssignments' => ['email' => false, 'popup' => true],
         'collaborationRequests' => ['email' => true, 'popup' => true],
         'receiptApprovals' => ['email' => true, 'popup' => false],
-        'dinnerSignups' => ['email' => true, 'popup' => true],
+        'mealNotifications' => ['email' => true, 'popup' => true],
     ];
 
     /**
@@ -60,7 +60,7 @@ class Settings extends Component
                 2 => 'taskAssignments',
                 5 => 'collaborationRequests',
                 3 => 'receiptApprovals',
-                4 => 'dinnerSignups',
+                4 => 'mealNotifications',
                 default => null
             };
 

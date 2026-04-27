@@ -73,7 +73,7 @@ class AddMealModal extends Component
         
         if (!$isChef) {
             $chef = User::whereHas('role', fn ($q) => $q->where('name', 'Chef'))->first();
-            if ($chef) {
+            if ($chef && $this->userHasMealNotificationsEnabled($chef)) {
                 $notification = UserNotification::create([
                     'user_id' => $chef->id,
                     'from_user_id' => $currentUser->id,
@@ -90,16 +90,19 @@ class AddMealModal extends Component
         // Notify all invitees
         if (!empty($this->invitees)) {
             foreach ($this->invitees as $inviteeId) {
-                $notification = UserNotification::create([
-                    'user_id' => $inviteeId,
-                    'from_user_id' => $currentUser->id,
-                    'title' => 'You\'re Invited to a Meal',
-                    'message' => 'You\'ve been invited to ' . $meal->name . ' on ' . $plannedMeal->date_time->format('M d, H:i'),
-                    'type' => 'meal_assignment',
-                    'action_url' => '/meals',
-                ]);
+                $invitee = User::find($inviteeId);
+                if ($invitee && $this->userHasMealNotificationsEnabled($invitee)) {
+                    $notification = UserNotification::create([
+                        'user_id' => $inviteeId,
+                        'from_user_id' => $currentUser->id,
+                        'title' => 'You\'re Invited to a Meal',
+                        'message' => 'You\'ve been invited to ' . $meal->name . ' on ' . $plannedMeal->date_time->format('M d, H:i'),
+                        'type' => 'meal_assignment',
+                        'action_url' => '/meals',
+                    ]);
 
-                broadcast(new \App\Events\NotificationCreated($notification));
+                    broadcast(new \App\Events\NotificationCreated($notification));
+                }
             }
         }
 
@@ -116,5 +119,26 @@ class AddMealModal extends Component
                 ->orderBy('name')
                 ->get(),
         ]);
+    }
+
+    /**
+     * Check if user has meal notifications (popup) enabled
+     */
+    private function userHasMealNotificationsEnabled(User $user): bool
+    {
+        $setting = $user->notificationSettings()
+            ->where('notification_type_id', 4) // mealNotifications = id 4
+            ->first();
+
+        if (!$setting) {
+            return true; // Default to enabled if not set
+        }
+
+        try {
+            $preferences = json_decode($setting->pivot->value, true);
+            return $preferences['popup'] ?? true;
+        } catch (\Exception $e) {
+            return true; // Default to enabled if decode fails
+        }
     }
 }
