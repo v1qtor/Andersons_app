@@ -10,15 +10,10 @@ use App\Livewire\Meals\MealPlanning;
 use App\Livewire\Meals\MealSchedule;
 use App\Livewire\Schedule;
 use App\Livewire\Settings;
+use App\Livewire\Unavailability;
 use App\Livewire\Dashboard;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
-use App\Http\Controllers\Admin\AdminAvailabilityController;
-
-use App\Http\Controllers\UnavailabilityController;
-
-use App\Livewire\Unavailability\UnavailabilityCalendar;
-use App\Livewire\Admin\StaffAvailabilityCalendar;
 
 Route::redirect('/', '/login');
 
@@ -27,8 +22,6 @@ Route::get('dashboard', Dashboard::class)
     ->name('dashboard');
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('unavailability', UnavailabilityCalendar::class)->name('unavailability.index');
-
     Route::redirect('settings', 'settings/profile');
     Route::get('schedule', Schedule::class)->name('schedule');
 
@@ -59,12 +52,16 @@ Route::middleware(['auth'])->group(function () {
         Route::get('admin/users/create', UserCreate::class)->name('admin.users.create');
         Route::get('admin/users/{user}/edit', UserEdit::class)->name('admin.users.edit');
         Route::get('admin/meals', MealPlanning::class)->name('admin.meals.index');
-        Route::get('admin/staff-availability', StaffAvailabilityCalendar::class)->name('admin.staff-availability');
     });
 
     // Chef Management
     Route::middleware(['chef'])->group(function () {
         Route::get('chef/meals', MealPlanning::class)->name('chef.meals.index');
+    });
+
+    // Unavailabilities
+    Route::middleware(['unavailability'])->group(function () {
+        Route::get('unavailabilities', Unavailability::class)->name('unavailabilities');
     });
 
     // Meal Schedule (Family Member, The Andersons, Staff — and any authenticated user)
