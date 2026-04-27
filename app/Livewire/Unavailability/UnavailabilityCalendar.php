@@ -14,7 +14,9 @@ class UnavailabilityCalendar extends Component
     public $editingId = null;
 
     public $startDate = '';
+    public $startTime = '00:00';
     public $endDate = '';
+    public $endTime = '23:59';
     public $description = '';
 
     public function mount()
@@ -59,9 +61,11 @@ class UnavailabilityCalendar extends Component
 
     public function openCreate($date = null)
     {
-        $this->reset(['editingId', 'startDate', 'endDate', 'description']);
+        $this->reset(['editingId', 'startDate', 'startTime', 'endDate', 'endTime', 'description']);
         $this->startDate = $date ?? '';
+        $this->startTime = '00:00';
         $this->endDate   = $date ?? '';
+        $this->endTime   = '23:59';
         $this->showModal = true;
     }
 
@@ -75,7 +79,9 @@ class UnavailabilityCalendar extends Component
 
         $this->editingId   = $period->id;
         $this->startDate   = $period->start_date->format('Y-m-d');
+        $this->startTime   = $period->start_date->format('H:i');
         $this->endDate     = $period->end_date->format('Y-m-d');
+        $this->endTime     = $period->end_date->format('H:i');
         $this->description = $period->description ?? '';
         $this->showModal   = true;
     }
@@ -84,9 +90,14 @@ class UnavailabilityCalendar extends Component
     {
         $this->validate([
             'startDate'   => 'required|date',
+            'startTime'   => 'required',
             'endDate'     => 'required|date|after_or_equal:startDate',
+            'endTime'     => 'required',
             'description' => 'nullable|string|max:255',
         ]);
+
+        $startDateTime = $this->startDate . ' ' . $this->startTime . ':00';
+        $endDateTime   = $this->endDate . ' ' . $this->endTime . ':00';
 
         if ($this->editingId) {
             $period = UnavailabilityPeriod::findOrFail($this->editingId);
@@ -96,25 +107,29 @@ class UnavailabilityCalendar extends Component
             }
 
             $period->update([
-                'start_date'  => $this->startDate,
-                'end_date'    => $this->endDate,
+                'start_date'  => $startDateTime,
+                'end_date'    => $endDateTime,
                 'description' => $this->description,
             ]);
-
-            session()->flash('success', 'Period updated.');
         } else {
             UnavailabilityPeriod::create([
                 'user_id'     => Auth::id(),
-                'start_date'  => $this->startDate,
-                'end_date'    => $this->endDate,
+                'start_date'  => $startDateTime,
+                'end_date'    => $endDateTime,
                 'description' => $this->description,
             ]);
-
-            session()->flash('success', 'Period added.');
         }
 
+        $isEditing = (bool) $this->editingId;
+
         $this->showModal = false;
-        $this->reset(['editingId', 'startDate', 'endDate', 'description']);
+        $this->reset(['editingId', 'startDate', 'startTime', 'endDate', 'endTime', 'description']);
+
+        $this->dispatch('toast',
+            title: $isEditing ? 'Period Updated' : 'Period Added',
+            message: $isEditing ? 'Your unavailability period has been updated.' : 'Your unavailability period has been added.',
+            type: 'success'
+        );
     }
 
     public function delete($id)
@@ -126,7 +141,11 @@ class UnavailabilityCalendar extends Component
         }
 
         $period->delete();
-        session()->flash('success', 'Period removed.');
+        $this->dispatch('toast',
+            title: 'Period Removed',
+            message: 'The unavailability period has been removed.',
+            type: 'success'
+        );
     }
 
     public function getPeriodForDate($date)

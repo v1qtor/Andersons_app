@@ -1,5 +1,4 @@
-
-    <div class="p-6">
+<div class="p-6">
         {{-- Header --}}
         <div class="flex items-center justify-between mb-6">
             <h1 class="text-2xl font-bold text-gray-900">My Unavailability</h1>
@@ -8,30 +7,18 @@
             </flux:button>
         </div>
 
-        @if(session('success'))
-            <div class="mb-4 p-3 bg-green-100 text-green-800 rounded-lg">
-                {{ session('success') }}
-            </div>
-        @endif
-
         {{-- Week Navigation --}}
         <div class="flex items-center justify-between mb-4">
-            <flux:button wire:click="previousWeek()" variant="ghost" icon="chevron-left">
-                Previous
-            </flux:button>
+            <flux:button wire:click="previousWeek()" variant="ghost" icon="chevron-left">Previous</flux:button>
             <div class="flex items-center gap-3">
                 <span class="text-lg font-semibold text-gray-900">
                     {{ \Carbon\Carbon::parse($currentWeekStart)->format('d M') }}
                     –
                     {{ \Carbon\Carbon::parse($currentWeekStart)->addDays(6)->format('d M Y') }}
                 </span>
-                <flux:button wire:click="goToCurrentWeek()" variant="ghost" size="sm">
-                    This Week
-                </flux:button>
+                <flux:button wire:click="goToCurrentWeek()" variant="ghost" size="sm">This Week</flux:button>
             </div>
-            <flux:button wire:click="nextWeek()" variant="ghost" icon-trailing="chevron-right">
-                Next
-            </flux:button>
+            <flux:button wire:click="nextWeek()" variant="ghost" icon-trailing="chevron-right">Next</flux:button>
         </div>
 
         {{-- Calendar Table --}}
@@ -64,6 +51,9 @@
                                             @if($period->description)
                                                 <div class="truncate max-w-[90px]">{{ $period->description }}</div>
                                             @endif
+                                            <div class="text-gray-500 mt-1">
+                                                {{ $period->start_date->format('H:i') }} – {{ $period->end_date->format('H:i') }}
+                                            </div>
                                         </div>
                                         <button wire:click="delete({{ $period->id }})"
                                                 wire:confirm="Remove this unavailability period?"
@@ -90,9 +80,11 @@
             <div class="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg mb-2">
                 <div>
                     <span class="font-semibold text-gray-900">
-                        {{ $period->start_date->format('d M Y') }}
+                        {{ $period->start_date->format('d M Y H:i') }}
                         @if($period->start_date->format('Y-m-d') !== $period->end_date->format('Y-m-d'))
-                            → {{ $period->end_date->format('d M Y') }}
+                            → {{ $period->end_date->format('d M Y H:i') }}
+                        @else
+                            – {{ $period->end_date->format('H:i') }}
                         @endif
                     </span>
                     @if($period->description)
@@ -115,17 +107,31 @@
                     {{ $editingId ? 'Edit Period' : 'Add Unavailability Period' }}
                 </flux:heading>
 
-                <flux:field>
-                    <flux:label>Start Date</flux:label>
-                    <flux:input type="date" wire:model="startDate" />
-                    @error('startDate') <flux:error>{{ $message }}</flux:error> @enderror
-                </flux:field>
+                <div class="grid grid-cols-2 gap-3">
+                    <flux:field>
+                        <flux:label>Start Date</flux:label>
+                        <flux:input type="date" wire:model="startDate" />
+                        @error('startDate') <flux:error>{{ $message }}</flux:error> @enderror
+                    </flux:field>
+                    <flux:field>
+                        <flux:label>Start Time</flux:label>
+                        <flux:input type="time" wire:model="startTime" />
+                        @error('startTime') <flux:error>{{ $message }}</flux:error> @enderror
+                    </flux:field>
+                </div>
 
-                <flux:field>
-                    <flux:label>End Date</flux:label>
-                    <flux:input type="date" wire:model="endDate" />
-                    @error('endDate') <flux:error>{{ $message }}</flux:error> @enderror
-                </flux:field>
+                <div class="grid grid-cols-2 gap-3">
+                    <flux:field>
+                        <flux:label>End Date</flux:label>
+                        <flux:input type="date" wire:model="endDate" />
+                        @error('endDate') <flux:error>{{ $message }}</flux:error> @enderror
+                    </flux:field>
+                    <flux:field>
+                        <flux:label>End Time</flux:label>
+                        <flux:input type="time" wire:model="endTime" />
+                        @error('endTime') <flux:error>{{ $message }}</flux:error> @enderror
+                    </flux:field>
+                </div>
 
                 <flux:field>
                     <flux:label>Description (optional)</flux:label>
