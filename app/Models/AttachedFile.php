@@ -4,18 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AttachedFile extends Model
 {
     use HasFactory;
 
     protected $fillable = [
+        'name',
         'file_path',
+        'file_type',
+        'trip_id',
     ];
 
-    public function trips(): HasMany
+    public function trip(): BelongsTo
     {
-        return $this->hasMany(Trip::class);
+        return $this->belongsTo(Trip::class);
     }
 }
