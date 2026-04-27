@@ -16,7 +16,9 @@ class StaffAvailabilityCalendar extends Component
 
     public $selectedUserId = '';
     public $startDate = '';
+    public $startTime = '00:00';
     public $endDate = '';
+    public $endTime = '23:59';
     public $description = '';
 
     public function mount()
@@ -39,10 +41,10 @@ class StaffAvailabilityCalendar extends Component
 
     public function getAllUsersProperty()
     {
-        // All roles except Admin can have unavailability
+        // Include Admin so they can mark their own unavailability too
         return User::with('unavailabilityPeriods')
             ->whereHas('role', fn($q) => $q->whereIn('name', [
-                'Staff', 'Chef', 'Family Member', 'The Andersons'
+                'Admin', 'Staff', 'Chef', 'Family Member', 'The Andersons'
             ]))
             ->get();
     }
@@ -66,9 +68,11 @@ class StaffAvailabilityCalendar extends Component
 
     public function openCreate($date = null, $userId = null)
     {
-        $this->reset(['editingId', 'startDate', 'endDate', 'description', 'selectedUserId']);
+        $this->reset(['editingId', 'startDate', 'startTime', 'endDate', 'endTime', 'description', 'selectedUserId']);
         $this->startDate      = $date ?? '';
+        $this->startTime      = '00:00';
         $this->endDate        = $date ?? '';
+        $this->endTime        = '23:59';
         $this->selectedUserId = $userId ?? '';
         $this->showModal      = true;
     }
@@ -80,7 +84,9 @@ class StaffAvailabilityCalendar extends Component
         $this->editingId      = $period->id;
         $this->selectedUserId = $period->user_id;
         $this->startDate      = $period->start_date->format('Y-m-d');
+        $this->startTime      = $period->start_date->format('H:i');
         $this->endDate        = $period->end_date->format('Y-m-d');
+        $this->endTime        = $period->end_date->format('H:i');
         $this->description    = $period->description ?? '';
         $this->showModal      = true;
     }
@@ -90,35 +96,51 @@ class StaffAvailabilityCalendar extends Component
         $this->validate([
             'selectedUserId' => 'required|exists:users,id',
             'startDate'      => 'required|date',
+            'startTime'      => 'required',
             'endDate'        => 'required|date|after_or_equal:startDate',
+            'endTime'        => 'required',
             'description'    => 'nullable|string|max:255',
         ]);
+
+        $startDateTime = $this->startDate . ' ' . $this->startTime . ':00';
+        $endDateTime   = $this->endDate . ' ' . $this->endTime . ':00';
 
         if ($this->editingId) {
             UnavailabilityPeriod::findOrFail($this->editingId)->update([
                 'user_id'     => $this->selectedUserId,
-                'start_date'  => $this->startDate,
-                'end_date'    => $this->endDate,
+                'start_date'  => $startDateTime,
+                'end_date'    => $endDateTime,
                 'description' => $this->description,
             ]);
         } else {
             UnavailabilityPeriod::create([
                 'user_id'     => $this->selectedUserId,
-                'start_date'  => $this->startDate,
-                'end_date'    => $this->endDate,
+                'start_date'  => $startDateTime,
+                'end_date'    => $endDateTime,
                 'description' => $this->description,
             ]);
         }
 
+        $isEditing = (bool) $this->editingId;
+
         $this->showModal = false;
-        $this->reset(['editingId', 'startDate', 'endDate', 'description', 'selectedUserId']);
-        session()->flash('success', 'Period saved.');
+        $this->reset(['editingId', 'startDate', 'startTime', 'endDate', 'endTime', 'description', 'selectedUserId']);
+
+        $this->dispatch('toast',
+            title: $isEditing ? 'Period Updated' : 'Period Added',
+            message: $isEditing ? 'The unavailability period has been updated.' : 'The unavailability period has been added.',
+            type: 'success'
+        );
     }
 
     public function delete($id)
     {
         UnavailabilityPeriod::findOrFail($id)->delete();
-        session()->flash('success', 'Period removed.');
+        $this->dispatch('toast',
+            title: 'Period Removed',
+            message: 'The unavailability period has been removed.',
+            type: 'success'
+        );
     }
 
     public function getPeriodForDate($userId, $date)
