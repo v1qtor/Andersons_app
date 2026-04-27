@@ -10,6 +10,11 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Role;
 
+/**
+ * @deprecated This component has been replaced by AdminPanel.
+ * Use App\Livewire\Admin\AdminPanel instead.
+ * This component is kept for backward compatibility only.
+ */
 #[Layout('components.layouts.app')]
 class UserIndex extends Component
 {
