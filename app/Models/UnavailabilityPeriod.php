@@ -21,7 +21,7 @@ class UnavailabilityPeriod extends Model
     {
         return [
             'start_date' => 'datetime',
-            'end_date' => 'datetime',
+            'end_date'   => 'datetime',
         ];
     }
 
