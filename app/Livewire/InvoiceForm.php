@@ -41,7 +41,9 @@ class InvoiceForm extends Component
             }
             $this->invoice = $invoice;
 
-            if ($invoice->user_id !== Auth::id()) {
+            // Allow edit if: user is the owner OR user is an admin
+            $isAdmin = $user->role && in_array($user->role->name, ['Admin', 'The Andersons']);
+            if ($invoice->user_id !== Auth::id() && !$isAdmin) {
                 abort(403);
             }
 
@@ -76,11 +78,14 @@ class InvoiceForm extends Component
             return;
         }
         
+        // When creating, receipt is required. When editing, receipt is optional (can keep existing)
+        $receiptValidation = $this->invoice ? 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120' : 'required|file|mimes:pdf,jpg,jpeg,png|max:5120';
+        
         $this->validate([
-            'receiptFile' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'receiptFile' => $receiptValidation,
             'billDate' => 'required|date|before_or_equal:today',
             'category' => 'required|string',
-            'description' => 'nullable|string|max:1000',
+            'description' => 'nullable|string|max:500',
             'customCategory' => 'required_if:category,other|string|max:255',
         ]);
 
@@ -109,7 +114,10 @@ class InvoiceForm extends Component
 
         if ($this->invoice) {
             // Update existing invoice
-            if ($this->invoice->is_paid) {
+            // Admins can modify any invoice, but regular users cannot modify paid invoices
+            $user = Auth::user();
+            $isAdmin = $user->role && in_array($user->role->name, ['Admin', 'The Andersons']);
+            if ($this->invoice->is_paid && !$isAdmin) {
                 session()->flash('error', 'Cannot modify a paid invoice.');
                 return;
             }

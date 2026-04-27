@@ -6,9 +6,9 @@
                 <flux:heading size="xl">{{ __('Meal Planning') }}</flux:heading>
                 <flux:subheading>{{ __('Manage planned meals for the household') }}</flux:subheading>
             </div>
-            <flux:button variant="primary" wire:click="$dispatch('openAddMeal')" icon="plus">
+            <x-flux.button variant="primary" wire:click="$dispatch('openAddMeal')" icon="plus">
                 {{ __('Add Meal') }}
-            </flux:button>
+            </x-flux.button>
         </div>
 
         {{-- Reusable Meal List Component --}}
