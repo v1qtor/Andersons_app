@@ -703,6 +703,7 @@
             :selected-location-ids="$selectedLocationIds"
             :collaboration-user-ids="$collaborationUserIds"
             :pending-outgoing-user-ids="$pendingOutgoingUserIds"
+            :unavailable-user-ids="$unavailableUserIds ?? []"
         />
     @endif
 
