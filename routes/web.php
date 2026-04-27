@@ -10,6 +10,7 @@ use App\Livewire\Meals\MealPlanning;
 use App\Livewire\Meals\MealSchedule;
 use App\Livewire\Schedule;
 use App\Livewire\Settings;
+use App\Livewire\Unavailability;
 use App\Livewire\Dashboard;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -55,6 +56,11 @@ Route::middleware(['auth'])->group(function () {
     // Chef Management
     Route::middleware(['chef'])->group(function () {
         Route::get('chef/meals', MealPlanning::class)->name('chef.meals.index');
+    });
+
+    // Unavailabilities
+    Route::middleware(['unavailability'])->group(function () {
+        Route::get('unavailabilities', Unavailability::class)->name('unavailabilities');
     });
 
     // Meal Schedule (Family Member, The Andersons, Staff — and any authenticated user)

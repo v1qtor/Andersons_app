@@ -19,6 +19,9 @@
                     @if(auth()->user()->role && in_array(auth()->user()->role->name, ['Staff', 'Chef', 'Admin', 'The Andersons']))
                         <flux:navlist.item icon="document-text" :href="route('invoices')" :current="request()->routeIs('invoices*')" wire:navigate>{{ __('Invoices') }}</flux:navlist.item>
                     @endif
+                    @if(auth()->user()->role && in_array(auth()->user()->role->name, ['Staff', 'Chef', 'Admin']))
+                        <flux:navlist.item icon="no-symbol" :href="route('unavailabilities')" :current="request()->routeIs('unavailabilities')" wire:navigate>{{ __('Unavailabilities') }}</flux:navlist.item>
+                    @endif
                     @if(auth()->user()->role && auth()->user()->role->name === 'Admin')
                         <flux:navlist.item icon="cog-6-tooth" :href="route('admin.panel')" :current="request()->routeIs('admin.panel') || request()->routeIs('admin.users.*')" wire:navigate>{{ __('Admin Panel') }}</flux:navlist.item>
                         <flux:navlist.item icon="fire" :href="route('admin.meals.index')" :current="request()->routeIs('admin.meals.*')" wire:navigate>{{ __('Meals') }}</flux:navlist.item>
