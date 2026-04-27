@@ -10,6 +10,7 @@
     'selectedLocationIds' => [],
     'collaborationUserIds' => [],
     'pendingOutgoingUserIds' => [],
+    'unavailableUserIds' => [],
 ])
 
 <x-ui.detail-modal
@@ -99,6 +100,9 @@
                     </label>
                     <div class="flex flex-wrap gap-2 p-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-zinc-900/50 max-h-40 overflow-y-auto">
                         @foreach ($allUsers as $user)
+                            @if(in_array($user->id, $unavailableUserIds))
+                                @continue
+                            @endif
                             @php
                                 $isOwner = $user->id === $taskOwnerId;
                                 $roleColor = $user->role?->color ?? '#6366f1';
@@ -122,6 +126,9 @@
                     </div>
                     <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
                         {{ __('The owner can edit and delete this task. Only one owner allowed.') }}
+                        @if(!empty($unavailableUserIds))
+                            <span class="text-amber-500 dark:text-amber-400"> · {{ __('Users unavailable during this period are hidden.') }}</span>
+                        @endif
                     </p>
                 </div>
             @endif
@@ -134,6 +141,9 @@
                     </label>
                     <div class="flex flex-wrap gap-2 p-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-zinc-900/50 max-h-40 overflow-y-auto">
                         @foreach ($allUsers as $user)
+                            @if(in_array($user->id, $unavailableUserIds))
+                                @continue
+                            @endif
                             @php
                                 $isAssigned = in_array($user->id, $assignedUserIds);
                                 $roleColor = $user->role?->color ?? '#6366f1';
@@ -154,6 +164,9 @@
                     </div>
                     <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
                         {{ __('Select multiple users to assign to this task.') }}
+                        @if(!empty($unavailableUserIds))
+                            <span class="text-amber-500 dark:text-amber-400"> · {{ __('Users unavailable during this period are hidden.') }}</span>
+                        @endif
                     </p>
                 </div>
             @endif
