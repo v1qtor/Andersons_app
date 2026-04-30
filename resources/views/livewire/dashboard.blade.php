@@ -97,9 +97,9 @@
                             $indicatorColor = $task->is_complete ? '#22c55e' : $ownerColor;
                         @endphp
                         <div class="rounded-2xl border p-4 relative group" style="background-color: {{ $taskBgColor }}; border-color: {{ $taskBorderColor }};">
-                            <div class="flex justify-between items-center gap-4">
-                                <div class="flex gap-4">
-                                    <div class="pt-0.5">
+                            <div class="flex justify-between items-center gap-4 max-sm:flex-col max-sm:items-stretch">
+                                <div class="flex gap-4 max-sm:min-w-0">
+                                    <div class="pt-0.5 shrink-0">
                                         @if($task->is_complete)
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-[26px] mt-1" style="color: {{ $indicatorColor }};">
                                                 <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clip-rule="evenodd" />
@@ -112,9 +112,9 @@
                                             @endif
                                         @endif
                                     </div>
-                                    <div>
-                                        <h4 class="text-[20px] text-neutral-800 dark:text-neutral-200">{{ $task->title }}</h4>
-                                        <div class="flex items-center gap-6 mt-1 text-[15px] text-neutral-600 dark:text-neutral-400">
+                                    <div class="max-sm:min-w-0">
+                                        <h4 class="text-[20px] text-neutral-800 dark:text-neutral-200 break-words">{{ $task->title }}</h4>
+                                        <div class="flex items-center gap-6 mt-1 text-[15px] text-neutral-600 dark:text-neutral-400 max-sm:flex-wrap max-sm:gap-y-2">
                                             <div class="flex items-center gap-1.5">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
                                                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -134,8 +134,8 @@
                                     </div>
                                 </div>
                                 
-                                <div class="flex items-center pr-2">
-                                    <div class="flex flex-col items-center justify-center gap-1.5 mr-4 mt-0.5">
+                                <div class="flex items-center pr-2 max-sm:flex-col max-sm:items-stretch max-sm:gap-3 max-sm:pr-0">
+                                    <div class="flex flex-col items-center justify-center gap-1.5 mr-4 mt-0.5 max-sm:flex-row max-sm:items-start max-sm:gap-2 max-sm:mr-0">
                                         @if($owner)
                                             <div class="text-white text-[12px] px-4 py-0.5 rounded-full whitespace-nowrap" style="background-color: {{ $ownerColor }};">
                                                 {{ explode(' ', $owner->name)[0] }}
@@ -154,11 +154,11 @@
                                     
                                     @if($canManageTasks)
                                         @if(!$task->is_complete)
-                                            <button wire:click="markTaskAsDone({{ $task->id }})" class="bg-gradient-to-r from-blue-600 to-[#0ba5cc] hover:from-blue-700 hover:to-[#0896ba] text-white text-[17px] px-6 py-2.5 rounded-xl font-medium transition-colors shadow-sm ml-2">
+                                            <button wire:click="markTaskAsDone({{ $task->id }})" class="bg-gradient-to-r from-blue-600 to-[#0ba5cc] hover:from-blue-700 hover:to-[#0896ba] text-white text-[17px] px-6 py-2.5 rounded-xl font-medium transition-colors shadow-sm ml-2 max-sm:w-full max-sm:ml-0 max-sm:text-[16px] max-sm:px-5 max-sm:py-2">
                                                 Done
                                             </button>
                                         @else
-                                            <button disabled class="bg-neutral-200 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-600 text-[17px] px-6 py-2.5 rounded-xl font-medium cursor-not-allowed ml-2 shadow-sm">
+                                            <button disabled class="bg-neutral-200 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-600 text-[17px] px-6 py-2.5 rounded-xl font-medium cursor-not-allowed ml-2 shadow-sm max-sm:w-full max-sm:ml-0 max-sm:text-[16px] max-sm:px-5 max-sm:py-2">
                                                 Done
                                             </button>
                                         @endif
@@ -276,7 +276,7 @@
 
                     @if($dinnerPlans->hasPages())
                         <div class="mt-4">
-                            {{ $dinnerPlans->links() }}
+                            {{ $dinnerPlans->onEachSide(1)->links('livewire::simple-tailwind') }}
                         </div>
                     @endif
                 </div>
@@ -319,7 +319,7 @@
 
                     @if($upcomingTrips->hasPages())
                         <div class="mt-4">
-                            {{ $upcomingTrips->links() }}
+                            {{ $upcomingTrips->onEachSide(1)->links('livewire::simple-tailwind') }}
                         </div>
                     @endif
                 </div>
