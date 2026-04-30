@@ -3,6 +3,9 @@ set -e
 
 cd /var/www/html
 
+# Discover service providers (skipped in build because env vars weren't set yet)
+php artisan package:discover --ansi || true
+
 # Cache config / routes / views (idempotent)
 php artisan config:cache
 php artisan route:cache || true
