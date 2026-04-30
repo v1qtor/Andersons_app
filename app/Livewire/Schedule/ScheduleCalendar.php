@@ -275,14 +275,22 @@ class ScheduleCalendar extends Component
             'taskPriorityId' => $this->taskPriorityId,
         ];
 
+        $startDateRule = 'required|date';
+        // Non-admins cannot create tasks in the past (editing an existing task is allowed)
+        if (! $this->isAdmin() && ! $this->editingTaskId) {
+            $startDateRule .= '|after_or_equal:now';
+        }
+
         $validated = \Illuminate\Support\Facades\Validator::make($validationData, [
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'startDate' => 'required|date',
+            'startDate' => $startDateRule,
             'endDate' => 'nullable|date|after:startDate',
             'taskCategoryId' => 'required|integer|exists:task_categories,id',
             'taskPriorityId' => 'nullable|integer|exists:task_priorities,id',
-        ], [], [
+        ], [
+            'startDate.after_or_equal' => __('You cannot create a task in the past.'),
+        ], [
             'taskCategoryId' => __('category'),
             'taskPriorityId' => __('priority'),
             'startDate' => __('start date'),
