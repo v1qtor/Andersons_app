@@ -10,8 +10,8 @@ return new class extends Migration
     {
         Schema::create('checkpoints', function (Blueprint $table) {
             $table->id();
-            $table->string('location')->collation('nocase');
-            $table->string('address')->nullable()->collation('nocase');
+            $table->string('location');
+            $table->string('address')->nullable();
             $table->string('coordinates')->nullable();
             $table->foreignId('folder_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->timestamps();
