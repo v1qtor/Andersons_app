@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Models\Birthdate;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\Category;
@@ -43,6 +44,14 @@ class AdminPanel extends Component
     public int $pendingEntityId = 0;
     public string $confirmPassword = '';
     public string $passwordError = '';
+
+    // Birthdate management
+    public bool $showBirthdateModal = false;
+    public ?int $editingBirthdateId = null;
+    public string $bdName = '';
+    public string $bdDate = '';
+    public ?int $bdUserId = null;
+    public string $bdNotes = '';
 
     // Tab management
     public function setTab(string $tab): void
@@ -473,6 +482,70 @@ class AdminPanel extends Component
         $this->editingColor = '';
     }
 
+    // ─── Birthdate Management ─────────────────────────────────
+
+    public function openBirthdateCreate(): void
+    {
+        $this->editingBirthdateId = null;
+        $this->bdName = '';
+        $this->bdDate = '';
+        $this->bdUserId = null;
+        $this->bdNotes = '';
+        $this->showBirthdateModal = true;
+    }
+
+    public function openBirthdateEdit(int $id): void
+    {
+        $bd = Birthdate::findOrFail($id);
+        $this->editingBirthdateId = $bd->id;
+        $this->bdName = $bd->name;
+        $this->bdDate = $bd->birthdate->format('Y-m-d');
+        $this->bdUserId = $bd->user_id;
+        $this->bdNotes = $bd->notes ?? '';
+        $this->showBirthdateModal = true;
+    }
+
+    public function saveBirthdate(): void
+    {
+        $validated = \Illuminate\Support\Facades\Validator::make([
+            'bdName' => $this->bdName,
+            'bdDate' => $this->bdDate,
+        ], [
+            'bdName' => 'required|string|max:255',
+            'bdDate' => 'required|date',
+        ])->validate();
+
+        $data = [
+            'name'      => $this->bdName,
+            'birthdate' => $this->bdDate,
+            'user_id'   => $this->bdUserId ?: null,
+            'notes'     => $this->bdNotes ?: null,
+        ];
+
+        if ($this->editingBirthdateId) {
+            Birthdate::findOrFail($this->editingBirthdateId)->update($data);
+            $this->dispatch('toast', message: __('Birthday updated successfully.'), type: 'success');
+        } else {
+            Birthdate::create($data);
+            $this->dispatch('toast', message: __('Birthday added successfully.'), type: 'success');
+        }
+
+        $this->showBirthdateModal = false;
+        $this->editingBirthdateId = null;
+    }
+
+    public function deleteBirthdate(int $id): void
+    {
+        Birthdate::findOrFail($id)->delete();
+        $this->dispatch('toast', message: __('Birthday deleted successfully.'), type: 'success');
+    }
+
+    public function closeBirthdateModal(): void
+    {
+        $this->showBirthdateModal = false;
+        $this->editingBirthdateId = null;
+    }
+
     public function render()
     {
         $users = User::with(['role'])
@@ -518,6 +591,15 @@ class AdminPanel extends Component
             ->orderBy('name')
             ->get();
 
+        $birthdates = Birthdate::with('user')
+            ->when($this->search['birthdates'] ?? '', function ($query, $searchTerm) {
+                $query->where('name', 'like', '%' . $searchTerm . '%');
+            })
+            ->orderBy('birthdate')
+            ->get();
+
+        $allUsers = User::orderBy('name')->get();
+
         return view('livewire.admin.admin-panel', [
             'users' => $users,
             'categories' => $categories,
@@ -525,6 +607,8 @@ class AdminPanel extends Component
             'locations' => $locations,
             'taskPriorities' => $taskPriorities,
             'roles' => $roles,
+            'birthdates' => $birthdates,
+            'allUsers' => $allUsers,
         ]);
     }
 }
