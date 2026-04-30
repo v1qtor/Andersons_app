@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Schedule;
 
+use App\Livewire\Schedule\PrintSchedule;
 use App\Models\CollaborationRequest;
 use App\Models\Location;
 use App\Models\PlannedMeal;
@@ -14,12 +15,13 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\On;
 use Livewire\Component;
 
 #[Layout('components.layouts.app')]
 class ScheduleCalendar extends Component
 {
+    use PrintSchedule;
+
     public string $view = 'week'; // day, week, month
 
     public int $year;
@@ -51,13 +53,6 @@ class ScheduleCalendar extends Component
 
     public bool $showDeleteModal = false;
     public ?int $deletingTaskId = null;
-
-    // ─── Print Modal ────────────────────────────────────────────
-    public bool $showPrintModal = false;
-    public string $printScope = 'allTasks'; // allTasks, myTasks
-    public string $printPeriod = 'weekly'; // daily, weekly, monthly, custom
-    public string $printCustomStart = '';
-    public string $printCustomEnd = '';
 
     public function mount(): void
     {
@@ -434,93 +429,6 @@ class ScheduleCalendar extends Component
         }
 
         $task->update(['is_complete' => true]);
-    }
-
-    // ─── Print Methods ────────────────────────────────────────
-
-    #[On('openPrintModal')]
-    public function openPrintModal(): void
-    {
-        $this->showPrintModal = true;
-    }
-
-    public function closePrintModal(): void
-    {
-        $this->showPrintModal = false;
-    }
-
-    public function setPrintScope(string $scope): void
-    {
-        $this->printScope = $scope;
-    }
-
-    public function setPrintPeriod(string $period): void
-    {
-        $this->printPeriod = $period;
-    }
-
-    public function getPrintData(): array
-    {
-        // Determine date range based on period
-        $start = Carbon::create($this->year, $this->month, $this->day);
-
-        if ($this->printPeriod === 'custom') {
-            if (! $this->printCustomStart || ! $this->printCustomEnd) {
-                return ['tasks' => collect(), 'rangeStart' => null, 'rangeEnd' => null, 'scope' => $this->printScope, 'period' => 'custom'];
-            }
-            $rangeStart = Carbon::parse($this->printCustomStart)->startOfDay();
-            $rangeEnd   = Carbon::parse($this->printCustomEnd)->endOfDay();
-        } else {
-            [$rangeStart, $rangeEnd] = match ($this->printPeriod) {
-                'daily' => [
-                    $start->copy()->startOfDay(),
-                    $start->copy()->endOfDay(),
-                ],
-                'weekly' => [
-                    $start->copy()->startOfWeek(Carbon::MONDAY),
-                    $start->copy()->endOfWeek(Carbon::SUNDAY),
-                ],
-                'monthly' => [
-                    Carbon::create($this->year, $this->month, 1)->startOfDay(),
-                    Carbon::create($this->year, $this->month, 1)->endOfMonth()->endOfDay(),
-                ],
-                default => [
-                    $start->copy()->startOfWeek(Carbon::MONDAY),
-                    $start->copy()->endOfWeek(Carbon::SUNDAY),
-                ],
-            };
-        }
-
-        // Build query
-        $query = Task::with(['users', 'locations', 'taskCategory', 'taskPriority'])
-            ->where(function ($q) use ($rangeStart, $rangeEnd) {
-                $q->whereBetween('date', [$rangeStart, $rangeEnd])
-                    ->orWhere(function ($q2) use ($rangeStart, $rangeEnd) {
-                        $q2->where('start_date', '<=', $rangeEnd)
-                            ->where('end_date', '>=', $rangeStart);
-                    })
-                    ->orWhere(function ($q2) use ($rangeStart, $rangeEnd) {
-                        $q2->whereNull('end_date')
-                            ->whereBetween('start_date', [$rangeStart, $rangeEnd]);
-                    });
-            });
-
-        // Apply scope filter
-        if ($this->printScope === 'myTasks') {
-            $query->whereHas('users', function ($q) {
-                $q->where('users.id', Auth::id());
-            });
-        }
-
-        $tasks = $query->orderBy('start_date')->get();
-
-        return [
-            'tasks' => $tasks,
-            'rangeStart' => $rangeStart,
-            'rangeEnd' => $rangeEnd,
-            'scope' => $this->printScope,
-            'period' => $this->printPeriod,
-        ];
     }
 
     private function resetForm(): void
