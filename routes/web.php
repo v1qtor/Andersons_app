@@ -78,10 +78,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('trips/{trip}/checkpoints', [App\Http\Controllers\TripController::class, 'addCheckpoint'])->name('trips.checkpoints.add');
     Route::delete('trips/{trip}/checkpoints/{checkpoint}', [App\Http\Controllers\TripController::class, 'removeCheckpoint'])->name('trips.checkpoints.remove');
     Route::post('trips/{trip}/checkpoints/{checkpoint}/arrive', [App\Http\Controllers\TripController::class, 'markCheckpointArrived'])->name('trips.checkpoints.arrive');
-    Route::post('trips/{trip}/checkpoints/{checkpoint}/unarrive', [TripController::class, 'unmarkCheckpointArrived'])->name('trips.checkpoints.unarrive');
+    Route::post('trips/{trip}/checkpoints/{checkpoint}/unarrive', [TripController::class, 'unmarkCheckpointArrived']);
     Route::post('trips/{trip}/checkpoints/{checkpoint}/upload-image', [App\Http\Controllers\TripController::class, 'uploadCheckpointImage'])->name('trips.checkpoints.upload-image');
     Route::delete('trips/{trip}/checkpoints/{checkpoint}/remove-image', [App\Http\Controllers\TripController::class, 'removeCheckpointImage'])->name('trips.checkpoints.remove-image');
     Route::post('trips/{trip}/checkpoints/reorder', [App\Http\Controllers\TripController::class, 'reorderCheckpointsRoute'])->name('trips.checkpoints.reorder');
+    
 
     Route::post('trips/{trip}/files', [App\Http\Controllers\TripController::class, 'uploadFile'])->name('trips.files.upload');
     Route::delete('trips/{trip}/files/{file}', [App\Http\Controllers\TripController::class, 'removeFile'])->name('trips.files.remove');

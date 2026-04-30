@@ -30,7 +30,7 @@
             $isOverdue = $trip->buffer_alert && now() > $trip->buffer_alert;
             $statusName = $trip->status->name ?? 'upcoming';
             $userIds = $trip->users->pluck('id')->toArray();
-            $duration = $trip->start_date->diffInDays($trip->end_date);
+            $duration = (int) $trip->start_date->diffInDays($trip->end_date);
         @endphp
         <div class="trip-card bg-white rounded-xl shadow p-6 mb-6 border-2 {{ $isOverdue ? 'border-red-200' : 'border-gray-200' }}" data-status="{{ $statusName }}" data-trip-id="{{ $trip->id }}">
             <div class="flex justify-between items-center mb-3">
@@ -63,21 +63,35 @@
             <div class="mb-3"><span class="font-bold">Participants:</span> <span class="ml-2 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">{{ $trip->users->count() }} people</span>
                 <div class="mt-2 flex gap-2 flex-wrap">@foreach($trip->users as $u)<span class="bg-purple-200 text-purple-800 px-3 py-1 rounded-full text-sm">{{ $u->name }}</span>@endforeach</div>
             </div>
-            @if($isOverdue)<div class="bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded mb-4"><strong>⚠️ OVERDUE - Designated Return Time has passed!</strong><br>Please contact travelers immediately.</div>@endif
+
+            <!-- OVERDUE BANNER (restored) -->
+            @if($isOverdue)
+            <div class="bg-red-100 border border-red-400 text-red-800 px-4 py-3 rounded mb-4">
+                <strong>⚠️ OVERDUE - Designated Return Time:</strong><br>
+                {{ $trip->buffer_alert->format('l d F \a\t H:i') }}<br>
+                <span class="font-semibold">Travelers have not checked in. Please contact them immediately!</span>
+            </div>
+            @endif
 
             <div class="mb-4"><span class="font-bold text-base">Route Checkpoints:</span>
                 <div class="mt-2 space-y-2" data-trip-checkpoints="{{ $trip->id }}">
                     @foreach($trip->checkpoints as $idx => $cp)
                     <div class="checkpoint-item {{ $cp->pivot->is_confirmed ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200' }} border rounded p-3" data-checkpoint-id="{{ $cp->id }}">
                         <div class="flex justify-between items-start">
-                            <div class="flex-1"><div class="font-bold text-base">{{ $cp->location }}</div>@if($cp->address)<div class="text-sm text-blue-700">{{ $cp->address }}</div>@endif</div>
+                            <div class="flex-1"><div class="font-bold text-base">
+                                @if($cp->pivot->is_temporary)
+                                <button onclick="openEditTempCheckpoint({{ $cp->id }}, '{{ addslashes($cp->location) }}', '{{ addslashes($cp->address ?? '') }}', '{{ $cp->latitude ?? '' }}', '{{ $cp->longitude ?? '' }}')" 
+                                        class="text-xs text-indigo-600 hover:text-indigo-800 underline ml-2">Edit</button>
+                                @endif
+                                {{ $cp->location }}
+                            </div>@if($cp->address)<div class="text-sm text-blue-700">{{ $cp->address }}</div>@endif</div>
                             <div class="flex gap-1 ml-2">
                                 <button onclick="reorderCheckpoint({{ $trip->id }},{{ $cp->id }},'up')" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-1 px-2 rounded text-xs">↑</button>
                                 <button onclick="reorderCheckpoint({{ $trip->id }},{{ $cp->id }},'down')" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-1 px-2 rounded text-xs">↓</button>
                             </div>
                         </div>
                         <div class="flex justify-between items-center mt-2">
-                            <div class="flex gap-2">
+                            <div class="flex gap-2 items-center">
                                 @if(!$cp->pivot->is_confirmed)
                                 <button onclick="markCheckpointArrived({{ $trip->id }},{{ $cp->id }})" class="bg-green-600 hover:bg-green-700 text-white font-bold py-1.5 px-3 rounded text-sm">Mark Arrived</button>
                                 @else
@@ -92,8 +106,10 @@
                         @if($cp->pivot->image_path)
                         <div class="mt-2">
                             <img src="{{ Storage::url($cp->pivot->image_path) }}" class="h-32 w-full object-cover rounded mb-2"/>
-                            <a href="{{ Storage::url($cp->pivot->image_path) }}" target="_blank" class="text-blue-500 text-sm underline">View full image</a>
-                            <form action="{{ url('/trips/'.$trip->id.'/checkpoints/'.$cp->id.'/remove-image') }}" method="POST" class="inline ml-2">@csrf @method('DELETE')<button class="text-red-500 text-sm">Remove Image</button></form>
+                            <div class="flex gap-2">
+                                <a href="{{ Storage::url($cp->pivot->image_path) }}" target="_blank" class="text-blue-500 text-sm underline">View full image</a>
+                                <form action="{{ url('/trips/'.$trip->id.'/checkpoints/'.$cp->id.'/remove-image') }}" method="POST">@csrf @method('DELETE')<button class="text-red-500 text-sm">Remove Image</button></form>
+                            </div>
                         </div>
                         @else
                         <form action="{{ url('/trips/'.$trip->id.'/checkpoints/'.$cp->id.'/upload-image') }}" method="POST" enctype="multipart/form-data" class="mt-2">
@@ -102,36 +118,36 @@
                         </form>
                         @endif
                     </div>
-                    @endforeach
-                    <button onclick="openAddCheckpointModal({{ $trip->id }})" class="bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold py-1.5 px-3 rounded text-sm w-full">+ Add Checkpoint</button>
-                </div>
-            </div>
-
-            <div class="mb-4"><span class="font-bold text-lg">Documents & Permits:</span>
-                <div class="mt-2 space-y-2">
-                    @foreach($trip->attachedFiles as $file)
-                    <div class="bg-gray-100 rounded p-3 flex justify-between items-center">
-                        <div><span>{{ $file->name }}</span> <a href="{{ Storage::url($file->file_path) }}" download class="text-blue-600 ml-2 text-sm">Download</a></div>
-                        <form action="{{ url('/trips/'.$trip->id.'/files/'.$file->id) }}" method="POST" class="inline">@csrf @method('DELETE')<button class="text-red-500 font-bold">&times;</button></form>
-                    </div>
-                    @endforeach
-                </div>
-                <form action="{{ url('/trips/'.$trip->id.'/files') }}" method="POST" enctype="multipart/form-data" class="mt-3">@csrf
-                    <div class="flex gap-2"><input type="file" name="file" required class="flex-1 px-3 py-2 border rounded"><button class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded">Upload</button></div>
-                </form>
-            </div>
-
-            <div class="mb-4"><span class="font-bold text-lg">Route Map:</span>
-                <div id="map-{{ $trip->id }}" class="mt-2 rounded-lg border-2 border-gray-300" style="height:350px; width:100%; min-height:350px;">
-                    @if($trip->checkpoints->where(fn($c)=>$c->latitude && $c->longitude)->count()==0)
-                    <div class="flex items-center justify-center h-full text-gray-400"><p>Add coordinates to see map</p></div>
-                    @endif
-                </div>
+                @endforeach
+                <button onclick="openAddCheckpointModal({{ $trip->id }})" class="bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold py-1.5 px-3 rounded text-sm w-full">+ Add Checkpoint</button>
             </div>
         </div>
-    @empty
-        <div class="bg-white rounded-xl shadow p-6 text-center text-gray-500"><p>No trips yet</p></div>
-    @endforelse
+
+        <div class="mb-4"><span class="font-bold text-lg">Documents & Permits:</span>
+            <div class="mt-2 space-y-2">
+                @foreach($trip->attachedFiles as $file)
+                <div class="bg-gray-100 rounded p-3 flex justify-between items-center">
+                    <div><span>{{ $file->name }}</span> <a href="{{ Storage::url($file->file_path) }}" download class="text-blue-600 ml-2 text-sm">Download</a></div>
+                    <form action="{{ url('/trips/'.$trip->id.'/files/'.$file->id) }}" method="POST" class="inline">@csrf @method('DELETE')<button class="text-red-500 font-bold">&times;</button></form>
+                </div>
+                @endforeach
+            </div>
+            <form action="{{ url('/trips/'.$trip->id.'/files') }}" method="POST" enctype="multipart/form-data" class="mt-3">@csrf
+                <div class="flex gap-2"><input type="file" name="file" required class="flex-1 px-3 py-2 border rounded"><button class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded">Upload</button></div>
+            </form>
+        </div>
+
+        <div class="mb-4"><span class="font-bold text-lg">Route Map:</span>
+            <div id="map-{{ $trip->id }}" class="mt-2 rounded-lg border-2 border-gray-300" style="height:350px; width:100%; min-height:350px;">
+                @if($trip->checkpoints->where(fn($c)=>$c->latitude && $c->longitude)->count()==0)
+                <div class="flex items-center justify-center h-full text-gray-400"><p>Add coordinates to see map</p></div>
+                @endif
+            </div>
+        </div>
+    </div>
+@empty
+    <div class="bg-white rounded-xl shadow p-6 text-center text-gray-500"><p>No trips yet</p></div>
+@endforelse
 </div>
 
 <!-- Edit Trip Modal -->
@@ -152,7 +168,7 @@
     </form>
 </dialog>
 
-<!-- Add Checkpoint Modal (unchanged) -->
+<!-- Add Checkpoint Modal -->
 <dialog id="addCheckpointModal" class="rounded-2xl shadow-2xl w-full max-w-xl p-0 border-0">
     <form method="POST" action="" id="addCheckpointForm" class="bg-white rounded-2xl p-8">
         @csrf
@@ -160,6 +176,40 @@
         <div class="mb-4"><label class="block text-lg font-semibold mb-2">Permanent</label><select name="checkpoint_id" class="w-full px-4 py-3 rounded-lg border"><option value="">Choose…</option>@foreach($checkpoints as $cp)<option value="{{ $cp->id }}">{{ $cp->location }}</option>@endforeach</select></div>
         <div class="mb-6"><p class="text-center font-bold mb-4">— OR —</p><label class="block text-lg font-semibold mb-2">Temporary</label><input type="text" name="temp_name" placeholder="Name" class="w-full px-4 py-3 rounded-lg border mb-2"/><input type="text" name="temp_address" placeholder="Address" class="w-full px-4 py-3 rounded-lg border mb-2"/><div class="flex gap-2"><input type="text" name="temp_lat" placeholder="Latitude" class="flex-1 px-4 py-3 rounded-lg border"/><input type="text" name="temp_lng" placeholder="Longitude" class="flex-1 px-4 py-3 rounded-lg border"/></div></div>
         <div class="flex justify-end gap-4"><button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded">Add</button><button type="button" onclick="this.closest('dialog').close()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-8 rounded">Cancel</button></div>
+    </form>
+</dialog>
+
+<!-- Edit Temporary Checkpoint Modal -->
+<dialog id="editTempCheckpointModal" class="rounded-2xl shadow-2xl w-full max-w-xl p-0 border-0">
+    <form method="POST" action="" id="editTempCheckpointForm" class="bg-white rounded-2xl p-8">
+        @csrf
+        @method('PUT')
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-3xl font-extrabold">Edit Temporary Checkpoint</h2>
+            <button type="button" onclick="document.getElementById('editTempCheckpointModal').close()" class="text-gray-400 hover:text-gray-700 text-3xl font-bold">&times;</button>
+        </div>
+        <div class="mb-4">
+            <label class="block text-lg font-semibold mb-1">Name</label>
+            <input type="text" name="location" id="edit-temp-location" required class="w-full px-4 py-3 rounded-lg border" />
+        </div>
+        <div class="mb-4">
+            <label class="block text-lg font-semibold mb-1">Address</label>
+            <input type="text" name="address" id="edit-temp-address" class="w-full px-4 py-3 rounded-lg border" />
+        </div>
+        <div class="flex gap-4 mb-4">
+            <div class="flex-1">
+                <label class="block text-lg font-semibold mb-1">Latitude</label>
+                <input type="text" name="latitude" id="edit-temp-lat" class="w-full px-4 py-3 rounded-lg border" />
+            </div>
+            <div class="flex-1">
+                <label class="block text-lg font-semibold mb-1">Longitude</label>
+                <input type="text" name="longitude" id="edit-temp-lng" class="w-full px-4 py-3 rounded-lg border" />
+            </div>
+        </div>
+        <div class="flex justify-end gap-4">
+            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded text-lg">Update</button>
+            <button type="button" onclick="document.getElementById('editTempCheckpointModal').close()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-8 rounded text-lg">Cancel</button>
+        </div>
     </form>
 </dialog>
 
@@ -196,21 +246,15 @@ function markCheckpointArrived(tripId, cpId) {
     fetch(`/trips/${tripId}/checkpoints/${cpId}/arrive`, {
         method: 'POST',
         headers: {'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept':'application/json'}
-    }).then(r=>r.json()).then(d=>{
-        if(d.success) location.reload();
-    });
+    }).then(r=>r.json()).then(d=>{ if(d.success) location.reload(); });
 }
 
 function unmarkCheckpoint(tripId, cpId) {
     fetch(`/trips/${tripId}/checkpoints/${cpId}/unarrive`, {
         method: 'POST',
         headers: {'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept':'application/json'}
-    }).then(r=>r.json()).then(d=>{
-        if(d.success) location.reload();
-    });
+    }).then(r=>r.json()).then(d=>{ if(d.success) location.reload(); });
 }
-
-function updateProgressBars(tripId) { /* used after reload */ }
 
 function reorderCheckpoint(tripId, cpId, dir) {
     let container = document.querySelector(`[data-trip-checkpoints="${tripId}"]`);
@@ -254,5 +298,16 @@ function initMap(id, checkpoints) {
 }
 
 document.querySelectorAll('dialog').forEach(d=> d.addEventListener('click', e=>{ if(e.target===d) d.close(); }));
+
+function openEditTempCheckpoint(id, location, address, lat, lng) {
+    const modal = document.getElementById('editTempCheckpointModal');
+    document.getElementById('edit-temp-location').value = location;
+    document.getElementById('edit-temp-address').value = address;
+    document.getElementById('edit-temp-lat').value = lat;
+    document.getElementById('edit-temp-lng').value = lng;
+    document.getElementById('editTempCheckpointForm').action = '/checkpoints/' + id;
+    modal.showModal();
+}
+
 </script>
-@endsection
+@endsection 

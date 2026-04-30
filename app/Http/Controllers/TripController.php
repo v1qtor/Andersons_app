@@ -55,7 +55,6 @@ class TripController extends Controller
         $now = now();
         $start = \Carbon\Carbon::parse($validated['start_date']);
         $end = \Carbon\Carbon::parse($validated['end_date']);
-
         if ($now->lt($start)) {
             $status = Status::where('name', 'upcoming')->where('type', 'trip')->first();
         } elseif ($now->gte($start) && $now->lte($end)) {
@@ -74,7 +73,6 @@ class TripController extends Controller
             'buffer_alert' => $validated['buffer_alert'] ?? null,
             'status_id' => $statusId,
         ]);
-
         $trip->users()->attach($validated['user_ids'], ['is_organizer' => false]);
 
         if (!empty($validated['checkpoint_ids'])) {
@@ -95,7 +93,6 @@ class TripController extends Controller
                 $lat = $validated['temp_checkpoint_lat'][$idx] ?? null;
                 $lng = $validated['temp_checkpoint_lng'][$idx] ?? null;
                 $coordinates = ($lat && $lng) ? $lat.','.$lng : null;
-
                 $temp = Checkpoint::create([
                     'location' => $name,
                     'address' => $validated['temp_checkpoint_addresses'][$idx] ?? null,
@@ -135,7 +132,6 @@ class TripController extends Controller
         $now = now();
         $start = \Carbon\Carbon::parse($validated['start_date']);
         $end = \Carbon\Carbon::parse($validated['end_date']);
-
         if ($now->lt($start)) {
             $status = Status::where('name', 'upcoming')->where('type', 'trip')->first();
         } elseif ($now->gte($start) && $now->lte($end)) {
@@ -153,14 +149,22 @@ class TripController extends Controller
             'buffer_alert' => $validated['buffer_alert'] ?? null,
             'status_id' => $status->id ?? Status::where('name', 'upcoming')->where('type', 'trip')->first()->id,
         ]);
-
         $trip->users()->sync($validated['user_ids']);
 
         return redirect()->route('trips.index')->with('success', 'Trip updated!');
     }
 
-    // … keep all other methods from previous working version: cancel, addCheckpoint, removeCheckpoint, etc.
-    // I'll include them for completeness.
+    public function destroy(Trip $trip)
+    {
+        foreach ($trip->checkpoints as $cp) {
+            if ($cp->pivot->is_temporary) {
+                $trip->checkpoints()->detach($cp->id);
+                $cp->delete();
+            }
+        }
+        $trip->delete();
+        return redirect()->route('trips.index')->with('success', 'Trip deleted!');
+    }
 
     public function cancel(Trip $trip)
     {
@@ -232,6 +236,18 @@ class TripController extends Controller
         return back()->with('success', 'Arrived!');
     }
 
+    public function unmarkCheckpointArrived(Trip $trip, Checkpoint $checkpoint)
+    {
+        $trip->checkpoints()->updateExistingPivot($checkpoint->id, [
+            'is_confirmed' => false,
+            'arrival_date' => null,
+        ]);
+        if (request()->expectsJson()) {
+            return response()->json(['success' => true]);
+        }
+        return back()->with('success', 'Checkpoint unmarked.');
+    }
+
     public function uploadFile(Request $request, Trip $trip)
     {
         $request->validate(['file' => 'required|file|max:10240']);
@@ -295,17 +311,5 @@ class TripController extends Controller
                 Status::create(['name' => $name, 'type' => 'trip']);
             }
         }
-    }
-
-    public function unmarkCheckpointArrived(Trip $trip, Checkpoint $checkpoint)
-    {
-        $trip->checkpoints()->updateExistingPivot($checkpoint->id, [
-            'is_confirmed' => false,
-            'arrival_date' => null,
-        ]);
-        if (request()->expectsJson()) {
-            return response()->json(['success' => true]);
-        }
-        return back()->with('success', 'Checkpoint unmarked.');
     }
 }
