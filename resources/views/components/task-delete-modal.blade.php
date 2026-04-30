@@ -1,4 +1,4 @@
-<div
+    <div
     class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50"
     wire:click.self="$set('showDeleteModal', false)"
     @keydown.escape.window="$wire.set('showDeleteModal', false)"

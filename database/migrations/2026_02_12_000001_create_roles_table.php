@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('roles', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique()->collation('nocase');
+            $table->string('name')->unique();
             $table->string('color')->unique();
             $table->timestamps();
         });
