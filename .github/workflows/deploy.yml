@@ -1,0 +1,62 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write   # required for Workload Identity Federation
+
+env:
+  PROJECT_ID: the-andersons
+  REGION: europe-west1
+  REPO: skil2
+  SERVICE: skil2-app
+  RUNTIME_SA: skil2-runtime@the-andersons.iam.gserviceaccount.com
+  CLOUDSQL_INSTANCE: the-andersons:europe-west1:skil2-db
+
+jobs:
+  deploy:
+    name: Build & deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/3863589150/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+          service_account: github-deploy@the-andersons.iam.gserviceaccount.com
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build image
+        run: |
+          IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/${SERVICE}:${GITHUB_SHA}"
+          docker build -t "$IMAGE" .
+          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+
+      - name: Push image
+        run: docker push "$IMAGE"
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --image "$IMAGE" \
+            --region "$REGION" \
+            --platform managed \
+            --allow-unauthenticated \
+            --service-account "$RUNTIME_SA" \
+            --add-cloudsql-instances "$CLOUDSQL_INSTANCE" \
+            --set-env-vars "APP_ENV=production,APP_DEBUG=false,LOG_CHANNEL=stderr,DB_CONNECTION=mysql,DB_SOCKET=/cloudsql/${CLOUDSQL_INSTANCE},DB_DATABASE=skil2,DB_USERNAME=skil2" \
+            --set-secrets "APP_KEY=app-key:latest,DB_PASSWORD=db-password:latest" \
+            --memory 512Mi \
+            --cpu 1 \
+            --min-instances 0 \
+            --max-instances 3
