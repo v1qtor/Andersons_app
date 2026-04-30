@@ -7,15 +7,10 @@
             @endif
         </div>
         @if($checkpoint->address)
-            <div class="text-gray-700 text-base mb-1">
-                <span class="text-gray-400 text-sm">📍</span> {{ $checkpoint->address }}
-            </div>
+            <div class="text-gray-700 text-base mb-1">{{ $checkpoint->address }}</div>
         @endif
         @if($checkpoint->description)
             <div class="text-gray-500 text-base mb-2">{{ $checkpoint->description }}</div>
-        @endif
-        @if($checkpoint->coordinates)
-            <div class="text-xs text-gray-400 mb-2">Coordinates: {{ $checkpoint->coordinates }}</div>
         @endif
         <div class="text-sm text-blue-700">
             By {{ $checkpoint->user ? $checkpoint->user->name : 'System' }}
@@ -23,12 +18,12 @@
     </div>
     <div class="flex justify-between items-center gap-2 mt-4 pt-3 border-t border-gray-200">
         <button onclick="openEditCheckpoint(
-            {{ $checkpoint->id }}, 
-            '{{ addslashes($checkpoint->location) }}', 
-            '{{ addslashes($checkpoint->description ?? '') }}', 
-            '{{ addslashes($checkpoint->address ?? '') }}', 
-            '{{ $checkpoint->latitude ?? '' }}', 
-            '{{ $checkpoint->longitude ?? '' }}', 
+            {{ $checkpoint->id }},
+            '{{ addslashes($checkpoint->location) }}',
+            '{{ addslashes($checkpoint->description ?? '') }}',
+            '{{ addslashes($checkpoint->address ?? '') }}',
+            '{{ $checkpoint->latitude ?? '' }}',
+            '{{ $checkpoint->longitude ?? '' }}',
             '{{ $checkpoint->folder_id ?? '' }}'
         )" class="bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold py-1.5 px-4 rounded text-sm flex-1 transition-colors duration-200">
             ✏️ Edit
