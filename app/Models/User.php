@@ -32,6 +32,7 @@ class User extends Authenticatable
         'phone_number',
         'address',
         'is_active',
+        'birthdate',
     ];
 
     /**
@@ -64,6 +65,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'birthdate' => 'date',
         ];
     }
 

@@ -1,11 +1,12 @@
 import './echo-config';
 
 // Configure toast notifications
-// The window.showToast function will be initialized by the toast-container component
-// For now, we provide a temporary stub that will be overwritten
 window.showToast = function(title, message, type = 'info') {
     console.log(`🔔 Toast: ${type} - ${title}: ${message}`);
 };
+
+// Track processed notifications to prevent duplicates from Echo delivery
+window.processedNotificationIds = new Set();
 
 // Define global notification bell functions for Alpine.js
 window.notificationBell = function() {
@@ -62,8 +63,6 @@ window.notificationBell = function() {
         },
 
         async clearAll() {
-            if (!confirm('Clear all notifications?')) return;
-
             this.notifications = [];
             this.unreadCount = 0;
 
@@ -102,23 +101,6 @@ window.notificationBell = function() {
 
         init() {
             this.loadNotifications();
-
-            // Listen for real-time notifications
-            if (window.Echo) {
-                const userId = document.querySelector('body')?.getAttribute('data-user-id') || 
-                              (window.Laravel && window.Laravel.userId);
-                
-                if (userId) {
-                    window.Echo.private(`user.${userId}`)
-                        .listen('NotificationCreated', (data) => {
-                            this.addNotification(data.notification);
-                            // Trigger toast notification
-                            if (window.showToast) {
-                                window.showToast(data.notification.title, data.notification.message, data.notification.type || 'info');
-                            }
-                        });
-                }
-            }
         }
     };
 };
@@ -181,8 +163,6 @@ window.desktopNotificationBell = function() {
         },
 
         async clearAll() {
-            if (!confirm('Clear all notifications?')) return;
-
             this.notifications = [];
             this.unreadCount = 0;
 
@@ -223,7 +203,7 @@ window.desktopNotificationBell = function() {
                 this.loadNotifications();
             });
 
-            // Listen for real-time notifications
+            // Listen for real-time notifications - ONLY HERE to avoid duplication
             if (window.Echo) {
                 const userId = document.querySelector('body')?.getAttribute('data-user-id') || 
                               (window.Laravel && window.Laravel.userId);
@@ -231,6 +211,13 @@ window.desktopNotificationBell = function() {
                 if (userId) {
                     window.Echo.private(`user.${userId}`)
                         .listen('NotificationCreated', (data) => {
+                            // Prevent processing the same notification twice (Echo sometimes delivers duplicates)
+                            if (window.processedNotificationIds.has(data.notification.id)) {
+                                return;
+                            }
+                            
+                            window.processedNotificationIds.add(data.notification.id);
+                            
                             this.addNotification(data.notification);
                             // Trigger toast notification
                             if (window.showToast) {
@@ -242,5 +229,3 @@ window.desktopNotificationBell = function() {
         }
     };
 };
-
-console.log('✅ App initialized with custom toast system and notification bells');

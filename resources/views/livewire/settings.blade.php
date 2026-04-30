@@ -367,28 +367,28 @@
                     </div>
                 </div>
 
-                <!-- Dinner Signup Confirmations -->
+                <!-- Meal Notifications -->
                 <div class="flex items-center justify-between py-4 border-t border-gray-100 dark:border-neutral-700">
                     <div>
-                        <p class="text-sm font-semibold text-gray-900 dark:text-white">Dinner Signup Confirmations</p>
+                        <p class="text-sm font-semibold text-gray-900 dark:text-white">Meal Notifications</p>
                     </div>
                     <div class="flex gap-16">
                         <!-- Email Toggle -->
                         <div class="flex justify-center w-20">
                             <button 
-                                wire:click="toggleNotification('dinnerSignups', 'email')"
-                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['dinnerSignups']['email']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
+                                wire:click="toggleNotification('mealNotifications', 'email')"
+                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['mealNotifications']['email']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['dinnerSignups']['email']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
+                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['mealNotifications']['email']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
                             </button>
                         </div>
                         <!-- Popup Toggle -->
                         <div class="flex justify-center w-20">
                             <button 
-                                wire:click="toggleNotification('dinnerSignups', 'popup')"
-                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['dinnerSignups']['popup']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
+                                wire:click="toggleNotification('mealNotifications', 'popup')"
+                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['mealNotifications']['popup']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['dinnerSignups']['popup']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
+                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['mealNotifications']['popup']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
                             </button>
                         </div>
                     </div>
