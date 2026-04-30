@@ -10,8 +10,8 @@ return new class extends Migration
     {
         Schema::create('tasks', function (Blueprint $table) {
             $table->id();
-            $table->string('title')->collation('nocase');
-            $table->string('description')->nullable()->collation('nocase');
+            $table->string('title');
+            $table->string('description')->nullable();
             $table->dateTime('start_date');
             $table->dateTime('end_date')->nullable();
             $table->foreignId('task_category_id')->constrained()->onUpdate('cascade')->onDelete('restrict');

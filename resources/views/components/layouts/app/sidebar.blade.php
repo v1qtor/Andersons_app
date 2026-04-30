@@ -3,7 +3,7 @@
 <head>
     @include('partials.head')
 </head>
-<body class="min-h-screen bg-white dark:bg-zinc-800">
+<body class="min-h-screen bg-white dark:bg-zinc-800" data-user-id="{{ auth()->id() }}">
 <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
     <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
@@ -19,14 +19,17 @@
                     @if(auth()->user()->role && in_array(auth()->user()->role->name, ['Staff', 'Chef', 'Admin', 'The Andersons']))
                         <flux:navlist.item icon="document-text" :href="route('invoices')" :current="request()->routeIs('invoices*')" wire:navigate>{{ __('Invoices') }}</flux:navlist.item>
                     @endif
-                    @if(auth()->user()->role && auth()->user()->role->name === 'Admin')
+                    @if(auth()->user()->role && in_array(auth()->user()->role->name, ['Staff', 'Chef', 'Admin']))
+                        <flux:navlist.item icon="no-symbol" :href="route('unavailabilities')" :current="request()->routeIs('unavailabilities')" wire:navigate>{{ __('Unavailabilities') }}</flux:navlist.item>
+                    @endif
+                    @if(auth()->user()->role?->name === 'Admin')
                         <flux:navlist.item icon="cog-6-tooth" :href="route('admin.panel')" :current="request()->routeIs('admin.panel') || request()->routeIs('admin.users.*')" wire:navigate>{{ __('Admin Panel') }}</flux:navlist.item>
                         <flux:navlist.item icon="fire" :href="route('admin.meals.index')" :current="request()->routeIs('admin.meals.*')" wire:navigate>{{ __('Meals') }}</flux:navlist.item>
                     @endif
-                    @if(auth()->user()->role && auth()->user()->role->name === 'Chef')
+                    @if(auth()->user()->role?->name === 'Chef')
                         <flux:navlist.item icon="fire" :href="route('chef.meals.index')" :current="request()->routeIs('chef.meals.*')" wire:navigate>{{ __('Meals') }}</flux:navlist.item>
                     @endif
-                    @if(auth()->user()->role && in_array(auth()->user()->role->name, ['Family Member', 'The Andersons', 'Staff']))
+                    @if(in_array(auth()->user()->role?->name, ['Family Member', 'The Andersons', 'Staff']))
                         <flux:navlist.item icon="fire" :href="route('meals.index')" :current="request()->routeIs('meals.index')" wire:navigate>{{ __('Meals') }}</flux:navlist.item>
                     @endif
                 </flux:navlist.group>

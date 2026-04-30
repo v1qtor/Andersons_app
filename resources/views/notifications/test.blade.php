@@ -117,10 +117,7 @@
                 
                 if (data.success) {
                     console.log('✅ Notification sent:', data.notification);
-                    // Show as toast notification instead of alert
-                    if (window.showToast) {
-                        window.showToast(data.notification.title, data.notification.message, 'success');
-                    }
+                    // Don't show toast here - Echo listener will handle it
                 } else {
                     console.error('❌ API response not successful:', data);
                     if (window.showToast) {
@@ -149,9 +146,7 @@
                 
                 if (data.success) {
                     console.log('✅ Task notification sent:', data.notification);
-                    if (window.showToast) {
-                        window.showToast(data.notification.title, data.notification.message, 'success');
-                    }
+                    // Don't show toast here - Echo listener will handle it
                 } else {
                     console.error('❌ Failed:', data);
                     if (window.showToast) {
@@ -180,9 +175,7 @@
                 
                 if (data.success) {
                     console.log('✅ Collaboration notification sent:', data.notification);
-                    if (window.showToast) {
-                        window.showToast(data.notification.title, data.notification.message, 'success');
-                    }
+                    // Don't show toast here - Echo listener will handle it
                 } else {
                     console.error('❌ Failed:', data);
                     if (window.showToast) {
