@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('meal_subscriptions', function (Blueprint $table) {
             $table->foreignId('user_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('planned_meal_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
-            $table->string('guest_name')->nullable()->collation('nocase');
+            $table->string('guest_name')->nullable();
             $table->primary(['user_id', 'planned_meal_id']);
             $table->timestamps();
         });
