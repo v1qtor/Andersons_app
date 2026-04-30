@@ -18,6 +18,7 @@ class UserCreate extends Component
     public string $iban = '';
     public string $phone_number = '';
     public ?int $role_id = null;
+    public string $birthdate = '';
 
     public function rules(): array
     {
@@ -28,6 +29,7 @@ class UserCreate extends Component
             'iban' => ['required', 'string', 'max:255'],
             'phone_number' => ['required', 'string', 'max:255'],
             'role_id' => ['nullable', 'exists:roles,id'],
+            'birthdate' => ['nullable', 'date'],
         ];
     }
 

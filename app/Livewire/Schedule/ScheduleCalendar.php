@@ -2,6 +2,10 @@
 
 namespace App\Livewire\Schedule;
 
+use App\Livewire\Schedule\CollaborationSchedule;
+use App\Livewire\Schedule\CrudSchedule;
+use App\Livewire\Schedule\PrintSchedule;
+use App\Models\Birthdate;
 use App\Models\CollaborationRequest;
 use App\Models\Location;
 use App\Models\PlannedMeal;
@@ -11,16 +15,16 @@ use App\Models\TaskPriority;
 use App\Models\Trip;
 use App\Models\UnavailabilityPeriod;
 use App\Models\User;
-use App\Models\UserNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\On;
 use Livewire\Component;
 
 #[Layout('components.layouts.app')]
 class ScheduleCalendar extends Component
 {
+    use PrintSchedule, CrudSchedule, CollaborationSchedule;
+
     public string $view = 'week'; // day, week, month
 
     public int $year;
@@ -34,31 +38,6 @@ class ScheduleCalendar extends Component
     public string $myTaskOwnershipFilter = 'all'; // 'all', 'owner', 'not-owned'
 
     public ?string $selectedDay = null;
-
-    // ─── Task CRUD ────────────────────────────────────────────
-    public bool $showTaskModal = false;
-    public ?int $editingTaskId = null;
-    public string $title = '';
-    public string $description = '';
-    public string $startDate = '';
-    public ?string $endDate = '';
-    public ?int $taskCategoryId = null;
-    public ?int $taskPriorityId = null;
-    public bool $isComplete = false;
-    public ?int $taskOwnerId = null;
-    public array $assignedUserIds = [];
-    public array $selectedLocationIds = [];
-    public array $collaborationUserIds = [];
-
-    public bool $showDeleteModal = false;
-    public ?int $deletingTaskId = null;
-
-    // ─── Print Modal ────────────────────────────────────────────
-    public bool $showPrintModal = false;
-    public string $printScope = 'allTasks'; // allTasks, myTasks
-    public string $printPeriod = 'weekly'; // daily, weekly, monthly, custom
-    public string $printCustomStart = '';
-    public string $printCustomEnd = '';
 
     public function mount(): void
     {
@@ -152,447 +131,6 @@ class ScheduleCalendar extends Component
     public function closeDay(): void
     {
         $this->selectedDay = null;
-    }
-
-    // ─── Task CRUD Methods ────────────────────────────────────
-
-    public function setTaskOwner(int $userId): void
-    {
-        if (! $this->isAdmin()) {
-            return;
-        }
-        $this->taskOwnerId = $userId;
-    }
-
-    public function toggleAssignedUser(int $userId): void
-    {
-        if (in_array($userId, $this->assignedUserIds)) {
-            $this->assignedUserIds = array_values(array_diff($this->assignedUserIds, [$userId]));
-        } else {
-            $this->assignedUserIds[] = $userId;
-        }
-    }
-
-    public function toggleLocation(int $locationId): void
-    {
-        if (in_array($locationId, $this->selectedLocationIds)) {
-            $this->selectedLocationIds = array_values(array_diff($this->selectedLocationIds, [$locationId]));
-        } else {
-            $this->selectedLocationIds[] = $locationId;
-        }
-    }
-
-    public function toggleCollaborationUser(int $userId): void
-    {
-        if (in_array($userId, $this->collaborationUserIds)) {
-            $this->collaborationUserIds = array_values(array_diff($this->collaborationUserIds, [$userId]));
-        } else {
-            $this->collaborationUserIds[] = $userId;
-        }
-    }
-
-    public function acceptCollaborationRequest(int $requestId): void
-    {
-        $request = CollaborationRequest::findOrFail($requestId);
-
-        if ($request->target_user_id !== Auth::id()) {
-            return;
-        }
-
-        if ($request->status !== 'pending') {
-            return;
-        }
-
-        $request->update(['status' => 'accepted']);
-
-        // Add the target user to the task if not already assigned
-        $task = $request->task;
-        if (! $task->users()->where('users.id', $request->target_user_id)->exists()) {
-            $task->users()->attach($request->target_user_id, ['is_owner' => false]);
-        }
-    }
-
-    public function declineCollaborationRequest(int $requestId): void
-    {
-        $request = CollaborationRequest::findOrFail($requestId);
-
-        if ($request->target_user_id !== Auth::id()) {
-            return;
-        }
-
-        if ($request->status !== 'pending') {
-            return;
-        }
-
-        $request->update(['status' => 'declined']);
-    }
-
-    public function openCreateModal(?string $date = null): void
-    {
-        $this->resetForm();
-        $this->taskOwnerId = Auth::id();
-        $this->assignedUserIds = [Auth::id()];
-        if ($date) {
-            $this->startDate = $date . 'T09:00';
-            $this->endDate = $date . 'T10:00';
-        }
-        $this->showTaskModal = true;
-    }
-
-    public function openEditModal(int $taskId): void
-    {
-        $task = Task::findOrFail($taskId);
-
-        if (! $this->canManageTask($task)) {
-            return;
-        }
-
-        $this->editingTaskId = $task->id;
-        $this->title = $task->title;
-        $this->description = $task->description ?? '';
-        $this->startDate = $task->start_date->format('Y-m-d\TH:i');
-        $this->endDate = $task->end_date ? $task->end_date->format('Y-m-d\TH:i') : '';
-        $this->taskCategoryId = $task->task_category_id;
-        $this->taskPriorityId = $task->task_priority_id;
-        $this->isComplete = $task->is_complete;
-        $this->taskOwnerId = $task->users()->wherePivot('is_owner', true)->value('users.id');
-        $this->assignedUserIds = $task->users->pluck('id')->toArray();
-        $this->selectedLocationIds = $task->locations->pluck('id')->toArray();
-        $this->showTaskModal = true;
-    }
-
-    public function saveTask(): void
-    {
-        // Normalize null/empty endDate to empty string for consistent handling
-        $endDateValue = ($this->endDate !== null && $this->endDate !== '') ? $this->endDate : null;
-
-        // Prepare data treating empty strings as null
-        $validationData = [
-            'title' => $this->title,
-            'description' => $this->description !== '' ? $this->description : null,
-            'startDate' => $this->startDate,
-            'endDate' => $endDateValue,
-            'taskCategoryId' => $this->taskCategoryId,
-            'taskPriorityId' => $this->taskPriorityId,
-        ];
-
-        $validated = \Illuminate\Support\Facades\Validator::make($validationData, [
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string|max:1000',
-            'startDate' => 'required|date',
-            'endDate' => 'nullable|date|after:startDate',
-            'taskCategoryId' => 'required|integer|exists:task_categories,id',
-            'taskPriorityId' => 'nullable|integer|exists:task_priorities,id',
-        ], [], [
-            'taskCategoryId' => __('category'),
-            'taskPriorityId' => __('priority'),
-            'startDate' => __('start date'),
-            'endDate' => __('end date'),
-        ])->validate();
-
-        $startDt = Carbon::parse($validated['startDate']);
-        $endDt = $validated['endDate'] ? Carbon::parse($validated['endDate']) : null;
-
-        $data = [
-            'title' => $validated['title'],
-            'description' => $validated['description'],
-            'start_date' => $startDt,
-            'end_date' => $endDt,
-            'date' => $startDt,
-            'task_category_id' => $validated['taskCategoryId'],
-            'task_priority_id' => $validated['taskPriorityId'],
-            'is_complete' => $this->editingTaskId ? $this->isComplete : false,
-        ];
-
-        if ($this->editingTaskId) {
-            $task = Task::findOrFail($this->editingTaskId);
-            if (! $this->canManageTask($task)) {
-                return;
-            }
-            $task->update($data);
-
-            // Sync locations
-            $task->locations()->sync($this->selectedLocationIds);
-
-            // Only admins can change user assignments
-            if ($this->isAdmin()) {
-                $ownerId = $this->taskOwnerId
-                    ?: $task->users()->wherePivot('is_owner', true)->value('users.id');
-
-                $syncData = [];
-
-                // Owner is always included
-                if ($ownerId) {
-                    $syncData[$ownerId] = ['is_owner' => true];
-                }
-
-                // Assigned users (non-owners)
-                foreach ($this->assignedUserIds as $uid) {
-                    if (! isset($syncData[$uid])) {
-                        $syncData[$uid] = ['is_owner' => false];
-                    }
-                }
-
-                // Get previously assigned users to detect new assignments
-                $previousUserIds = $task->users()->pluck('users.id')->toArray();
-                $newUserIds = array_keys($syncData);
-                $addedUserIds = array_diff($newUserIds, $previousUserIds);
-
-                $task->users()->sync($syncData);
-
-                // Notify newly assigned users
-                if (! empty($addedUserIds)) {
-                    foreach ($addedUserIds as $userId) {
-                        // Don't notify the owner if they're not an actual staff member or admin
-                        if ($userId !== $ownerId || $userId !== Auth::id()) {
-                            $taskDateTime = $task->start_date
-                                ? $task->start_date->format('M d, H:i')
-                                : 'No date set';
-
-                            $notification = UserNotification::create([
-                                'user_id' => $userId,
-                                'from_user_id' => Auth::id(),
-                                'title' => 'Task Assigned',
-                                'message' => Auth::user()->name . ' assigned you a task: ' . $task->title . ' on ' . $taskDateTime,
-                                'type' => 'task_assigned',
-                                'action_url' => '/schedule',
-                            ]);
-
-                            broadcast(new \App\Events\NotificationCreated($notification));
-                        }
-                    }
-                }
-            }
-        } else {
-            $task = Task::create($data);
-
-            // Non-admin: creator is always the sole owner
-            // Admin: can pick a different owner and assign multiple users
-            $ownerId = ($this->isAdmin() && $this->taskOwnerId)
-                ? $this->taskOwnerId
-                : Auth::id();
-
-            $syncData = [];
-            $syncData[$ownerId] = ['is_owner' => true];
-
-            // Admin can assign additional users
-            if ($this->isAdmin()) {
-                foreach ($this->assignedUserIds as $uid) {
-                    if (! isset($syncData[$uid])) {
-                        $syncData[$uid] = ['is_owner' => false];
-                    }
-                }
-            }
-
-            $task->users()->sync($syncData);
-
-            // Sync locations
-            $task->locations()->sync($this->selectedLocationIds);
-
-            // Notify newly assigned users (admin task assignment only)
-            if ($this->isAdmin() && ! empty($this->assignedUserIds)) {
-                foreach ($this->assignedUserIds as $userId) {
-                    if ($userId !== $ownerId) { // Don't notify the owner
-                        $taskDateTime = $task->start_date
-                            ? $task->start_date->format('M d, H:i')
-                            : 'No date set';
-
-                        $notification = UserNotification::create([
-                            'user_id' => $userId,
-                            'from_user_id' => Auth::id(),
-                            'title' => 'Task Assigned',
-                            'message' => Auth::user()->name . ' assigned you a task: ' . $task->title . ' on ' . $taskDateTime,
-                            'type' => 'task_assigned',
-                            'action_url' => '/schedule',
-                        ]);
-
-                        broadcast(new \App\Events\NotificationCreated($notification));
-                    }
-                }
-            }
-        }
-
-        // Non-admin: send collaboration requests for selected users
-        if (! $this->isAdmin() && ! empty($this->collaborationUserIds)) {
-            foreach ($this->collaborationUserIds as $targetUserId) {
-                if ($targetUserId === Auth::id()) {
-                    continue;
-                }
-
-                // Skip if a pending request already exists for this task+target
-                $exists = CollaborationRequest::where('task_id', $task->id)
-                    ->where('target_user_id', $targetUserId)
-                    ->where('status', 'pending')
-                    ->exists();
-
-                if (! $exists) {
-                    CollaborationRequest::create([
-                        'task_id' => $task->id,
-                        'requester_id' => Auth::id(),
-                        'target_user_id' => $targetUserId,
-                        'status' => 'pending',
-                    ]);
-
-                    // Create and broadcast notification to the target user
-                    $requesterName = Auth::user()->name;
-                    $notification = UserNotification::create([
-                        'user_id' => $targetUserId,
-                        'from_user_id' => Auth::id(),
-                        'title' => 'Collaboration Request',
-                        'message' => $requesterName . ' is requesting your collaboration on: ' . $task->title . ' on ' . ($task->start_date ? $task->start_date->format('M d, H:i') : 'No date set'),
-                        'type' => 'collaboration_request',
-                        'action_url' => '/schedule',
-                    ]);
-
-                    broadcast(new \App\Events\NotificationCreated($notification));
-                }
-            }
-        }
-
-        $this->showTaskModal = false;
-        $this->resetForm();
-    }
-
-    public function confirmDelete(int $taskId): void
-    {
-        $this->deletingTaskId = $taskId;
-        $this->showDeleteModal = true;
-    }
-
-    public function deleteTask(): void
-    {
-        if (! $this->deletingTaskId) {
-            return;
-        }
-
-        $task = Task::findOrFail($this->deletingTaskId);
-
-        if (! $this->canManageTask($task)) {
-            return;
-        }
-
-        $task->users()->detach();
-        $task->locations()->detach();
-        $task->delete();
-
-        $this->showDeleteModal = false;
-        $this->deletingTaskId = null;
-    }
-
-    public function markComplete(int $taskId): void
-    {
-        $task = Task::findOrFail($taskId);
-
-        // Any user assigned to the task (or admin) can mark it complete
-        $isAssigned = $task->users()->where('users.id', Auth::id())->exists();
-        if (! $isAssigned && ! $this->isAdmin()) {
-            return;
-        }
-
-        $task->update(['is_complete' => true]);
-    }
-
-    // ─── Print Methods ────────────────────────────────────────
-
-    #[On('openPrintModal')]
-    public function openPrintModal(): void
-    {
-        $this->showPrintModal = true;
-    }
-
-    public function closePrintModal(): void
-    {
-        $this->showPrintModal = false;
-    }
-
-    public function setPrintScope(string $scope): void
-    {
-        $this->printScope = $scope;
-    }
-
-    public function setPrintPeriod(string $period): void
-    {
-        $this->printPeriod = $period;
-    }
-
-    public function getPrintData(): array
-    {
-        // Determine date range based on period
-        $start = Carbon::create($this->year, $this->month, $this->day);
-
-        if ($this->printPeriod === 'custom') {
-            if (! $this->printCustomStart || ! $this->printCustomEnd) {
-                return ['tasks' => collect(), 'rangeStart' => null, 'rangeEnd' => null, 'scope' => $this->printScope, 'period' => 'custom'];
-            }
-            $rangeStart = Carbon::parse($this->printCustomStart)->startOfDay();
-            $rangeEnd   = Carbon::parse($this->printCustomEnd)->endOfDay();
-        } else {
-            [$rangeStart, $rangeEnd] = match ($this->printPeriod) {
-                'daily' => [
-                    $start->copy()->startOfDay(),
-                    $start->copy()->endOfDay(),
-                ],
-                'weekly' => [
-                    $start->copy()->startOfWeek(Carbon::MONDAY),
-                    $start->copy()->endOfWeek(Carbon::SUNDAY),
-                ],
-                'monthly' => [
-                    Carbon::create($this->year, $this->month, 1)->startOfDay(),
-                    Carbon::create($this->year, $this->month, 1)->endOfMonth()->endOfDay(),
-                ],
-                default => [
-                    $start->copy()->startOfWeek(Carbon::MONDAY),
-                    $start->copy()->endOfWeek(Carbon::SUNDAY),
-                ],
-            };
-        }
-
-        // Build query
-        $query = Task::with(['users', 'locations', 'taskCategory', 'taskPriority'])
-            ->where(function ($q) use ($rangeStart, $rangeEnd) {
-                $q->whereBetween('date', [$rangeStart, $rangeEnd])
-                    ->orWhere(function ($q2) use ($rangeStart, $rangeEnd) {
-                        $q2->where('start_date', '<=', $rangeEnd)
-                            ->where('end_date', '>=', $rangeStart);
-                    })
-                    ->orWhere(function ($q2) use ($rangeStart, $rangeEnd) {
-                        $q2->whereNull('end_date')
-                            ->whereBetween('start_date', [$rangeStart, $rangeEnd]);
-                    });
-            });
-
-        // Apply scope filter
-        if ($this->printScope === 'myTasks') {
-            $query->whereHas('users', function ($q) {
-                $q->where('users.id', Auth::id());
-            });
-        }
-
-        $tasks = $query->orderBy('start_date')->get();
-
-        return [
-            'tasks' => $tasks,
-            'rangeStart' => $rangeStart,
-            'rangeEnd' => $rangeEnd,
-            'scope' => $this->printScope,
-            'period' => $this->printPeriod,
-        ];
-    }
-
-    private function resetForm(): void
-    {
-        $this->editingTaskId = null;
-        $this->title = '';
-        $this->description = '';
-        $this->startDate = '';
-        $this->endDate = '';
-        $this->taskCategoryId = null;
-        $this->taskPriorityId = null;
-        $this->isComplete = false;
-        $this->taskOwnerId = null;
-        $this->assignedUserIds = [];
-        $this->selectedLocationIds = [];
-        $this->collaborationUserIds = [];
     }
 
     private function isAdmin(): bool
@@ -691,6 +229,76 @@ class ScheduleCalendar extends Component
         }
 
         return $query->orderBy('date')->get();
+    }
+
+    /**
+     * Get birthdays (from users.birthdate and birthdates table) that fall within the range.
+     * Returns array of ['name' => string, 'date' => 'Y-m-d', 'notes' => string|null]
+     */
+    private function getBirthdays(Carbon $start, Carbon $end): array
+    {
+        $birthdays = [];
+
+        // Collect all candidate dates (month-day) within the range
+        $current = $start->copy()->startOfDay();
+        $rangeDays = [];
+        while ($current->lte($end)) {
+            $rangeDays[] = $current->format('m-d');
+            $current->addDay();
+        }
+
+        // From users table
+        $users = User::whereNotNull('birthdate')->get();
+        foreach ($users as $user) {
+            $md = $user->birthdate->format('m-d');
+            if (in_array($md, $rangeDays)) {
+                // Find the actual year within the range
+                foreach ([$start->year, $end->year] as $year) {
+                    $date = Carbon::createFromFormat('Y-m-d', $year . '-' . $md);
+                    if ($date->between($start, $end)) {
+                        $birthdays[] = [
+                            'name'  => $user->name,
+                            'date'  => $date->format('Y-m-d'),
+                            'notes' => null,
+                        ];
+                        break;
+                    }
+                }
+            }
+        }
+
+        // From birthdates table (manual entries)
+        $manualEntries = Birthdate::all();
+        foreach ($manualEntries as $entry) {
+            $md = $entry->birthdate->format('m-d');
+            if (in_array($md, $rangeDays)) {
+                foreach ([$start->year, $end->year] as $year) {
+                    $date = Carbon::createFromFormat('Y-m-d', $year . '-' . $md);
+                    if ($date->between($start, $end)) {
+                        // Avoid duplicate if user_id matches an already-added user
+                        $alreadyAdded = false;
+                        if ($entry->user_id) {
+                            foreach ($birthdays as $b) {
+                                if (isset($b['_user_id']) && $b['_user_id'] === $entry->user_id) {
+                                    $alreadyAdded = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (! $alreadyAdded) {
+                            $birthdays[] = [
+                                'name'  => $entry->name,
+                                'date'  => $date->format('Y-m-d'),
+                                'notes' => $entry->notes,
+                            ];
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        return $birthdays;
     }
 
     private function getFilteredMeals(Carbon $start, Carbon $end)
@@ -961,6 +569,9 @@ class ScheduleCalendar extends Component
                 ->toArray();
         }
 
+        // Birthdays
+        $birthdays = $this->getBirthdays($start, $end);
+
         // Print data
         $printData = $this->showPrintModal ? $this->getPrintData() : null;
 
@@ -984,6 +595,7 @@ class ScheduleCalendar extends Component
             'pendingOutgoingUserIds' => $pendingOutgoingUserIds,
             'unavailableUserIds' => $unavailableUserIds,
             'printData' => $printData,
+            'birthdays' => $birthdays,
         ]);
     }
 }
