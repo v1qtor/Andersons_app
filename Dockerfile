@@ -22,12 +22,14 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
+# Tailwind/Vite imports CSS from vendor/livewire/flux — pull vendor from base stage
+COPY --from=base /var/www/html/vendor /app/vendor
 RUN npm run build
 
 FROM base AS app
 COPY . /var/www/html
 COPY --from=frontend /app/public/build /var/www/html/public/build
-RUN composer dump-autoload --optimize --no-dev \
+RUN composer dump-autoload --optimize --no-dev --no-scripts \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R ug+rwX storage bootstrap/cache
 
