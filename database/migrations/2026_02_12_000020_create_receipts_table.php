@@ -10,16 +10,16 @@ return new class extends Migration
     {
         Schema::create('receipts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('category_id')->constrained()->onUpdate('cascade')->onDelete('set null');
-            $table->foreignId('user_id')->constrained()->onUpdate('cascade')->onDelete('set null');
+            $table->foreignId('category_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('set null');
+            $table->foreignId('user_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('set null');
             $table->float('amount');
             $table->dateTime('bill_date');
-            $table->string('description')->nullable()->collation('nocase');
+            $table->string('description')->nullable();
             $table->boolean('is_paid');
             $table->string('file_path');
             $table->dateTime('upload_date');
             $table->dateTime('paid_date')->nullable();
-            $table->string('name')->collation('nocase');
+            $table->string('name');
             $table->timestamps();
         });
     }
