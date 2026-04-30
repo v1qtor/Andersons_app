@@ -345,11 +345,15 @@ class ScheduleCalendar extends Component
                     foreach ($addedUserIds as $userId) {
                         // Don't notify the owner if they're not an actual staff member or admin
                         if ($userId !== $ownerId || $userId !== Auth::id()) {
+                            $taskDateTime = $task->start_date
+                                ? $task->start_date->format('M d, H:i')
+                                : 'No date set';
+
                             $notification = UserNotification::create([
                                 'user_id' => $userId,
                                 'from_user_id' => Auth::id(),
                                 'title' => 'Task Assigned',
-                                'message' => Auth::user()->name . ' assigned you a task: ' . $task->title,
+                                'message' => Auth::user()->name . ' assigned you a task: ' . $task->title . ' on ' . $taskDateTime,
                                 'type' => 'task_assigned',
                                 'action_url' => '/schedule',
                             ]);
@@ -389,11 +393,15 @@ class ScheduleCalendar extends Component
             if ($this->isAdmin() && ! empty($this->assignedUserIds)) {
                 foreach ($this->assignedUserIds as $userId) {
                     if ($userId !== $ownerId) { // Don't notify the owner
+                        $taskDateTime = $task->start_date
+                            ? $task->start_date->format('M d, H:i')
+                            : 'No date set';
+
                         $notification = UserNotification::create([
                             'user_id' => $userId,
                             'from_user_id' => Auth::id(),
                             'title' => 'Task Assigned',
-                            'message' => Auth::user()->name . ' assigned you a task: ' . $task->title,
+                            'message' => Auth::user()->name . ' assigned you a task: ' . $task->title . ' on ' . $taskDateTime,
                             'type' => 'task_assigned',
                             'action_url' => '/schedule',
                         ]);
@@ -431,7 +439,7 @@ class ScheduleCalendar extends Component
                         'user_id' => $targetUserId,
                         'from_user_id' => Auth::id(),
                         'title' => 'Collaboration Request',
-                        'message' => $requesterName . ' is requesting your collaboration on: ' . $task->title,
+                        'message' => $requesterName . ' is requesting your collaboration on: ' . $task->title . ' on ' . ($task->start_date ? $task->start_date->format('M d, H:i') : 'No date set'),
                         'type' => 'collaboration_request',
                         'action_url' => '/schedule',
                     ]);
