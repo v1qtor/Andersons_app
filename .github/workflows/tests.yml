@@ -2,11 +2,11 @@ name: Tests
 
 on:
   push:
-    branches: [development, main]
+    branches: [main]
   pull_request:
-    branches: [development, main]
+    branches: [main]
 
-jobs:
+jobs:g
   pest:
     name: Pest (PHP 8.3)
     runs-on: ubuntu-latest
