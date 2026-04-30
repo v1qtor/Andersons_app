@@ -17,7 +17,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['target_user_id', 'status']);
-            $table->unique(['task_id', 'requester_id', 'target_user_id']);
+            $table->unique(['task_id', 'requester_id', 'target_user_id'], 'collab_req_task_requester_target_unique');
         });
     }
 

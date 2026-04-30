@@ -50,6 +50,14 @@
         @endforeach
     </flux:select>
 
+    {{-- Birthdate --}}
+    <flux:input
+        wire:model="birthdate"
+        :label="__('Date of Birth')"
+        type="date"
+        placeholder="{{ __('YYYY-MM-DD') }}"
+    />
+
     {{-- Password --}}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <flux:input
