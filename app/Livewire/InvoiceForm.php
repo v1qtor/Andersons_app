@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Receipt;
 use App\Models\Category;
+use App\Models\UserNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
@@ -131,6 +132,20 @@ class InvoiceForm extends Component
                 'file_path' => $receiptFilePath ?? $this->invoice->file_path,
             ]);
 
+            // Notify invoice owner if admin makes changes - check preference first
+            if ($isAdmin && $this->invoice->user_id !== $user->id && $this->userHasInvoiceNotificationsEnabled($this->invoice->user)) {
+                $notification = UserNotification::create([
+                    'user_id' => $this->invoice->user_id,
+                    'from_user_id' => $user->id,
+                    'title' => 'Invoice Modified',
+                    'message' => $user->name . ' updated your invoice for £' . number_format($this->invoice->amount, 2),
+                    'type' => 'invoice_changed',
+                    'action_url' => '/invoices',
+                ]);
+
+                broadcast(new \App\Events\NotificationCreated($notification));
+            }
+
             session()->flash('message', 'Invoice updated successfully.');
         } else {
             // Create new invoice
@@ -163,5 +178,26 @@ class InvoiceForm extends Component
         return view('livewire.invoice-form', [
             'categories' => Category::whereNotIn('name', ['Other', 'other'])->get(),
         ]);
+    }
+
+    /**
+     * Check if user has invoice notifications (popup) enabled
+     */
+    private function userHasInvoiceNotificationsEnabled($user): bool
+    {
+        $setting = $user->notificationSettings()
+            ->where('notification_type_id', 3) // receiptApprovals = id 3
+            ->first();
+
+        if (!$setting) {
+            return true; // Default to enabled if not set
+        }
+
+        try {
+            $preferences = json_decode($setting->pivot->value, true);
+            return $preferences['popup'] ?? true;
+        } catch (\Exception $e) {
+            return true; // Default to enabled if decode fails
+        }
     }
 }

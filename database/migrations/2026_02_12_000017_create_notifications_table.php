@@ -10,8 +10,8 @@ return new class extends Migration
     {
         Schema::create('notifications_custom', function (Blueprint $table) {
             $table->id();
-            $table->string('title')->nullable()->collation('nocase');
-            $table->string('description')->nullable()->collation('nocase');
+            $table->string('title')->nullable();
+            $table->string('description')->nullable();
             $table->boolean('is_mail');
             $table->timestamps();
         });

@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('meal_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->dateTime('date_time');
-            $table->string('notes')->nullable()->collation('nocase');
+            $table->string('notes')->nullable();
             $table->timestamps();
         });
     }
