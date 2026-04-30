@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [main]
 
-jobs:g
+jobs:
   pest:
     name: Pest (PHP 8.3)
     runs-on: ubuntu-latest
