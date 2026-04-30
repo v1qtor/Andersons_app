@@ -41,11 +41,17 @@
                 >
                     {{ __('Task Priorities') }}
                 </button>
-                <button 
-                    wire:click="setTab('role_colors')" 
+                <button
+                    wire:click="setTab('role_colors')"
                     class="px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer {{ $activeTab === 'role_colors' ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400' : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100' }}"
                 >
                     {{ __('Role Colors') }}
+                </button>
+                <button
+                    wire:click="setTab('birthdates')"
+                    class="px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap cursor-pointer {{ $activeTab === 'birthdates' ? 'border-b-2 border-pink-500 text-pink-600 dark:text-pink-400' : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100' }}"
+                >
+                    🎂 {{ __('Birthdays') }}
                 </button>
             </nav>
         </div>
@@ -608,7 +614,115 @@
                 </table>
             </div>
         @endif
+        {{-- Birthdates Tab --}}
+        @if($activeTab === 'birthdates')
+            <div class="bg-white dark:bg-zinc-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-base font-semibold text-neutral-900 dark:text-neutral-100">{{ __('Birthdays') }}</h3>
+                        <p class="text-sm text-neutral-500 dark:text-neutral-400">{{ __('Manage birthdays shown on the schedule calendar.') }}</p>
+                    </div>
+                    <flux:button size="sm" variant="primary" wire:click="openBirthdateCreate" icon="plus">
+                        {{ __('Add Birthday') }}
+                    </flux:button>
+                </div>
+
+                <div class="mb-4">
+                    <flux:input wire:model.live="search.birthdates" placeholder="{{ __('Search by name...') }}" size="sm" icon="magnifying-glass" />
+                </div>
+
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-neutral-200 dark:border-neutral-700">
+                            <th class="text-left py-2 px-3 font-medium text-neutral-600 dark:text-neutral-400">{{ __('Name') }}</th>
+                            <th class="text-left py-2 px-3 font-medium text-neutral-600 dark:text-neutral-400">{{ __('Date') }}</th>
+                            <th class="text-left py-2 px-3 font-medium text-neutral-600 dark:text-neutral-400">{{ __('Linked User') }}</th>
+                            <th class="text-left py-2 px-3 font-medium text-neutral-600 dark:text-neutral-400">{{ __('Notes') }}</th>
+                            <th class="text-right py-2 px-3 font-medium text-neutral-600 dark:text-neutral-400">{{ __('Actions') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-neutral-100 dark:divide-neutral-700">
+                        @forelse ($birthdates as $bd)
+                            <tr class="hover:bg-neutral-50 dark:hover:bg-zinc-700/40">
+                                <td class="py-2.5 px-3 font-medium text-neutral-900 dark:text-neutral-100">
+                                    🎂 {{ $bd->name }}
+                                </td>
+                                <td class="py-2.5 px-3 text-neutral-700 dark:text-neutral-300">
+                                    {{ $bd->birthdate->format('d F') }}
+                                </td>
+                                <td class="py-2.5 px-3 text-neutral-500 dark:text-neutral-400">
+                                    {{ $bd->user?->name ?? '—' }}
+                                </td>
+                                <td class="py-2.5 px-3 text-neutral-500 dark:text-neutral-400 max-w-xs truncate">
+                                    {{ $bd->notes ?? '—' }}
+                                </td>
+                                <td class="py-2.5 px-3 text-right">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <button wire:click="openBirthdateEdit({{ $bd->id }})" class="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors" title="{{ __('Edit') }}">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" /></svg>
+                                        </button>
+                                        <button wire:click="deleteBirthdate({{ $bd->id }})" wire:confirm="{{ __('Delete this birthday?') }}" class="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors" title="{{ __('Delete') }}">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="py-8 text-center text-neutral-500 dark:text-neutral-400">
+                                    {{ __('No birthdays added yet.') }}
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        @endif
     </div>
+
+    {{-- Birthdate Modal --}}
+    <flux:modal name="birthdate-modal" :show="$showBirthdateModal" wire:model="showBirthdateModal">
+        <div class="space-y-5">
+            <div>
+                <flux:heading size="lg">{{ $editingBirthdateId ? __('Edit Birthday') : __('Add Birthday') }}</flux:heading>
+            </div>
+
+            <flux:input
+                wire:model="bdName"
+                label="{{ __('Name') }}"
+                placeholder="{{ __('e.g. John Smith') }}"
+                required
+            />
+
+            <flux:input
+                wire:model="bdDate"
+                type="date"
+                label="{{ __('Date of Birth') }}"
+                required
+            />
+
+            <div>
+                <flux:label>{{ __('Linked User (optional)') }}</flux:label>
+                <select wire:model="bdUserId" class="mt-1 w-full rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-zinc-800 text-sm px-3 py-2 text-neutral-900 dark:text-neutral-100">
+                    <option value="">— {{ __('None') }} —</option>
+                    @foreach ($allUsers as $u)
+                        <option value="{{ $u->id }}">{{ $u->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <flux:input
+                wire:model="bdNotes"
+                label="{{ __('Notes (optional)') }}"
+                placeholder="{{ __('e.g. Cake preference, etc.') }}"
+            />
+
+            <div class="flex gap-2 justify-end">
+                <flux:button variant="ghost" wire:click="closeBirthdateModal">{{ __('Cancel') }}</flux:button>
+                <flux:button variant="primary" wire:click="saveBirthdate">{{ __('Save') }}</flux:button>
+            </div>
+        </div>
+    </flux:modal>
 
     <!-- Toast Notifications -->
     <div

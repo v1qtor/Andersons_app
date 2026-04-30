@@ -5,6 +5,7 @@ namespace App\Livewire\Schedule;
 use App\Livewire\Schedule\CollaborationSchedule;
 use App\Livewire\Schedule\CrudSchedule;
 use App\Livewire\Schedule\PrintSchedule;
+use App\Models\Birthdate;
 use App\Models\CollaborationRequest;
 use App\Models\Location;
 use App\Models\PlannedMeal;
@@ -228,6 +229,76 @@ class ScheduleCalendar extends Component
         }
 
         return $query->orderBy('date')->get();
+    }
+
+    /**
+     * Get birthdays (from users.birthdate and birthdates table) that fall within the range.
+     * Returns array of ['name' => string, 'date' => 'Y-m-d', 'notes' => string|null]
+     */
+    private function getBirthdays(Carbon $start, Carbon $end): array
+    {
+        $birthdays = [];
+
+        // Collect all candidate dates (month-day) within the range
+        $current = $start->copy()->startOfDay();
+        $rangeDays = [];
+        while ($current->lte($end)) {
+            $rangeDays[] = $current->format('m-d');
+            $current->addDay();
+        }
+
+        // From users table
+        $users = User::whereNotNull('birthdate')->get();
+        foreach ($users as $user) {
+            $md = $user->birthdate->format('m-d');
+            if (in_array($md, $rangeDays)) {
+                // Find the actual year within the range
+                foreach ([$start->year, $end->year] as $year) {
+                    $date = Carbon::createFromFormat('Y-m-d', $year . '-' . $md);
+                    if ($date->between($start, $end)) {
+                        $birthdays[] = [
+                            'name'  => $user->name,
+                            'date'  => $date->format('Y-m-d'),
+                            'notes' => null,
+                        ];
+                        break;
+                    }
+                }
+            }
+        }
+
+        // From birthdates table (manual entries)
+        $manualEntries = Birthdate::all();
+        foreach ($manualEntries as $entry) {
+            $md = $entry->birthdate->format('m-d');
+            if (in_array($md, $rangeDays)) {
+                foreach ([$start->year, $end->year] as $year) {
+                    $date = Carbon::createFromFormat('Y-m-d', $year . '-' . $md);
+                    if ($date->between($start, $end)) {
+                        // Avoid duplicate if user_id matches an already-added user
+                        $alreadyAdded = false;
+                        if ($entry->user_id) {
+                            foreach ($birthdays as $b) {
+                                if (isset($b['_user_id']) && $b['_user_id'] === $entry->user_id) {
+                                    $alreadyAdded = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (! $alreadyAdded) {
+                            $birthdays[] = [
+                                'name'  => $entry->name,
+                                'date'  => $date->format('Y-m-d'),
+                                'notes' => $entry->notes,
+                            ];
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        return $birthdays;
     }
 
     private function getFilteredMeals(Carbon $start, Carbon $end)
@@ -498,6 +569,9 @@ class ScheduleCalendar extends Component
                 ->toArray();
         }
 
+        // Birthdays
+        $birthdays = $this->getBirthdays($start, $end);
+
         // Print data
         $printData = $this->showPrintModal ? $this->getPrintData() : null;
 
@@ -521,6 +595,7 @@ class ScheduleCalendar extends Component
             'pendingOutgoingUserIds' => $pendingOutgoingUserIds,
             'unavailableUserIds' => $unavailableUserIds,
             'printData' => $printData,
+            'birthdays' => $birthdays,
         ]);
     }
 }
