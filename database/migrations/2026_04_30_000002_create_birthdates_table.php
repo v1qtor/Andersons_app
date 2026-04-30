@@ -8,15 +8,18 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('task_categories', function (Blueprint $table) {
+        Schema::create('birthdates', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->date('birthdate');
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('notes')->nullable();
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('task_categories');
+        Schema::dropIfExists('birthdates');
     }
 };

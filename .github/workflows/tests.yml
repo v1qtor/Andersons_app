@@ -1,0 +1,59 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  pest:
+    name: Pest (PHP 8.3)
+    runs-on: ubuntu-latest
+
+    container:
+      image: php:8.3-cli
+      options: --user root
+
+    env:
+      APP_ENV: testing
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ":memory:"
+      BROADCAST_CONNECTION: log
+
+    steps:
+      - name: Install system dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            git unzip libzip-dev libicu-dev libpng-dev libjpeg-dev \
+            libfreetype6-dev libonig-dev libxml2-dev sqlite3 libsqlite3-dev
+          docker-php-ext-configure gd --with-freetype --with-jpeg
+          docker-php-ext-install -j$(nproc) pdo_sqlite zip intl gd bcmath exif pcntl
+
+      - name: Install Composer
+        run: |
+          curl -sS https://getcomposer.org/installer | php -- \
+            --install-dir=/usr/local/bin --filename=composer
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress --no-ansi
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          php artisan config:clear
+
+      - name: Run tests
+        run: php artisan test

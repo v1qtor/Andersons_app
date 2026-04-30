@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('allergies', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->collation('nocase');
+            $table->string('name');
             $table->timestamps();
         });
     }
