@@ -285,6 +285,11 @@
                         </div>
                     @endforeach
                 </div>
+
+                <!-- Pagination -->
+                <div class="mt-6">
+                    {{ $invoices->links() }}
+                </div>
             @else
                 <!-- Staff View: Table Layout -->
                 <x-ui.section-card padding="p-0" class="overflow-hidden">
@@ -346,10 +351,15 @@
                     </div>
                 </x-ui.section-card>
 
+                <!-- Pagination -->
+                <div class="mt-6">
+                    {{ $invoices->links() }}
+                </div>
+
                 <!-- Summary Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <x-ui.stat-card label="Total Reports">{{ $invoices->count() }}</x-ui.stat-card>
-                    <x-ui.stat-card label="Pending Total" tone="yellow">£{{ number_format($invoices->where('is_paid', false)->sum('amount'), 2) }}</x-ui.stat-card>
+                    <x-ui.stat-card label="Total Reports">{{ $totals['total'] }}</x-ui.stat-card>
+                    <x-ui.stat-card label="Pending Total" tone="yellow">£{{ number_format($totals['pendingAmount'], 2) }}</x-ui.stat-card>
                     <x-ui.stat-card label="Paid Amount (This Month)" tone="green">£{{ number_format($thisMonthPaidTotal, 2) }}</x-ui.stat-card>
                 </div>
             @endif
@@ -357,9 +367,9 @@
             <!-- Admin View: Summary Cards -->
             @if($isAdmin)
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <x-ui.stat-card label="Total Invoices">{{ $invoices->count() }}</x-ui.stat-card>
-                    <x-ui.stat-card label="Pending" tone="yellow">{{ $invoices->where('is_paid', false)->count() }}</x-ui.stat-card>
-                    <x-ui.stat-card label="Total Pending Amount" tone="yellow">£{{ number_format($invoices->where('is_paid', false)->sum('amount'), 2) }}</x-ui.stat-card>
+                    <x-ui.stat-card label="Total Invoices">{{ $totals['total'] }}</x-ui.stat-card>
+                    <x-ui.stat-card label="Pending" tone="yellow">{{ $totals['pending'] }}</x-ui.stat-card>
+                    <x-ui.stat-card label="Total Pending Amount" tone="yellow">£{{ number_format($totals['pendingAmount'], 2) }}</x-ui.stat-card>
                     <x-ui.stat-card label="Total Paid (This Month)" tone="green">£{{ number_format($thisMonthPaidTotal, 2) }}</x-ui.stat-card>
                 </div>
             @endif
