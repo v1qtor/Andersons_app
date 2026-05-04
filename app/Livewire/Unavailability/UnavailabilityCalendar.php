@@ -46,14 +46,52 @@ class UnavailabilityCalendar extends Component
     }
 
     public function save(){
+        $this->validate([
+            'startDate'   => 'required|date',
+            'startTime'   => 'required',
+            'endDate'     => 'required|date|after_or_equal:startDate',
+            'endTime'     => 'required',
+            'description' => 'nullable|string|max:255',
+        ])
+        $startDateTime = $this->startDate . ' ' . $this->startTime . ':00';
+        $endDateTime   = $this->endDate . ' ' . $this->endTime . ':00';
 
+        if($htis->editingId) {
+            $period = UnavailabilityPeriod::findOrFail($this->editingId);
+            if ($period->user_id !== Auth::id()){
+                abort(403);
+            }
+            $period->update([
+                'start_date'  => $startDateTime,
+                'end_date'    => $endDateTime,
+                'description' => $this->description,
+            ]);
+            $this->dispatch('toast', title: 'Unavailability period updated', type: 'success');  
+        } else {
+            UnavailabilityPeriod::create([
+                'user_id'     => Auth::id(),
+                'start_date'  => $startDateTime,
+                'end_date'    => $endDateTime,
+                'description' => $this->description,
+            ]);
+            $this->dispatch('toast', title: 'Unavailability period created', type: 'success');
+        }
+
+        $this->showModal = false;
+        $this->reset(['editingId', 'startDate', 'startTime', 'endDate', 'endTime', 'description']);
     }
 
-    public function delete(){
-
+    public function delete($id){
+        $period = UnavailabilityPeriod::findOrFail($id);
+        if ($period->user_id !== Auth::id()){
+            abort(403);
+        }
+        $period->delete();
+        $this->dispatch('toast', title: 'Unavailability period deleted', type: 'success');  
     }
 
     public function render(){
-
+        return view('livewire.unavailability.unavailability-calendar')
+        ->layout('components.layouts.app', ['title' => 'My Unavailability']);
     }
 }
