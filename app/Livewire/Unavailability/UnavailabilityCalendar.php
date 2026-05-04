@@ -9,74 +9,33 @@ use Carbon\Carbon;
 
 class UnavailabilityCalendar extends Component
 {
-    public $currentWeekStart;
     public $showModal = false;
     public $editingId = null;
-
-    public $startDate = '';
+    public $startDate = ''
     public $startTime = '00:00';
     public $endDate = '';
     public $endTime = '23:59';
     public $description = '';
 
-    public function mount()
-    {
-        $this->currentWeekStart = Carbon::now()->startOfWeek()->format('Y-m-d');
+    public function getPeriodsProperty(){
+        return Auth::user() //Modal
+        ->unavailabilityPeriods() // rekationship in user model
+        ->orderBy('start_date')
+        ->get();
     }
 
-    public function getWeekDaysProperty()
-    {
-        $start = Carbon::parse($this->currentWeekStart);
-        $days = [];
-        for ($i = 0; $i < 7; $i++) {
-            $days[] = $start->copy()->addDays($i)->format('Y-m-d');
-        }
-        return $days;
-    }
-
-    public function getPeriodsProperty()
-    {
-        return Auth::user()
-            ->unavailabilityPeriods()
-            ->orderBy('start_date')
-            ->get();
-    }
-
-    public function previousWeek()
-    {
-        $this->currentWeekStart = Carbon::parse($this->currentWeekStart)
-            ->subWeek()->format('Y-m-d');
-    }
-
-    public function nextWeek()
-    {
-        $this->currentWeekStart = Carbon::parse($this->currentWeekStart)
-            ->addWeek()->format('Y-m-d');
-    }
-
-    public function goToCurrentWeek()
-    {
-        $this->currentWeekStart = Carbon::now()->startOfWeek()->format('Y-m-d');
-    }
-
-    public function openCreate($date = null)
-    {
+    public function openCreate(){
         $this->reset(['editingId', 'startDate', 'startTime', 'endDate', 'endTime', 'description']);
-        $this->startDate = $date ?? '';
-        $this->startTime = '00:00';
-        $this->endDate   = $date ?? '';
-        $this->endTime   = '23:59';
         $this->showModal = true;
+        $this->startTime = '00:00';
+        $this->endTime = '23:59';
     }
 
-    public function openEdit($periodId)
-    {
+    public function openEdit($periodId){
         $period = UnavailabilityPeriod::findOrFail($periodId);
-
-        if ($period->user_id !== Auth::id()) {
+        if ($period->user_id !== Auth::id()){
             abort(403);
         }
-
         $this->editingId   = $period->id;
         $this->startDate   = $period->start_date->format('Y-m-d');
         $this->startTime   = $period->start_date->format('H:i');
@@ -86,81 +45,15 @@ class UnavailabilityCalendar extends Component
         $this->showModal   = true;
     }
 
-    public function save()
-    {
-        $this->validate([
-            'startDate'   => 'required|date',
-            'startTime'   => 'required',
-            'endDate'     => 'required|date|after_or_equal:startDate',
-            'endTime'     => 'required',
-            'description' => 'nullable|string|max:255',
-        ]);
+    public function save(){
 
-        $startDateTime = $this->startDate . ' ' . $this->startTime . ':00';
-        $endDateTime   = $this->endDate . ' ' . $this->endTime . ':00';
-
-        if ($this->editingId) {
-            $period = UnavailabilityPeriod::findOrFail($this->editingId);
-
-            if ($period->user_id !== Auth::id()) {
-                abort(403);
-            }
-
-            $period->update([
-                'start_date'  => $startDateTime,
-                'end_date'    => $endDateTime,
-                'description' => $this->description,
-            ]);
-        } else {
-            UnavailabilityPeriod::create([
-                'user_id'     => Auth::id(),
-                'start_date'  => $startDateTime,
-                'end_date'    => $endDateTime,
-                'description' => $this->description,
-            ]);
-        }
-
-        $isEditing = (bool) $this->editingId;
-
-        $this->showModal = false;
-        $this->reset(['editingId', 'startDate', 'startTime', 'endDate', 'endTime', 'description']);
-
-        $this->dispatch('toast',
-            title: $isEditing ? 'Period Updated' : 'Period Added',
-            message: $isEditing ? 'Your unavailability period has been updated.' : 'Your unavailability period has been added.',
-            type: 'success'
-        );
     }
 
-    public function delete($id)
-    {
-        $period = UnavailabilityPeriod::findOrFail($id);
+    public function delete(){
 
-        if ($period->user_id !== Auth::id()) {
-            abort(403);
-        }
-
-        $period->delete();
-        $this->dispatch('toast',
-            title: 'Period Removed',
-            message: 'The unavailability period has been removed.',
-            type: 'success'
-        );
     }
 
-    public function getPeriodForDate($date)
-    {
-        return $this->periods->first(function ($period) use ($date) {
-            return Carbon::parse($date)->between(
-                $period->start_date->copy()->startOfDay(),
-                $period->end_date->copy()->endOfDay()
-            );
-        });
-    }
+    public function render(){
 
-    public function render()
-    {
-        return view('livewire.unavailability.unavailability-calendar')
-            ->layout('components.layouts.app', ['title' => 'My Unavailability']);
     }
 }
