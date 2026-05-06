@@ -34,8 +34,8 @@ class StaffAvailabilityCalendar extends Component
         ]))->get();
     }
 
-    public function getFileteredUsersProperty(){
-        return $this->allUsers->filter(function ($user) {
+    public function getFilteredUsersProperty(){
+        return $this->allUsers->filter(function (   $user) {
             if ($this->filterName && !str_contains(
                 strtolower($user->name),
                 strtolower($this->filterName)
