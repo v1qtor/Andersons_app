@@ -174,7 +174,8 @@
                             $hasTasks = ! empty($dayEvents['tasks'] ?? []);
                             $hasMeals = ! empty($dayEvents['meals'] ?? []);
                             $hasTrips = ! empty($dayEvents['trips'] ?? []);
-                            $hasAny = $hasTasks || $hasMeals || $hasTrips;
+                            $dayBirthdays = collect($birthdays)->where('date', $dateStr)->values();
+                            $hasAny = $hasTasks || $hasMeals || $hasTrips || $dayBirthdays->isNotEmpty();
                             $isToday = $dateStr === $today;
                         @endphp
                         <button
@@ -192,6 +193,11 @@
                                 </span>
                             </div>
                             <div class="space-y-0.5 overflow-hidden flex-1 w-full">
+                                @foreach ($dayBirthdays as $bday)
+                                    <div class="text-[10px] leading-tight px-1 py-0.5 rounded bg-pink-100 text-pink-800 dark:bg-pink-900/40 dark:text-pink-300 truncate">
+                                        🎂 {{ $bday['name'] }}
+                                    </div>
+                                @endforeach
                                 @if ($hasTrips)
                                     @foreach (array_slice($dayEvents['trips'], 0, 1) as $trip)
                                         <div class="text-[10px] leading-tight px-1 py-0.5 rounded bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300 truncate">
@@ -238,7 +244,8 @@
             {{-- ========== WEEK VIEW (Outlook-style) ========== --}}
         @elseif ($view === 'week')
             @php
-                $hasAnyAllDay = collect($weekViewData)->filter(fn($d) => !empty($d['allDay']))->isNotEmpty();
+                $hasAnyAllDay = collect($weekViewData)->filter(fn($d) => !empty($d['allDay']))->isNotEmpty()
+                    || collect($birthdays)->isNotEmpty();
                 $hours = range(0, 23);
             @endphp
             <div class="overflow-x-auto">
@@ -271,7 +278,10 @@
                                 {{ __('All day') }}
                             </div>
                             @foreach ($weekDays as $weekDay)
-                                @php $dateStr = $weekDay->format('Y-m-d'); @endphp
+                                @php
+                                    $dateStr = $weekDay->format('Y-m-d');
+                                    $weekDayBirthdays = collect($birthdays)->where('date', $dateStr)->values();
+                                @endphp
                                 <button
                                     wire:click="openDay('{{ $dateStr }}')"
                                     class="border-l border-neutral-200 dark:border-neutral-700 px-0.5 py-0.5 min-h-[24px] cursor-pointer hover:bg-neutral-50 dark:hover:bg-zinc-700/50 transition-colors"
@@ -279,6 +289,11 @@
                                     @foreach ($weekViewData[$dateStr]['allDay'] ?? [] as $item)
                                         <div class="text-[9px] px-1 py-0.5 rounded bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300 truncate">
                                             ⛺ {{ $item['model']->name }}
+                                        </div>
+                                    @endforeach
+                                    @foreach ($weekDayBirthdays as $bday)
+                                        <div class="text-[9px] px-1 py-0.5 rounded bg-pink-100 text-pink-800 dark:bg-pink-900/40 dark:text-pink-300 truncate">
+                                            🎂 {{ $bday['name'] }}
                                         </div>
                                     @endforeach
                                 </button>
@@ -381,6 +396,7 @@
             @php
                 $dateStr = sprintf('%04d-%02d-%02d', $year, $month, $day);
                 $dayEvents = $eventsByDate[$dateStr] ?? [];
+                $dayBirthdaysView = collect($birthdays)->where('date', $dateStr)->values();
             @endphp
             <div class="space-y-4">
                 <div class="flex justify-end">
@@ -388,6 +404,20 @@
                         {{ __('Add Task') }}
                     </x-flux.button>
                 </div>
+
+                {{-- Birthdays --}}
+                @foreach ($dayBirthdaysView as $bday)
+                    <div class="p-4 rounded-lg border-2 border-pink-300 bg-pink-50 dark:bg-pink-900/20 dark:border-pink-700">
+                        <div class="flex items-center gap-2">
+                            <span class="text-lg">🎂</span>
+                            <span class="font-bold text-neutral-900 dark:text-neutral-100">{{ $bday['name'] }}</span>
+                            <span class="text-xs px-2 py-0.5 rounded-full bg-pink-200 text-pink-800 dark:bg-pink-800 dark:text-pink-200">{{ __('Birthday') }}</span>
+                        </div>
+                        @if ($bday['notes'])
+                            <p class="text-sm text-neutral-600 dark:text-neutral-400 mt-1">{{ $bday['notes'] }}</p>
+                        @endif
+                    </div>
+                @endforeach
 
                 {{-- Trips --}}
                 @foreach ($dayEvents['trips'] ?? [] as $trip)
