@@ -239,7 +239,7 @@ class ScheduleCalendar extends Component
     {
         $birthdays = [];
 
-        // Collect all candidate dates (month-day) within the range
+        // Collect all month-day strings within the range
         $current = $start->copy()->startOfDay();
         $rangeDays = [];
         while ($current->lte($end)) {
@@ -247,51 +247,18 @@ class ScheduleCalendar extends Component
             $current->addDay();
         }
 
-        // From users table
-        $users = User::whereNotNull('birthdate')->get();
-        foreach ($users as $user) {
-            $md = $user->birthdate->format('m-d');
-            if (in_array($md, $rangeDays)) {
-                // Find the actual year within the range
-                foreach ([$start->year, $end->year] as $year) {
-                    $date = Carbon::createFromFormat('Y-m-d', $year . '-' . $md);
-                    if ($date->between($start, $end)) {
-                        $birthdays[] = [
-                            'name'  => $user->name,
-                            'date'  => $date->format('Y-m-d'),
-                            'notes' => null,
-                        ];
-                        break;
-                    }
-                }
-            }
-        }
-
-        // From birthdates table (manual entries)
-        $manualEntries = Birthdate::all();
-        foreach ($manualEntries as $entry) {
+        // Only from birthdates table (includes user-synced entries via is_user = true)
+        foreach (Birthdate::all() as $entry) {
             $md = $entry->birthdate->format('m-d');
             if (in_array($md, $rangeDays)) {
                 foreach ([$start->year, $end->year] as $year) {
                     $date = Carbon::createFromFormat('Y-m-d', $year . '-' . $md);
                     if ($date->between($start, $end)) {
-                        // Avoid duplicate if user_id matches an already-added user
-                        $alreadyAdded = false;
-                        if ($entry->user_id) {
-                            foreach ($birthdays as $b) {
-                                if (isset($b['_user_id']) && $b['_user_id'] === $entry->user_id) {
-                                    $alreadyAdded = true;
-                                    break;
-                                }
-                            }
-                        }
-                        if (! $alreadyAdded) {
-                            $birthdays[] = [
-                                'name'  => $entry->name,
-                                'date'  => $date->format('Y-m-d'),
-                                'notes' => $entry->notes,
-                            ];
-                        }
+                        $birthdays[] = [
+                            'name'  => $entry->name,
+                            'date'  => $date->format('Y-m-d'),
+                            'notes' => $entry->notes,
+                        ];
                         break;
                     }
                 }
