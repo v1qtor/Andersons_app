@@ -54,7 +54,7 @@ jobs:
             --allow-unauthenticated \
             --service-account "$RUNTIME_SA" \
             --add-cloudsql-instances "$CLOUDSQL_INSTANCE" \
-            --set-env-vars "APP_ENV=production,APP_DEBUG=false,LOG_CHANNEL=stderr,DB_CONNECTION=mysql,DB_SOCKET=/cloudsql/${CLOUDSQL_INSTANCE},DB_DATABASE=skil2,DB_USERNAME=skil2" \
+            --set-env-vars "APP_ENV=production,APP_DEBUG=false,APP_URL=https://skil2-app-635w5ighga-ew.a.run.app,LOG_CHANNEL=stderr,BROADCAST_CONNECTION=log,DB_CONNECTION=mysql,DB_SOCKET=/cloudsql/${CLOUDSQL_INSTANCE},DB_DATABASE=skil2,DB_USERNAME=skil2" \
             --set-secrets "APP_KEY=app-key:latest,DB_PASSWORD=db-password:latest" \
             --memory 512Mi \
             --cpu 1 \
