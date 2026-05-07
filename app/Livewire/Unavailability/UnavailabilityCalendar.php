@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Carbon\Carbon;
 
+// This component has been removed and is no longer in use.
 class UnavailabilityCalendar extends Component
 {
     public $showModal = false;
@@ -101,7 +102,7 @@ class UnavailabilityCalendar extends Component
 
     public function render()
     {
-        return view('livewire.unavailability.unavailability-calendar')
-            ->layout('components.layouts.app', ['title' => 'My Unavailability']);
+       return view('livewire.unavailability.unavailability-calendar')
+       ->layout('components.layouts.app', ['title' => 'My Unavailability']);
     }
 }

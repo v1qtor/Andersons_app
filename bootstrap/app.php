@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'chef'           => \App\Http\Middleware\IsChef::class,
             'staff'          => \App\Http\Middleware\IsStaff::class,
             'the-andersons'  => \App\Http\Middleware\IsTheAndersons::class,
+            'unavailability' => \App\Http\Middleware\IsUnavailabilityUser::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

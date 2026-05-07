@@ -30,6 +30,7 @@ class User extends Authenticatable
         'password',
         'iban',
         'phone_number',
+        'address',
         'is_active',
     ];
 

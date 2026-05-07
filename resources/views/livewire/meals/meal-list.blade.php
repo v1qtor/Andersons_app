@@ -227,8 +227,8 @@
             </div>
 
             <div class="flex gap-2 justify-end">
-                <flux:button variant="ghost" wire:click="cancelDelete">{{ __('Cancel') }}</flux:button>
-                <flux:button variant="danger" wire:click="deleteMeal">{{ __('Delete') }}</flux:button>
+                <x-flux.button variant="ghost" wire:click="cancelDelete">{{ __('Cancel') }}</x-flux.button>
+                <x-flux.button variant="danger" wire:click="deleteMeal">{{ __('Delete') }}</x-flux.button>
             </div>
         </div>
     </flux:modal>
