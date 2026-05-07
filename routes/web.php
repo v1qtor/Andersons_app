@@ -27,7 +27,6 @@ Route::get('dashboard', Dashboard::class)
     ->name('dashboard');
 
 Route::middleware(['auth'])->group(function () {
-    Route::redirect('settings', 'settings/profile');
     Route::get('schedule', Schedule::class)->name('schedule');
 
     Route::get('settings', Settings::class)->name('settings');
@@ -46,7 +45,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('notifications/{id}/mark-as-read', 'App\Http\Controllers\NotificationTestController@markAsRead')->name('notifications.mark-as-read');
     Route::delete('notifications/{id}', 'App\Http\Controllers\NotificationTestController@deleteNotification')->name('notifications.delete');
     Route::post('notifications/clear-all', 'App\Http\Controllers\NotificationTestController@clearAll')->name('notifications.clear-all');
-    
+
     // API-style notification endpoint for AJAX calls (session auth)
     Route::get('api/notifications', 'App\Http\Controllers\Api\NotificationController@index')->name('notifications.list');
 
