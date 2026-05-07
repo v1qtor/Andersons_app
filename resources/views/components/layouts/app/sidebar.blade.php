@@ -19,31 +19,43 @@
                     @if(auth()->user()->role && in_array(auth()->user()->role->name, ['Staff', 'Chef', 'Admin', 'The Andersons']))
                         <flux:navlist.item icon="document-text" :href="route('invoices')" :current="request()->routeIs('invoices*')" wire:navigate>{{ __('Invoices') }}</flux:navlist.item>
                     @endif
-                    @if(auth()->user()->role && auth()->user()->role->name === 'Admin')
-                        <flux:navlist.item icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>{{ __('Users') }}</flux:navlist.item>
+                    <!-- @if(auth()->user()->role && in_array(auth()->user()->role->name, ['Staff', 'Chef', 'Admin']))
+                        <flux:navlist.item icon="no-symbol" :href="route('unavailabilities')" :current="request()->routeIs('unavailabilities')" wire:navigate>{{ __('Unavailabilities') }}</flux:navlist.item>
+                    @endif -->
+                    @if(auth()->user()->role && in_array(auth()->user()->role->name, ['Staff', 'Chef', 'Family Member', 'The Andersons']))
+                        <flux:navlist.item icon="no-symbol" :href="route('unavailability')" :current="request()->routeIs('unavailability')" wire:navigate>{{ __('My Unavailability') }}</flux:navlist.item>
+                    @endif
+                    @if(auth()->user()->role?->name === 'Admin')
+                        <flux:navlist.item icon="no-symbol" :href="route('admin.staff-unavailability')" :current="request()->routeIs('admin.staff-unavailability')" wire:navigate>{{ __('Staff Availability') }}</flux:navlist.item>
+                    @endif
+                    @if(auth()->user()->role?->name === 'Admin')
+                        <flux:navlist.item icon="cog-6-tooth" :href="route('admin.panel')" :current="request()->routeIs('admin.panel') || request()->routeIs('admin.users.*')" wire:navigate>{{ __('Admin Panel') }}</flux:navlist.item>
                         <flux:navlist.item icon="fire" :href="route('admin.meals.index')" :current="request()->routeIs('admin.meals.*')" wire:navigate>{{ __('Meals') }}</flux:navlist.item>
-                        <flux:navlist.item icon="calendar-days" :href="route('admin.staff-availability')" :current="request()->routeIs('admin.staff-availability')" wire:navigate>{{ __('Staff Availability') }}</flux:navlist.item>
                     @endif
-                    @if(auth()->user()->role && auth()->user()->role->name === 'Chef')
+                    @if(auth()->user()->role?->name === 'Chef')
                         <flux:navlist.item icon="fire" :href="route('chef.meals.index')" :current="request()->routeIs('chef.meals.*')" wire:navigate>{{ __('Meals') }}</flux:navlist.item>
-                        <flux:navlist.item icon="check-circle" :href="route('unavailability.index')" :current="request()->routeIs('unavailability.index')" wire:navigate>{{ __('My Unavailability') }}</flux:navlist.item>
                     @endif
-                    @if(auth()->user()->role && in_array(auth()->user()->role->name, ['Family Member', 'The Andersons', 'Staff']))
+                    @if(in_array(auth()->user()->role?->name, ['Family Member', 'The Andersons', 'Staff']))
                         <flux:navlist.item icon="fire" :href="route('meals.index')" :current="request()->routeIs('meals.index')" wire:navigate>{{ __('Meals') }}</flux:navlist.item>
-                        <flux:navlist.item icon="check-circle" :href="route('unavailability.index')" :current="request()->routeIs('unavailability.index')" wire:navigate>{{ __('My Unavailability') }}</flux:navlist.item>
                     @endif
                 </flux:navlist.group>
     </flux:navlist>
 
     <flux:spacer />
 
-    <div class="hidden lg:block border-t border-zinc-200 bg-zinc-100 pt-3 pb-4 -mx-4 -mb-4">
+    @auth
+    <div class="hidden lg:block border-t border-b border-zinc-200 bg-zinc-100 pt-3 pb-3 -mx-4 dark:border-zinc-700 dark:bg-zinc-800">
+        <!-- Desktop Notification Bell -->
+        <div class="flex justify-center mb-3 px-4">
+            <x-notifications.bell-desktop />
+        </div>
+
         <div class="flex items-center gap-3 px-4 py-1.5">
             <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-neutral-200 text-sm font-semibold text-black">
                 {{ auth()->user()->initials }}
             </span>
             <div class="grid flex-1 text-start text-sm leading-tight min-w-0">
-                <span class="truncate font-semibold text-gray-900">{{ auth()->user()->name }}</span>
+                <span class="truncate font-semibold text-gray-900 dark:text-white">{{ auth()->user()->name }}</span>
                 <span class="truncate text-xs font-medium" style="color: {{ auth()->user()->role?->color ?? '#9ca3af' }}">
                     {{ auth()->user()->role?->name ?? 'No Role' }}
                 </span>
@@ -52,13 +64,14 @@
         <div class="flex justify-center pt-3">
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit" class="flex items-center gap-2 text-base text-gray-500 hover:text-gray-800 transition-colors cursor-pointer">
+                <button type="submit" class="flex items-center gap-2 text-base text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors cursor-pointer">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
                     Logout
                 </button>
             </form>
         </div>
     </div>
+    @endauth
 </flux:sidebar>
 
 <flux:header class="lg:hidden">
@@ -66,6 +79,13 @@
 
     <flux:spacer />
 
+    @auth
+    <x-notifications.bell />
+    @endauth
+    
+    <flux:spacer />
+
+    @auth
     <flux:dropdown position="top" align="end">
         <flux:profile
             :initials="auth()->user()->initials"
@@ -105,9 +125,13 @@
             </form>
         </flux:menu>
     </flux:dropdown>
+    @endauth
 </flux:header>
 
 {{ $slot }}
+
+<!-- Toast Notifications Container -->
+<x-toast-container />
 
 @fluxScripts
 </body>

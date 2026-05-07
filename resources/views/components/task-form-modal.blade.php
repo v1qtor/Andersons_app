@@ -10,24 +10,22 @@
     'selectedLocationIds' => [],
     'collaborationUserIds' => [],
     'pendingOutgoingUserIds' => [],
+    'unavailableUserIds' => [],
 ])
 
-<div
-    class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50"
-    wire:click.self="$set('showTaskModal', false)"
-    x-data="{
-        init() { document.body.style.overflow = 'hidden' },
-        destroy() { document.body.style.overflow = '' }
-    }"
-    @keydown.escape.window="$wire.set('showTaskModal', false)"
+<x-ui.detail-modal
+    :show="true"
+    :title="$editingTaskId ? __('Edit Task') : __('New Task')"
+    zIndex="z-[60]"
+    maxWidth="max-w-lg"
+    closeAction="$set('showTaskModal', false)"
+    escapeAction="$wire.set('showTaskModal', false)"
+    :lockBodyScroll="true"
+    panelClass="rounded-2xl shadow-2xl max-h-[90vh]"
+    bodyPadding="p-0"
+    titleClass="text-xl font-bold text-neutral-900 dark:text-neutral-100"
+    headerClass="z-10"
 >
-    <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-        <div class="sticky top-0 bg-white dark:bg-zinc-800 border-b border-neutral-200 dark:border-neutral-700 p-6 flex items-center justify-between z-10">
-            <h3 class="text-xl font-bold text-neutral-900 dark:text-neutral-100">
-                {{ $editingTaskId ? __('Edit Task') : __('New Task') }}
-            </h3>
-            <flux:button variant="ghost" size="sm" wire:click="$set('showTaskModal', false)" icon="x-mark" />
-        </div>
 
         <form wire:submit="saveTask" class="p-6 space-y-4">
             <div>
@@ -102,6 +100,9 @@
                     </label>
                     <div class="flex flex-wrap gap-2 p-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-zinc-900/50 max-h-40 overflow-y-auto">
                         @foreach ($allUsers as $user)
+                            @if(in_array($user->id, $unavailableUserIds))
+                                @continue
+                            @endif
                             @php
                                 $isOwner = $user->id === $taskOwnerId;
                                 $roleColor = $user->role?->color ?? '#6366f1';
@@ -125,6 +126,9 @@
                     </div>
                     <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
                         {{ __('The owner can edit and delete this task. Only one owner allowed.') }}
+                        @if(!empty($unavailableUserIds))
+                            <span class="text-amber-500 dark:text-amber-400"> · {{ __('Users unavailable during this period are hidden.') }}</span>
+                        @endif
                     </p>
                 </div>
             @endif
@@ -137,6 +141,9 @@
                     </label>
                     <div class="flex flex-wrap gap-2 p-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-zinc-900/50 max-h-40 overflow-y-auto">
                         @foreach ($allUsers as $user)
+                            @if(in_array($user->id, $unavailableUserIds))
+                                @continue
+                            @endif
                             @php
                                 $isAssigned = in_array($user->id, $assignedUserIds);
                                 $roleColor = $user->role?->color ?? '#6366f1';
@@ -157,6 +164,9 @@
                     </div>
                     <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
                         {{ __('Select multiple users to assign to this task.') }}
+                        @if(!empty($unavailableUserIds))
+                            <span class="text-amber-500 dark:text-amber-400"> · {{ __('Users unavailable during this period are hidden.') }}</span>
+                        @endif
                     </p>
                 </div>
             @endif
@@ -220,14 +230,13 @@
             @endif
 
             <div class="flex justify-end gap-3 pt-4 border-t border-neutral-200 dark:border-neutral-700">
-                <flux:button variant="ghost" wire:click="$set('showTaskModal', false)">
+                <x-flux.button variant="ghost" wire:click="$set('showTaskModal', false)">
                     {{ __('Cancel') }}
-                </flux:button>
-                <flux:button type="submit" variant="primary">
+                </x-flux.button>
+                <x-flux.button type="submit" variant="primary">
                     {{ $editingTaskId ? __('Update Task') : __('Create Task') }}
-                </flux:button>
+                </x-flux.button>
             </div>
         </form>
-    </div>
-</div>
+    </x-ui.detail-modal>
 
