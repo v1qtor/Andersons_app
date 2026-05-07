@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Allergy;
+use App\Models\Birthdate;
 use App\Models\Preference;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -19,6 +20,7 @@ class Settings extends Component
     public string $address = '';
     public string $iban = '';
     public bool $showIban = false;
+    public string $birthdate = '';
 
     public string $newAllergy = '';
     public string $newPreference = '';
@@ -47,6 +49,7 @@ class Settings extends Component
         $this->phone_number = $user->phone_number ?? '';
         $this->address = $user->address ?? '';
         $this->iban = $user->iban ?? '';
+        $this->birthdate = $user->birthdate ? $user->birthdate->format('Y-m-d') : '';
 
         // Load notification settings from database
         $notificationSettings = $user->notificationSettings()->get();
@@ -88,16 +91,29 @@ class Settings extends Component
             'phone_number' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
             'iban' => 'nullable|string|max:50',
+            'birthdate' => 'nullable|date',
         ]);
 
         $user = Auth::user();
         $user->update([
-            'name' => $this->name,
-            'email' => $this->email,
-            'phone_number' => $this->phone_number,
-            'address' => $this->address,
-            'iban' => $this->iban,
+            'name'        => $this->name,
+            'email'       => $this->email,
+            'phone_number'=> $this->phone_number,
+            'address'     => $this->address,
+            'iban'        => $this->iban,
+            'birthdate'   => $this->birthdate ?: null,
         ]);
+
+        // Sync users.birthdate → birthdates table (is_user = true)
+        if ($this->birthdate) {
+            Birthdate::updateOrCreate(
+                ['user_id' => $user->id, 'is_user' => true],
+                ['name' => $user->name, 'birthdate' => $this->birthdate, 'is_user' => true]
+            );
+        } else {
+            // User cleared their birthdate — remove the synced record
+            Birthdate::where('user_id', $user->id)->where('is_user', true)->delete();
+        }
 
         session()->flash('status', 'Personal information updated successfully!');
     }
