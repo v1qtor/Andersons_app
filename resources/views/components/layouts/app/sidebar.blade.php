@@ -19,8 +19,14 @@
                     @if(auth()->user()->role && in_array(auth()->user()->role->name, ['Staff', 'Chef', 'Admin', 'The Andersons']))
                         <flux:navlist.item icon="document-text" :href="route('invoices')" :current="request()->routeIs('invoices*')" wire:navigate>{{ __('Invoices') }}</flux:navlist.item>
                     @endif
-                    @if(auth()->user()->role && in_array(auth()->user()->role->name, ['Staff', 'Chef', 'Admin']))
+                    <!-- @if(auth()->user()->role && in_array(auth()->user()->role->name, ['Staff', 'Chef', 'Admin']))
                         <flux:navlist.item icon="no-symbol" :href="route('unavailabilities')" :current="request()->routeIs('unavailabilities')" wire:navigate>{{ __('Unavailabilities') }}</flux:navlist.item>
+                    @endif -->
+                    @if(auth()->user()->role && in_array(auth()->user()->role->name, ['Staff', 'Chef', 'Family Member', 'The Andersons']))
+                        <flux:navlist.item icon="no-symbol" :href="route('unavailability')" :current="request()->routeIs('unavailability')" wire:navigate>{{ __('My Unavailability') }}</flux:navlist.item>
+                    @endif
+                    @if(auth()->user()->role?->name === 'Admin')
+                        <flux:navlist.item icon="no-symbol" :href="route('admin.staff-unavailability')" :current="request()->routeIs('admin.staff-unavailability')" wire:navigate>{{ __('Staff Availability') }}</flux:navlist.item>
                     @endif
                     @if(auth()->user()->role?->name === 'Admin')
                         <flux:navlist.item icon="cog-6-tooth" :href="route('admin.panel')" :current="request()->routeIs('admin.panel') || request()->routeIs('admin.users.*')" wire:navigate>{{ __('Admin Panel') }}</flux:navlist.item>
