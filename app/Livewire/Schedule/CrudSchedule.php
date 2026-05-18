@@ -4,7 +4,7 @@ namespace App\Livewire\Schedule;
 
 use App\Models\CollaborationRequest;
 use App\Models\Task;
-use App\Models\UnavailabilityPeriod;
+use App\Models\UserNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
@@ -181,6 +181,7 @@ trait CrudSchedule
             $task->locations()->sync($this->selectedLocationIds);
 
             if ($this->isAdmin()) {
+                $previousUserIds = $task->users()->pluck('users.id')->toArray();
                 $ownerId   = $this->taskOwnerId
                     ?: $task->users()->wherePivot('is_owner', true)->value('users.id');
                 $syncData  = [];
@@ -192,7 +193,33 @@ trait CrudSchedule
                         $syncData[$uid] = ['is_owner' => false];
                     }
                 }
+
+                $newUserIds = array_keys($syncData);
+                $addedUserIds = array_diff($newUserIds, $previousUserIds);
                 $task->users()->sync($syncData);
+
+                if (! empty($addedUserIds)) {
+                    $taskDateTime = $task->start_date
+                        ? $task->start_date->format('M d, H:i')
+                        : 'No date set';
+
+                    foreach ($addedUserIds as $userId) {
+                        if ($userId === (int) Auth::id()) {
+                            continue;
+                        }
+
+                        $notification = UserNotification::create([
+                            'user_id' => $userId,
+                            'from_user_id' => Auth::id(),
+                            'title' => 'Task Assigned',
+                            'message' => Auth::user()->name . ' assigned you a task: ' . $task->title . ' on ' . $taskDateTime,
+                            'type' => 'task_assigned',
+                            'action_url' => '/schedule',
+                        ]);
+
+                        broadcast(new \App\Events\NotificationCreated($notification));
+                    }
+                }
             }
         } else {
             $task    = Task::create($data);
@@ -213,6 +240,29 @@ trait CrudSchedule
 
             $task->users()->sync($syncData);
             $task->locations()->sync($this->selectedLocationIds);
+
+            if ($this->isAdmin() && ! empty($this->assignedUserIds)) {
+                $taskDateTime = $task->start_date
+                    ? $task->start_date->format('M d, H:i')
+                    : 'No date set';
+
+                foreach ($this->assignedUserIds as $userId) {
+                    if ($userId === $ownerId || $userId === (int) Auth::id()) {
+                        continue;
+                    }
+
+                    $notification = UserNotification::create([
+                        'user_id' => $userId,
+                        'from_user_id' => Auth::id(),
+                        'title' => 'Task Assigned',
+                        'message' => Auth::user()->name . ' assigned you a task: ' . $task->title . ' on ' . $taskDateTime,
+                        'type' => 'task_assigned',
+                        'action_url' => '/schedule',
+                    ]);
+
+                    broadcast(new \App\Events\NotificationCreated($notification));
+                }
+            }
         }
 
         // Non-admin: send collaboration requests
@@ -233,6 +283,21 @@ trait CrudSchedule
                         'target_user_id' => $targetUserId,
                         'status'         => 'pending',
                     ]);
+
+                    $taskDateTime = $task->start_date
+                        ? $task->start_date->format('M d, H:i')
+                        : 'No date set';
+
+                    $notification = UserNotification::create([
+                        'user_id' => $targetUserId,
+                        'from_user_id' => Auth::id(),
+                        'title' => 'Collaboration Request',
+                        'message' => Auth::user()->name . ' is requesting your collaboration on: ' . $task->title . ' on ' . $taskDateTime,
+                        'type' => 'collaboration_request',
+                        'action_url' => '/schedule',
+                    ]);
+
+                    broadcast(new \App\Events\NotificationCreated($notification));
                 }
             }
         }

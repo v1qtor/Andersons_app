@@ -58,7 +58,7 @@ class NotificationTestController extends Controller
             'user_id' => $user->id,
             'from_user_id' => $user->id,
             'title' => 'Task Assigned',
-            'message' => $user->name . ' assigned you a new task',
+               'message' => 'You have been assigned to: Weekly House Cleaning on ' . now()->addDay()->format('M d, H:i'),
             'type' => 'task_assigned',
             'action_url' => '/schedule',
         ]);
@@ -86,7 +86,7 @@ class NotificationTestController extends Controller
             'user_id' => $user->id,
             'from_user_id' => $user->id,
             'title' => 'Collaboration Request',
-            'message' => $user->name . ' requested your collaboration on a task',
+               'message' => 'John Doe requested your collaboration on: Garden Maintenance Task on ' . now()->addDays(2)->format('M d, H:i'),
             'type' => 'collaboration_request',
             'action_url' => '/schedule',
         ]);
