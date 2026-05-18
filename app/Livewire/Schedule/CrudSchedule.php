@@ -151,6 +151,27 @@ trait CrudSchedule
             'is_complete'      => $this->editingTaskId ? $this->isComplete : false,
         ];
 
+        // Check that none of the users being assigned are unavailable during this period
+        $allUserIdsToAssign = array_unique(array_filter(array_merge(
+            $this->isAdmin() ? $this->assignedUserIds : [],
+            $this->taskOwnerId ? [$this->taskOwnerId] : [],
+        )));
+
+        if (! empty($allUserIdsToAssign)) {
+            $unavailableIds = UnavailabilityPeriod::whereIn('user_id', $allUserIdsToAssign)
+                ->where('start_date', '<', $endDt ?? $startDt->copy()->addHour())
+                ->where('end_date', '>', $startDt)
+                ->pluck('user_id')
+                ->unique()
+                ->toArray();
+
+            if (! empty($unavailableIds)) {
+                \Illuminate\Support\Facades\Validator::make([], [])->errors();
+                $this->addError('startDate', __('One or more selected users are unavailable during this period.'));
+                return;
+            }
+        }
+
         if ($this->editingTaskId) {
             $task = Task::findOrFail($this->editingTaskId);
             if (! $this->canManageTask($task)) {
