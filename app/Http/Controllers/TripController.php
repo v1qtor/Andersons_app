@@ -6,6 +6,7 @@ use App\Models\Trip;
 use App\Models\TripCategory;
 use App\Models\Status;
 use App\Models\Checkpoint;
+use App\Models\CheckpointImage;
 use App\Models\User;
 use App\Models\AttachedFile;
 use Illuminate\Http\Request;
@@ -15,7 +16,7 @@ class TripController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Trip::with(['status', 'tripCategory', 'users', 'checkpoints']);
+        $query = Trip::with(['status', 'tripCategory', 'users', 'checkpoints', 'checkpointImages']);
         if ($request->has('status') && $request->status !== 'all' && $request->status !== '') {
             $query->whereHas('status', fn($q) => $q->where('name', $request->status));
         }
@@ -272,19 +273,27 @@ class TripController extends Controller
 
     public function uploadCheckpointImage(Request $request, Trip $trip, Checkpoint $checkpoint)
     {
-        $request->validate(['image' => 'required|image|max:5120']);
-        $path = $request->file('image')->store('checkpoint-images', 'public');
-        $trip->checkpoints()->updateExistingPivot($checkpoint->id, ['image_path' => $path]);
-        return back()->with('success', 'Image uploaded.');
+        $request->validate(['images' => 'required|array', 'images.*' => 'image|max:5120']);
+        
+        foreach ($request->file('images') as $image) {
+            $path = $image->store('checkpoint-images', 'public');
+            CheckpointImage::create([
+                'trip_id' => $trip->id,
+                'checkpoint_id' => $checkpoint->id,
+                'image_path' => $path,
+                'uploaded_by' => auth()->id(),
+            ]);
+        }
+        
+        return back()->with('success', 'Image(s) uploaded successfully.');
     }
 
-    public function removeCheckpointImage(Trip $trip, Checkpoint $checkpoint)
+    public function removeCheckpointImage(Trip $trip, Checkpoint $checkpoint, CheckpointImage $image)
     {
-        $pivot = $trip->checkpoints()->where('checkpoint_id', $checkpoint->id)->first()->pivot;
-        if ($pivot?->image_path && Storage::disk('public')->exists($pivot->image_path)) {
-            Storage::disk('public')->delete($pivot->image_path);
+        if ($image->image_path && Storage::disk('public')->exists($image->image_path)) {
+            Storage::disk('public')->delete($image->image_path);
         }
-        $trip->checkpoints()->updateExistingPivot($checkpoint->id, ['image_path' => null]);
+        $image->delete();
         return back()->with('success', 'Image removed.');
     }
 

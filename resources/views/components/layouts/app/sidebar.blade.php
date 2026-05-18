@@ -4,7 +4,7 @@
     @include('partials.head')
 </head>
 <body class="min-h-screen bg-white dark:bg-zinc-800" data-user-id="{{ auth()->id() }}">
-<flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+<flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 flex flex-col h-screen overflow-hidden">
     <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
     <a href="{{ route('dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
@@ -39,7 +39,7 @@
     <flux:spacer />
 
     @auth
-    <div class="hidden lg:block border-t border-b border-zinc-200 bg-zinc-100 pt-3 pb-3 -mx-4 dark:border-zinc-700 dark:bg-zinc-800">
+    <div class="hidden lg:block mt-auto border-t border-b border-zinc-200 bg-zinc-100 pt-3 pb-3 -mx-4 dark:border-zinc-700 dark:bg-zinc-800">
         <!-- Desktop Notification Bell -->
         <div class="flex justify-center mb-3 px-4">
             <x-notifications.bell-desktop />

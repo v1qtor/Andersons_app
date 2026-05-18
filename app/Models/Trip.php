@@ -56,8 +56,13 @@ class Trip extends Model
     public function checkpoints(): BelongsToMany
     {
         return $this->belongsToMany(Checkpoint::class, 'trip_checkpoints')
-            ->withPivot('arrival_date', 'is_confirmed', 'order')
+            ->withPivot('arrival_date', 'is_confirmed', 'order', 'is_temporary', 'image_path', 'temp_location', 'temp_address')
             ->withTimestamps()
             ->orderByPivot('order');
+    }
+
+    public function checkpointImages(): HasMany
+    {
+        return $this->hasMany(CheckpointImage::class);
     }
 }

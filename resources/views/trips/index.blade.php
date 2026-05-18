@@ -78,45 +78,53 @@
                     @foreach($trip->checkpoints as $idx => $cp)
                     <div class="checkpoint-item {{ $cp->pivot->is_confirmed ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200' }} border rounded p-3" data-checkpoint-id="{{ $cp->id }}">
                         <div class="flex justify-between items-start">
-                            <div class="flex-1"><div class="font-bold text-base">
-                                @if($cp->pivot->is_temporary)
-                                <button onclick="openEditTempCheckpoint({{ $cp->id }}, '{{ addslashes($cp->location) }}', '{{ addslashes($cp->address ?? '') }}', '{{ $cp->latitude ?? '' }}', '{{ $cp->longitude ?? '' }}')" 
-                                        class="text-xs text-indigo-600 hover:text-indigo-800 underline ml-2">Edit</button>
-                                @endif
-                                {{ $cp->location }}
-                            </div>@if($cp->address)<div class="text-sm text-blue-700">{{ $cp->address }}</div>@endif</div>
+                            <div class="flex-1"><div class="font-bold text-base">{{ $cp->location }}</div>@if($cp->address)<div class="text-sm text-blue-700">{{ $cp->address }}</div>@endif</div>
                             <div class="flex gap-1 ml-2">
                                 <button onclick="reorderCheckpoint({{ $trip->id }},{{ $cp->id }},'up')" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-1 px-2 rounded text-xs">↑</button>
                                 <button onclick="reorderCheckpoint({{ $trip->id }},{{ $cp->id }},'down')" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-1 px-2 rounded text-xs">↓</button>
                             </div>
                         </div>
-                        <div class="flex justify-between items-center mt-2">
-                            <div class="flex gap-2 items-center">
-                                @if(!$cp->pivot->is_confirmed)
-                                <button onclick="markCheckpointArrived({{ $trip->id }},{{ $cp->id }})" class="bg-green-600 hover:bg-green-700 text-white font-bold py-1.5 px-3 rounded text-sm">Mark Arrived</button>
-                                @else
-                                <span class="text-green-600 font-bold">✓ Arrived</span>
-                                <button onclick="unmarkCheckpoint({{ $trip->id }},{{ $cp->id }})" class="text-xs text-blue-600 hover:text-blue-800 underline ml-2">Undo</button>
-                                @endif
-                                <form action="{{ url('/trips/'.$trip->id.'/checkpoints/'.$cp->id) }}" method="POST" onsubmit="return confirm('Remove this checkpoint?')" class="inline ml-3">
-                                    @csrf @method('DELETE') <button class="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded text-sm">Remove</button>
-                                </form>
+                        <div class="flex flex-wrap gap-2 items-center mt-3">
+                            @if(!$cp->pivot->is_confirmed)
+                            <button onclick="markCheckpointArrived({{ $trip->id }},{{ $cp->id }})" class="bg-green-600 hover:bg-green-700 text-white font-bold py-1.5 px-3 rounded text-sm">Mark Arrived</button>
+                            @else
+                            <button onclick="unmarkCheckpoint({{ $trip->id }},{{ $cp->id }})" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1.5 px-3 rounded text-sm">↶ Undo</button>
+                            @endif
+                            @if($cp->pivot->is_temporary)
+                            <button onclick="openEditTempCheckpoint({{ $cp->id }}, '{{ addslashes($cp->location) }}', '{{ addslashes($cp->address ?? '') }}', '{{ $cp->latitude ?? '' }}', '{{ $cp->longitude ?? '' }}')" 
+                                    class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-1.5 px-3 rounded text-sm">Edit</button>
+                            @endif
+                            <form action="{{ url('/trips/'.$trip->id.'/checkpoints/'.$cp->id) }}" method="POST" onsubmit="return confirm('Remove this checkpoint?')" class="inline">
+                                @csrf @method('DELETE') <button class="bg-red-500 hover:bg-red-600 text-white font-bold py-1.5 px-3 rounded text-sm">Remove</button>
+                            </form>
+                        </div>
+                        <!-- Checkpoint Images -->
+                        @php
+                            $cpImages = $trip->checkpointImages->where('checkpoint_id', $cp->id);
+                        @endphp
+                        @if($cpImages->count() > 0)
+                        <div class="mt-3">
+                            <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+                                @foreach($cpImages as $img)
+                                <div class="relative group">
+                                    <img src="{{ Storage::url($img->image_path) }}" class="w-full max-h-40 object-contain rounded bg-gray-100 cursor-pointer" onclick="viewCheckpointImage('{{ Storage::url($img->image_path) }}')"/>
+                                    <form action="{{ route('trips.checkpoints.images.remove', [$trip->id, $cp->id, $img->id]) }}" method="POST" class="absolute top-0 right-0 hidden group-hover:block">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs font-bold" onclick="return confirm('Delete image?')">✕</button>
+                                    </form>
+                                </div>
+                                @endforeach
                             </div>
                         </div>
-                        @if($cp->pivot->image_path)
-                        <div class="mt-2">
-                            <img src="{{ Storage::url($cp->pivot->image_path) }}" class="h-32 w-full object-cover rounded mb-2"/>
-                            <div class="flex gap-2">
-                                <a href="{{ Storage::url($cp->pivot->image_path) }}" target="_blank" class="text-blue-500 text-sm underline">View full image</a>
-                                <form action="{{ url('/trips/'.$trip->id.'/checkpoints/'.$cp->id.'/remove-image') }}" method="POST">@csrf @method('DELETE')<button class="text-red-500 text-sm">Remove Image</button></form>
-                            </div>
-                        </div>
-                        @else
-                        <form action="{{ url('/trips/'.$trip->id.'/checkpoints/'.$cp->id.'/upload-image') }}" method="POST" enctype="multipart/form-data" class="mt-2">
-                            @csrf
-                            <div class="flex gap-2 items-center"><input type="file" name="image" accept="image/*" required class="text-sm flex-1 border rounded p-1"/><button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded text-sm">Upload</button></div>
-                        </form>
                         @endif
+                        <!-- Upload New Images -->
+                        <form action="{{ route('trips.checkpoints.upload-image', [$trip->id, $cp->id]) }}" method="POST" enctype="multipart/form-data" class="mt-3">
+                            @csrf
+                            <div class="flex gap-2 items-center">
+                                <input type="file" name="images[]" accept="image/*" multiple class="text-sm flex-1 border rounded p-1"/>
+                                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1.5 px-3 rounded text-sm">Upload</button>
+                            </div>
+                        </form>
                     </div>
                 @endforeach
                 <button onclick="openAddCheckpointModal({{ $trip->id }})" class="bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold py-1.5 px-3 rounded text-sm w-full">+ Add Checkpoint</button>
@@ -152,9 +160,9 @@
 
 <!-- Edit Trip Modal -->
 <dialog id="editTripModal" class="rounded-2xl shadow-2xl w-full max-w-2xl p-0 border-0">
-    <form method="POST" class="bg-white rounded-2xl p-8 max-h-[90vh] overflow-y-auto" onsubmit="setTimeout(()=>this.closest('dialog').close(),100)">
+    <form method="POST" class="bg-white rounded-2xl p-8 max-h-[90vh] overflow-y-auto" onsubmit="setTimeout(()=>{this.closest('dialog').close(); document.body.style.overflow = '';},100)">
         @csrf @method('PUT')
-        <div class="flex justify-between items-center mb-6"><h2 class="text-3xl font-extrabold">Update Trip</h2><button type="button" onclick="this.closest('dialog').close()" class="text-gray-400 hover:text-gray-700 text-3xl">&times;</button></div>
+        <div class="flex justify-between items-center mb-6"><h2 class="text-3xl font-extrabold">Update Trip</h2><button type="button" onclick="this.closest('dialog').close(); document.body.style.overflow = '';" class="text-gray-400 hover:text-gray-700 text-3xl">&times;</button></div>
         <div class="mb-4"><label class="block text-lg font-semibold mb-1">Name *</label><input type="text" name="name" id="edit_name" required class="w-full px-4 py-3 rounded-lg border" /></div>
         <div class="mb-4"><label class="block text-lg font-semibold mb-1">Description</label><textarea name="description" id="edit_description" rows="2" class="w-full px-4 py-3 rounded-lg border"></textarea></div>
         <div class="flex gap-4 mb-4">
@@ -164,29 +172,29 @@
         <div class="mb-4"><label class="block text-lg font-semibold mb-1">Category *</label><select name="trip_category_id" id="edit_trip_category_id" required class="w-full px-4 py-3 rounded-lg border">@foreach($categories as $cat)<option value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach</select></div>
         <div class="mb-4"><label class="block text-lg font-semibold mb-1">Buffer Alert</label><input type="datetime-local" name="buffer_alert" id="edit_buffer_alert" class="w-full px-4 py-3 rounded-lg border" /></div>
         <div class="mb-4"><label class="block text-lg font-semibold mb-2">Participants</label><div class="grid grid-cols-2 gap-2" id="edit-participants-container"></div></div>
-        <div class="flex justify-end gap-4"><button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded">Update Trip</button><button type="button" onclick="this.closest('dialog').close()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-8 rounded">Cancel</button></div>
+        <div class="flex justify-end gap-4"><button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded">Update Trip</button><button type="button" onclick="this.closest('dialog').close(); document.body.style.overflow = '';" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-8 rounded">Cancel</button></div>
     </form>
 </dialog>
 
 <!-- Add Checkpoint Modal -->
 <dialog id="addCheckpointModal" class="rounded-2xl shadow-2xl w-full max-w-xl p-0 border-0">
-    <form method="POST" action="" id="addCheckpointForm" class="bg-white rounded-2xl p-8">
+    <form method="POST" action="" id="addCheckpointForm" class="bg-white rounded-2xl p-8" onsubmit="setTimeout(()=>{this.closest('dialog').close(); document.body.style.overflow = '';},100)">
         @csrf
         <div class="flex justify-between items-center mb-6"><h2 class="text-3xl font-extrabold">Add Checkpoint</h2><button type="button" onclick="this.closest('dialog').close()" class="text-gray-400 hover:text-gray-700 text-3xl">&times;</button></div>
         <div class="mb-4"><label class="block text-lg font-semibold mb-2">Permanent</label><select name="checkpoint_id" class="w-full px-4 py-3 rounded-lg border"><option value="">Choose…</option>@foreach($checkpoints as $cp)<option value="{{ $cp->id }}">{{ $cp->location }}</option>@endforeach</select></div>
         <div class="mb-6"><p class="text-center font-bold mb-4">— OR —</p><label class="block text-lg font-semibold mb-2">Temporary</label><input type="text" name="temp_name" placeholder="Name" class="w-full px-4 py-3 rounded-lg border mb-2"/><input type="text" name="temp_address" placeholder="Address" class="w-full px-4 py-3 rounded-lg border mb-2"/><div class="flex gap-2"><input type="text" name="temp_lat" placeholder="Latitude" class="flex-1 px-4 py-3 rounded-lg border"/><input type="text" name="temp_lng" placeholder="Longitude" class="flex-1 px-4 py-3 rounded-lg border"/></div></div>
-        <div class="flex justify-end gap-4"><button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded">Add</button><button type="button" onclick="this.closest('dialog').close()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-8 rounded">Cancel</button></div>
+        <div class="flex justify-end gap-4"><button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded">Add</button><button type="button" onclick="this.closest('dialog').close(); document.body.style.overflow = '';" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-8 rounded">Cancel</button></div>
     </form>
 </dialog>
 
 <!-- Edit Temporary Checkpoint Modal -->
 <dialog id="editTempCheckpointModal" class="rounded-2xl shadow-2xl w-full max-w-xl p-0 border-0">
-    <form method="POST" action="" id="editTempCheckpointForm" class="bg-white rounded-2xl p-8">
+    <form method="POST" action="" id="editTempCheckpointForm" class="bg-white rounded-2xl p-8" onsubmit="setTimeout(()=>{document.getElementById('editTempCheckpointModal').close(); document.body.style.overflow = '';},100)">
         @csrf
         @method('PUT')
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-3xl font-extrabold">Edit Temporary Checkpoint</h2>
-            <button type="button" onclick="document.getElementById('editTempCheckpointModal').close()" class="text-gray-400 hover:text-gray-700 text-3xl font-bold">&times;</button>
+            <button type="button" onclick="document.getElementById('editTempCheckpointModal').close(); document.body.style.overflow = '';" class="text-gray-400 hover:text-gray-700 text-3xl font-bold">&times;</button>
         </div>
         <div class="mb-4">
             <label class="block text-lg font-semibold mb-1">Name</label>
@@ -208,9 +216,25 @@
         </div>
         <div class="flex justify-end gap-4">
             <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded text-lg">Update</button>
-            <button type="button" onclick="document.getElementById('editTempCheckpointModal').close()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-8 rounded text-lg">Cancel</button>
+            <button type="button" onclick="document.getElementById('editTempCheckpointModal').close(); document.body.style.overflow = '';" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-8 rounded text-lg">Cancel</button>
         </div>
     </form>
+</dialog>
+
+<!-- View Checkpoint Image Modal -->
+<dialog id="viewImageModal" class="rounded-2xl shadow-2xl w-full max-w-4xl p-0 border-0">
+    <div class="bg-white rounded-2xl p-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-3xl font-extrabold">Checkpoint Photo</h2>
+            <button type="button" onclick="document.getElementById('viewImageModal').close(); document.body.style.overflow = '';" class="text-gray-400 hover:text-gray-700 text-3xl font-bold">&times;</button>
+        </div>
+        <div class="flex justify-center">
+            <img id="viewImageImg" src="" class="max-w-full h-auto max-h-96 rounded-lg" />
+        </div>
+        <div class="flex justify-center mt-6">
+            <button type="button" onclick="document.getElementById('viewImageModal').close(); document.body.style.overflow = '';" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-8 rounded">Close</button>
+        </div>
+    </div>
 </dialog>
 
 <script>
@@ -242,18 +266,75 @@ function openAddCheckpointModal(tripId) {
     document.body.style.overflow = 'hidden';
 }
 
+function addTempCheckpointField() {
+    const container = document.getElementById('tempCheckpointsContainer');
+    const newEntry = document.createElement('div');
+    newEntry.className = 'temp-checkpoint-entry bg-gray-50 p-4 rounded-lg mb-2 border border-dashed border-gray-300';
+    newEntry.innerHTML = `
+        <div class="flex gap-3 mb-2">
+            <input type="text" name="temp_checkpoint_names[]" placeholder="Checkpoint name" class="flex-1 px-4 py-2 rounded-lg border border-gray-300 font-semibold" />
+            <button type="button" onclick="this.closest('.temp-checkpoint-entry').remove()" class="bg-red-100 hover:bg-red-200 text-red-800 font-bold py-2 px-3 rounded text-sm">Remove</button>
+        </div>
+        <input type="text" name="temp_checkpoint_addresses[]" placeholder="Address (optional)" class="w-full px-4 py-2 rounded-lg border border-gray-300 mb-2" />
+        <div class="flex gap-2">
+            <input type="text" name="temp_checkpoint_lat[]" placeholder="Latitude (optional)" class="flex-1 px-4 py-2 rounded-lg border border-gray-300" />
+            <input type="text" name="temp_checkpoint_lng[]" placeholder="Longitude (optional)" class="flex-1 px-4 py-2 rounded-lg border border-gray-300" />
+        </div>
+    `;
+    container.appendChild(newEntry);
+}
+
 function markCheckpointArrived(tripId, cpId) {
+    console.log('Marking checkpoint arrived:', tripId, cpId);
     fetch(`/trips/${tripId}/checkpoints/${cpId}/arrive`, {
         method: 'POST',
-        headers: {'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept':'application/json'}
-    }).then(r=>r.json()).then(d=>{ if(d.success) location.reload(); });
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json'
+        }
+    })
+    .then(r => {
+        console.log('Response status:', r.status);
+        return r.json();
+    })
+    .then(d => {
+        console.log('Response data:', d);
+        if(d.success) {
+            location.reload();
+        }
+    })
+    .catch(e => console.error('Error:', e));
 }
 
 function unmarkCheckpoint(tripId, cpId) {
+    console.log('Unmarking checkpoint:', tripId, cpId);
     fetch(`/trips/${tripId}/checkpoints/${cpId}/unarrive`, {
         method: 'POST',
-        headers: {'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept':'application/json'}
-    }).then(r=>r.json()).then(d=>{ if(d.success) location.reload(); });
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(r => {
+        console.log('Response status:', r.status);
+        if (!r.ok) {
+            throw new Error(`HTTP error! status: ${r.status}`);
+        }
+        return r.json();
+    })
+    .then(d => {
+        console.log('Response data:', d);
+        if(d.success) {
+            location.reload();
+        } else {
+            alert('Failed to unmark checkpoint');
+        }
+    })
+    .catch(e => {
+        console.error('Error:', e);
+        alert('Error unmarking checkpoint: ' + e.message);
+    });
 }
 
 function reorderCheckpoint(tripId, cpId, dir) {
@@ -307,6 +388,15 @@ function openEditTempCheckpoint(id, location, address, lat, lng) {
     document.getElementById('edit-temp-lng').value = lng;
     document.getElementById('editTempCheckpointForm').action = '/checkpoints/' + id;
     modal.showModal();
+    document.body.style.overflow = 'hidden';
+}
+
+function viewCheckpointImage(imagePath) {
+    const modal = document.getElementById('viewImageModal');
+    // imagePath is already a full URL from Storage::url()
+    document.getElementById('viewImageImg').src = imagePath;
+    modal.showModal();
+    document.body.style.overflow = 'hidden';
 }
 
 </script>
