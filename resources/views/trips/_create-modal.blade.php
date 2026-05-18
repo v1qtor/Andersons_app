@@ -58,8 +58,8 @@
             <div id="tempCheckpointsContainer">
                 <div class="temp-checkpoint-entry bg-gray-50 p-4 rounded-lg mb-2 border border-dashed border-gray-300">
                     <div class="flex gap-3 mb-2">
-                        <input type="text" name="temp_checkpoint_names[]" placeholder="Checkpoint name" class="flex-1 px-4 py-2 rounded-lg border border-gray-300" />
-                        <button type="button" onclick="this.parentElement.parentElement.remove()" class="bg-red-100 hover:bg-red-200 text-red-800 font-bold py-2 px-3 rounded text-sm">✕</button>
+                        <input type="text" name="temp_checkpoint_names[]" placeholder="Checkpoint name" class="flex-1 px-4 py-2 rounded-lg border border-gray-300 font-semibold" />
+                        <button type="button" onclick="this.closest('.temp-checkpoint-entry').remove()" class="bg-red-100 hover:bg-red-200 text-red-800 font-bold py-2 px-3 rounded text-sm">Remove</button>
                     </div>
                     <input type="text" name="temp_checkpoint_addresses[]" placeholder="Address (optional)" class="w-full px-4 py-2 rounded-lg border border-gray-300 mb-2" />
                     <div class="flex gap-2">
