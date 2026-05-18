@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Models\Birthdate;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -65,6 +66,17 @@ class UserEdit extends Component
         unset($validated['password_confirmation']);
 
         $this->user->update($validated);
+
+        // Sync birthdate → birthdates table (is_user = true)
+        $birthdate = $validated['birthdate'] ?? null;
+        if ($birthdate) {
+            Birthdate::updateOrCreate(
+                ['user_id' => $this->user->id, 'is_user' => true],
+                ['name' => $this->user->name, 'birthdate' => $birthdate, 'is_user' => true]
+            );
+        } else {
+            Birthdate::where('user_id', $this->user->id)->where('is_user', true)->delete();
+        }
 
         session()->flash('message', __('User updated successfully.'));
 

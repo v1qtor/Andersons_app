@@ -182,6 +182,9 @@
                             @if ($user->id === auth()->id())
                                 @continue
                             @endif
+                            @if (in_array($user->id, $unavailableUserIds))
+                                @continue
+                            @endif
                             @php
                                 $isPendingAlready = in_array($user->id, $pendingOutgoingUserIds);
                                 $isSelected = in_array($user->id, $collaborationUserIds);
@@ -215,6 +218,9 @@
                     </div>
                     <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
                         {{ __('Selected users will receive a collaboration request.') }}
+                        @if(!empty($unavailableUserIds))
+                            <span class="text-amber-500 dark:text-amber-400"> · {{ __('Users unavailable during this period are hidden.') }}</span>
+                        @endif
                     </p>
                 </div>
             @endif

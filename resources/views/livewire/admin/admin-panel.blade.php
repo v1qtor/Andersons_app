@@ -645,7 +645,12 @@
                         @forelse ($birthdates as $bd)
                             <tr class="hover:bg-neutral-50 dark:hover:bg-zinc-700/40">
                                 <td class="py-2.5 px-3 font-medium text-neutral-900 dark:text-neutral-100">
-                                    🎂 {{ $bd->name }}
+                                    <div class="flex items-center gap-2">
+                                        🎂 {{ $bd->name }}
+                                        @if($bd->is_user)
+                                            <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 font-normal">User</span>
+                                        @endif
+                                    </div>
                                 </td>
                                 <td class="py-2.5 px-3 text-neutral-700 dark:text-neutral-300">
                                     {{ $bd->birthdate->format('d F') }}
@@ -654,7 +659,7 @@
                                     {{ $bd->user?->name ?? '—' }}
                                 </td>
                                 <td class="py-2.5 px-3 text-neutral-500 dark:text-neutral-400 max-w-xs truncate">
-                                    {{ $bd->notes ?? '—' }}
+                                    {{ $bd->notes ?? ($bd->is_user ? __('Synced from profile') : '—') }}
                                 </td>
                                 <td class="py-2.5 px-3 text-right">
                                     <div class="flex items-center justify-end gap-2">
