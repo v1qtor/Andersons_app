@@ -94,6 +94,14 @@ class MealList extends Component
         ->orderBy('date_time', 'desc')
         ->paginate(5, ['*'], 'mealsPage');
 
+        // Pre-partition subscribers per meal so the view stays free of PHP logic.
+        $meals->getCollection()->each(function ($meal) {
+            $meal->invitedSubscribers  = $meal->subscribers->where('pivot.confirmed', false)->values();
+            $meal->acceptedSubscribers = $meal->subscribers->where('pivot.confirmed', true)->values();
+            $meal->guestSubscribers    = $meal->subscribers->filter(fn ($s) => filled($s->pivot->guest_name))->values();
+            $meal->guestNoteSubscribers = $meal->subscribers->filter(fn ($s) => filled($s->pivot->guest_note))->values();
+        });
+
         $users = User::with(['allergies', 'preferences', 'role'])
             // Chef prepares the meals — their own dietary info is not a concern for planning
             ->whereHas('role', fn ($q) => $q->where('name', '!=', 'Chef'))

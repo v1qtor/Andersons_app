@@ -12,6 +12,7 @@ class UpcomingDinners extends Component
 
     public $editingGuestForMealId = null;
     public $guestName = '';
+    public $guestNote = '';
 
     public function joinMeal($plannedMealId)
     {
@@ -74,6 +75,7 @@ class UpcomingDinners extends Component
 
         $this->editingGuestForMealId = $plannedMealId;
         $this->guestName = (string) ($mySubscription?->pivot?->guest_name ?? '');
+        $this->guestNote = (string) ($mySubscription?->pivot?->guest_note ?? '');
     }
 
     public function saveGuest($plannedMealId)
@@ -88,6 +90,7 @@ class UpcomingDinners extends Component
 
         $this->validate([
             'guestName' => 'required|string|max:100',
+            'guestNote' => 'nullable|string|max:500',
         ]);
 
         $isSubscribed = $plannedMeal->subscribers()->where('user_id', $user->id)->exists();
@@ -99,10 +102,12 @@ class UpcomingDinners extends Component
 
         $plannedMeal->subscribers()->updateExistingPivot($user->id, [
             'guest_name' => trim($this->guestName),
+            'guest_note' => filled($this->guestNote) ? trim($this->guestNote) : null,
         ]);
 
         $this->editingGuestForMealId = null;
         $this->guestName = '';
+        $this->guestNote = '';
         $this->dispatch('toast', message: 'Guest saved successfully.', type: 'success');
     }
 
@@ -125,10 +130,12 @@ class UpcomingDinners extends Component
 
         $plannedMeal->subscribers()->updateExistingPivot($user->id, [
             'guest_name' => null,
+            'guest_note' => null,
         ]);
 
         $this->editingGuestForMealId = null;
         $this->guestName = '';
+        $this->guestNote = '';
         $this->dispatch('toast', message: 'Guest removed.', type: 'success');
     }
 

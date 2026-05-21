@@ -33,6 +33,6 @@ class PlannedMeal extends Model
 
     public function subscribers(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'meal_subscriptions')->withPivot('guest_name', 'confirmed')->withTimestamps();
+        return $this->belongsToMany(User::class, 'meal_subscriptions')->withPivot('guest_name', 'guest_note', 'confirmed')->withTimestamps();
     }
 }
