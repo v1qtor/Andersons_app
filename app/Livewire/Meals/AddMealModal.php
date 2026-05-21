@@ -122,7 +122,7 @@ class AddMealModal extends Component
     }
 
     /**
-     * Check if user has meal notifications (popup) enabled
+     * Check if user has meal notifications enabled
      */
     private function userHasMealNotificationsEnabled(User $user): bool
     {
@@ -135,8 +135,7 @@ class AddMealModal extends Component
         }
 
         try {
-            $preferences = json_decode($setting->pivot->value, true);
-            return $preferences['popup'] ?? true;
+            return filter_var($setting->pivot->value, FILTER_VALIDATE_BOOLEAN);
         } catch (\Exception $e) {
             return true; // Default to enabled if decode fails
         }
