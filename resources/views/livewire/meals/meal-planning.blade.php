@@ -1,12 +1,12 @@
 <section class="w-full">
     <div class="max-w-5xl mx-auto">
         {{-- Header --}}
-        <div class="flex items-center justify-between mb-8">
+        <div class="flex flex-col gap-4 mb-8 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <flux:heading size="xl">{{ __('Meal Planning') }}</flux:heading>
                 <flux:subheading>{{ __('Manage planned meals for the household') }}</flux:subheading>
             </div>
-            <x-flux.button variant="primary" wire:click="$dispatch('openAddMeal')" icon="plus">
+            <x-flux.button variant="primary" wire:click="$dispatch('openAddMeal')" icon="plus" class="sm:self-start">
                 {{ __('Add Meal') }}
             </x-flux.button>
         </div>
