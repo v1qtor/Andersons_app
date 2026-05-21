@@ -221,6 +221,13 @@
         @endforelse
     </div>
 
+    {{-- Pagination --}}
+    @if($meals->hasPages())
+        <div class="mt-6">
+            {{ $meals->onEachSide(1)->links('livewire::simple-tailwind') }}
+        </div>
+    @endif
+
     {{-- Delete Confirmation Modal --}}
     <flux:modal name="confirm-delete-meal">
         <div class="space-y-6">
