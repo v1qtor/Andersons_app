@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PlannedMeal extends Model
 {
@@ -33,6 +34,11 @@ class PlannedMeal extends Model
 
     public function subscribers(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'meal_subscriptions')->withPivot('guest_name', 'guest_note', 'confirmed')->withTimestamps();
+        return $this->belongsToMany(User::class, 'meal_subscriptions')->withPivot('confirmed')->withTimestamps();
+    }
+
+    public function guests(): HasMany
+    {
+        return $this->hasMany(MealGuest::class);
     }
 }
