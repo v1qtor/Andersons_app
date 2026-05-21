@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('meal_subscriptions', function (Blueprint $table) {
-            $table->boolean('confirmed')->default(false)->after('guest_name');
+            $table->boolean('confirmed')->default(false)->after('planned_meal_id');
         });
     }
 
