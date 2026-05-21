@@ -6,7 +6,7 @@ use App\Models\Meal;
 use App\Models\PlannedMeal;
 use App\Models\User;
 use App\Models\UserNotification;
-use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class AddMealModal extends Component
@@ -19,9 +19,8 @@ class AddMealModal extends Component
     public array $invitees = [];
     public string $notes = '';
 
-    protected $listeners = ['openAddMeal' => 'openModal'];
-
     // Reset form fields and validation, then show the modal (triggered by the openAddMeal event).
+    #[On('openAddMeal')]
     public function openModal(): void
     {
         $this->reset(['name', 'date', 'time', 'invitees', 'notes']);
@@ -62,7 +61,7 @@ class AddMealModal extends Component
         }
 
         // Notify chef if not added by chef
-        $currentUser = Auth::user();
+        $currentUser = auth()->user();
         $isChef = $currentUser && $currentUser->role && $currentUser->role->name === 'Chef';
         
         if (!$isChef) {

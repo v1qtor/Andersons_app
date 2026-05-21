@@ -5,6 +5,7 @@ namespace App\Livewire\Meals;
 use App\Models\PlannedMeal;
 use App\Models\User;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -13,12 +14,19 @@ class MealList extends Component
 {
     use WithPagination;
 
-    protected $listeners = ['mealCreated' => '$refresh'];
+    private ?array $capabilities = null;
+
+    // Re-render when a meal is created elsewhere (e.g. AddMealModal).
+    #[On('mealCreated')]
+    public function refreshList(): void
+    {
+        //
+    }
 
     // Delete a planned meal (managers only).
     public function deleteMeal(int $mealId): void
     {
-        if (! $this->resolveCapabilities()['canManage']) {
+        if (! $this->capabilities()['canManage']) {
             abort(403, __('Unauthorized.'));
         }
 
@@ -29,7 +37,7 @@ class MealList extends Component
     public function toggleParticipation(int $mealId): void
     {
         // Chef schedules meals — participation confirmation is not their concern
-        if (! $this->resolveCapabilities()['canParticipate']) {
+        if (! $this->capabilities()['canParticipate']) {
             return;
         }
 
@@ -54,7 +62,7 @@ class MealList extends Component
     // Mark a meal as prepared / unmark it (Chef only).
     public function togglePrepared(int $mealId): void
     {
-        if (! $this->resolveCapabilities()['canTogglePrepared']) {
+        if (! $this->capabilities()['canTogglePrepared']) {
             abort(403, __('Unauthorized.'));
         }
 
@@ -62,12 +70,16 @@ class MealList extends Component
         $meal->update(['is_prepared' => ! $meal->is_prepared]);
     }
 
-    // Derive what the authenticated user can do (manage / toggle prepared / participate) so role checks stay out of the view.
-    private function resolveCapabilities(): array
+    // Lazy-cached capability map — what the authenticated user can do (manage / toggle prepared / participate).
+    private function capabilities(): array
     {
+        if ($this->capabilities !== null) {
+            return $this->capabilities;
+        }
+
         $role = auth()->user()->role?->name;
 
-        return [
+        return $this->capabilities = [
             // Can delete meals, see all planned meals, and see the full attendee list + dietary info
             'canManage'          => in_array($role, ['Admin', 'Chef']),
             // Can mark/unmark a meal as prepared (Chef only)
@@ -80,13 +92,14 @@ class MealList extends Component
     // Load the paginated meal list, attach per-meal subscriber buckets, and render the view.
     public function render()
     {
-        $capabilities = $this->resolveCapabilities();
+        $capabilities = $this->capabilities();
 
         $meals = PlannedMeal::with([
             'meal',
             'subscribers.role',
             'subscribers.allergies',
             'subscribers.preferences',
+            'guests.invitedBy',
         ])
         ->when(! $capabilities['canManage'], function ($query) {
             // Non-managers only see meals they have been invited to
@@ -96,11 +109,14 @@ class MealList extends Component
         ->paginate(5, ['*'], 'mealsPage');
 
         // Pre-partition subscribers per meal so the view stays free of PHP logic.
-        $meals->getCollection()->each(function ($meal) {
-            $meal->invitedSubscribers  = $meal->subscribers->where('pivot.confirmed', false)->values();
-            $meal->acceptedSubscribers = $meal->subscribers->where('pivot.confirmed', true)->values();
-            $meal->guestSubscribers    = $meal->subscribers->filter(fn ($s) => filled($s->pivot->guest_name))->values();
-            $meal->guestNoteSubscribers = $meal->subscribers->filter(fn ($s) => filled($s->pivot->guest_note))->values();
+        $authId = auth()->id();
+        $meals->getCollection()->each(function ($meal) use ($authId) {
+            $meal->invitedSubscribers     = $meal->subscribers->where('pivot.confirmed', false)->values();
+            $meal->acceptedSubscribers    = $meal->subscribers->where('pivot.confirmed', true)->values();
+            $meal->guestsWithNotes        = $meal->guests->filter(fn ($g) => filled($g->note))->values();
+            $meal->subscriberAllergies    = $meal->subscribers->flatMap(fn ($s) => $s->allergies->pluck('name'))->unique()->values();
+            $meal->subscriberPreferences  = $meal->subscribers->flatMap(fn ($s) => $s->preferences->pluck('name'))->unique()->values();
+            $meal->mySubscription         = $meal->subscribers->firstWhere('id', $authId);
         });
 
         $users = User::with(['allergies', 'preferences', 'role'])
