@@ -31,6 +31,19 @@ class StaffAvailabilityCalendar extends Component
         }
     }
 
+    // public function dashboardUpcomingAvailability(){
+    //     // for the upcoming 2 days, show who is unavailable and when
+    //     $startDate  = Carbon::today();
+    //     $endDate = Carbon::tomorrow()->endOfDay();
+
+
+    // }
+    
+    // public function staffThreeOrMoreUnavailableSendNotification(){
+    //     // if there are 3 or more staff unavailable on the same day, send a notification to the admin.
+
+    // }
+
     public function getAllUsersProperty()
     {
         return User::with('unavailabilityPeriods')
