@@ -4,6 +4,8 @@ namespace App\Livewire\Admin;
 
 use App\Models\UnavailabilityPeriod;
 use App\Models\User;
+use App\Models\UserNotification;
+use App\Events\NotificationCreated;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Carbon\Carbon;
@@ -31,18 +33,80 @@ class StaffAvailabilityCalendar extends Component
         }
     }
 
-    // public function dashboardUpcomingAvailability(){
-    //     // for the upcoming 2 days, show who is unavailable and when
-    //     $startDate  = Carbon::today();
-    //     $endDate = Carbon::tomorrow()->endOfDay();
+    public function dashboardUpcomingAvailability(){
+        // for the upcoming 2 days, show who is unavailable and when
+        $startDate  = Carbon::today();
+        $endDate = Carbon::tomorrow()->endOfDay();
+        $startDate = $startDate->startOfDay();
+        $endDate = $endDate->endOfDay();
 
+        $periods = UnavailabilityPeriod::with('user')
+            ->where(function($q) use ($startDate, $endDate) {
+                $q->whereBetween('start_date', [$startDate, $endDate])
+                  ->orWhereBetween('end_date', [$startDate, $endDate])
+                  ->orWhere(function($q2) use ($startDate, $endDate) {
+                      $q2->where('start_date', '<', $startDate)
+                         ->where('end_date', '>', $endDate);
+                  });
+            })
+            ->orderBy('start_date')
+            ->get();
 
-    // }
+        return $periods;
+    }
     
-    // public function staffThreeOrMoreUnavailableSendNotification(){
-    //     // if there are 3 or more staff unavailable on the same day, send a notification to the admin.
+    public function staffThreeOrMoreUnavailableSendNotification(){
+        // if there are 3 or more staff unavailable on the same day, send a notification to the admin.
+        $startDate = Carbon::today()->startOfDay();
+        $endDate = Carbon::tomorrow()->endOfDay();
 
-    // }
+        // Iterate each day in the window (today and tomorrow)
+        for ($date = $startDate->copy(); $date->lte($endDate); $date->addDay()) {
+            $dayStart = $date->copy()->startOfDay();
+            $dayEnd = $date->copy()->endOfDay();
+
+            $count = UnavailabilityPeriod::where(function($q) use ($dayStart, $dayEnd) {
+                $q->whereBetween('start_date', [$dayStart, $dayEnd])
+                  ->orWhereBetween('end_date', [$dayStart, $dayEnd])
+                  ->orWhere(function($q2) use ($dayStart, $dayEnd) {
+                      $q2->where('start_date', '<', $dayStart)
+                         ->where('end_date', '>', $dayEnd);
+                  });
+            })->distinct('user_id')->count('user_id');
+
+            if ($count >= 3) {
+                $admins = User::whereHas('role', fn($q) => $q->where('name', 'Admin'))->get();
+
+                foreach ($admins as $admin) {
+                    // prevent duplicate alerts for the same day/type
+                    $exists = UserNotification::where('user_id', $admin->id)
+                        ->where('type', 'staff_shortage')
+                        ->whereBetween('created_at', [$dayStart, $dayEnd])
+                        ->exists();
+
+                    if ($exists) continue;
+
+                    $message = "{$count} staff unavailable on " . $date->format('l j M');
+                    $notification = UserNotification::create([
+                        'user_id' => $admin->id,
+                        'from_user_id' => Auth::id() ?? null,
+                        'title' => 'Staff Shortage Alert',
+                        'message' => $message,
+                        'type' => 'staff_shortage',
+                        'action_url' => route('admin.staff-unavailability'),
+                    ]);
+
+                    // broadcast to the admin's private channel
+                    try {
+                        broadcast(new NotificationCreated($notification));
+                    } catch (\Throwable $e) {
+                        // swallow broadcasting errors — notification record still exists
+                        \Log::error('Failed broadcasting staff shortage notification', ['error' => $e->getMessage()]);
+                    }
+                }
+            }
+        }
+    }
 
     public function getAllUsersProperty()
     {
