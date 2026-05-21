@@ -51,7 +51,7 @@
     <div class="w-full max-w-4xl mx-auto flex flex-col gap-6">
 
         {{-- Header --}}
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h1 class="text-3xl font-medium tracking-tight text-neutral-900 dark:text-white">Unavailabilities</h1>
                 <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
@@ -63,7 +63,7 @@
                 </p>
             </div>
             @if(! $showForm)
-                <flux:button variant="primary" wire:click="openForm" icon="plus">
+                <flux:button variant="primary" wire:click="openForm" icon="plus" class="sm:self-start">
                     Add Unavailability
                 </flux:button>
             @endif

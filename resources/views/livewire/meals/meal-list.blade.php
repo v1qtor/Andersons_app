@@ -8,13 +8,14 @@
                 </svg>
                 <span class="font-semibold text-amber-800 dark:text-amber-300">{{ __('Dietary Information:') }}</span>
             </div>
-            <ul class="space-y-1 ml-7">
+            <ul class="space-y-2 ml-7">
                 @foreach($dietaryUsers as $user)
-                    <li class="text-sm text-amber-700 dark:text-amber-400">
-                        &middot;
-                        <span class="font-semibold" style="color: {{ $user->role?->color ?? '#92400e' }}">
-                            {{ $user->name }} ({{ $user->role?->name ?? 'No Role' }})
-                        </span>
+                    <li class="flex items-start gap-2 text-sm text-amber-700 dark:text-amber-400">
+                        <span class="mt-2 h-1.5 w-1.5 rounded-full bg-amber-500 dark:bg-amber-400"></span>
+                        <span>
+                            <span class="font-semibold" style="color: {{ $user->role?->color ?? '#92400e' }}">
+                                {{ $user->name }} ({{ $user->role?->name ?? 'No Role' }})
+                            </span>
                         @if($user->allergies->isNotEmpty())
                             has <span class="font-semibold">allergies:</span> {{ $user->allergies->pluck('name')->implode(', ') }}
                         @endif
@@ -24,6 +25,7 @@
                         @if($user->preferences->isNotEmpty())
                             has <span class="font-semibold">preferences:</span> {{ $user->preferences->pluck('name')->implode(', ') }}
                         @endif
+                        </span>
                     </li>
                 @endforeach
             </ul>
