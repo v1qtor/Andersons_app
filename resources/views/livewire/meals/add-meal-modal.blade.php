@@ -44,19 +44,19 @@
                     </label>
                     <div class="grid grid-cols-2 gap-2">
                         @foreach($users as $user)
-                            @php $roleColor = $user->role?->color ?? '#9ca3af'; @endphp
                             <button
+                                wire:key="invitee-{{ $user->id }}"
                                 type="button"
                                 @click="invitees = invitees.includes({{ $user->id }}) ? invitees.filter(id => id !== {{ $user->id }}) : [...invitees, {{ $user->id }}]"
                                 class="flex items-center gap-2 rounded-lg border-2 px-3 py-2 text-sm text-left transition-colors"
                                 :class="invitees.includes({{ $user->id }})
                                     ? 'text-white'
                                     : 'bg-white dark:bg-zinc-800 hover:bg-neutral-50 dark:hover:bg-zinc-700/50'"
-                                :style="`background-color: ${invitees.includes({{ $user->id }}) ? '{{ $user->role?->color ?? '#3b82f6' }}' : 'transparent'}; border-color: {{ $roleColor }};`"
+                                :style="`background-color: ${invitees.includes({{ $user->id }}) ? '{{ $user->role?->color ?? '#3b82f6' }}' : 'transparent'}; border-color: {{ $user->role?->color ?? '#9ca3af' }};`"
                             >
                                 <span
                                     class="h-3 w-3 rounded-full shrink-0"
-                                    :style="`background-color: ${invitees.includes({{ $user->id }}) ? '#ffffff' : '{{ $roleColor }}'};`"
+                                    :style="`background-color: ${invitees.includes({{ $user->id }}) ? '#ffffff' : '{{ $user->role?->color ?? '#9ca3af' }}'};`"
                                 ></span>
                                 <span :class="invitees.includes({{ $user->id }}) ? 'text-white font-semibold' : 'text-neutral-900 dark:text-neutral-100'">
                                     {{ $user->name }} ({{ $user->role?->name ?? 'No Role' }})
