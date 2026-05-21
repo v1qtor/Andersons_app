@@ -10,7 +10,7 @@
             </div>
             <ul class="space-y-2 ml-7">
                 @foreach($dietaryUsers as $user)
-                    <li class="flex items-start gap-2 text-sm text-amber-700 dark:text-amber-400">
+                    <li wire:key="dietary-{{ $user->id }}" class="flex items-start gap-2 text-sm text-amber-700 dark:text-amber-400">
                         <span class="mt-2 h-1.5 w-1.5 rounded-full bg-amber-500 dark:bg-amber-400"></span>
                         <span>
                             <span class="font-semibold" style="color: {{ $user->role?->color ?? '#92400e' }}">
@@ -35,7 +35,7 @@
     {{-- Meal Cards --}}
     <div class="space-y-4">
         @forelse($meals as $meal)
-            <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-zinc-800">
+            <div wire:key="meal-{{ $meal->id }}" class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-zinc-800">
 
                 {{-- Header Row: Name + Prepared Status + Delete --}}
                 <div class="flex items-start justify-between gap-4">
@@ -122,6 +122,7 @@
                                 <div class="flex flex-wrap gap-2">
                                     @foreach($meal->invitedSubscribers as $subscriber)
                                         <span
+                                            wire:key="invited-{{ $meal->id }}-{{ $subscriber->id }}"
                                             class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium text-white"
                                             style="background-color: {{ $subscriber->role?->color ?? '#6b7280' }}"
                                         >
@@ -143,6 +144,7 @@
                                 <div class="flex flex-wrap gap-2">
                                     @foreach($meal->acceptedSubscribers as $subscriber)
                                         <span
+                                            wire:key="accepted-{{ $meal->id }}-{{ $subscriber->id }}"
                                             class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium text-white"
                                             style="background-color: {{ $subscriber->role?->color ?? '#6b7280' }}"
                                         >
@@ -164,6 +166,7 @@
                                 <div class="flex flex-wrap gap-2">
                                     @foreach($meal->guestSubscribers as $subscriber)
                                         <span
+                                            wire:key="guest-{{ $meal->id }}-{{ $subscriber->id }}"
                                             class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium text-white"
                                             style="background-color: {{ $subscriber->role?->color ?? '#6b7280' }}"
                                         >
@@ -216,7 +219,7 @@
                         </div>
                         <ul class="space-y-1 ml-6">
                             @foreach($meal->guestNoteSubscribers as $subscriber)
-                                <li class="text-sm text-sky-700 dark:text-sky-400">
+                                <li wire:key="guest-note-{{ $meal->id }}-{{ $subscriber->id }}" class="text-sm text-sky-700 dark:text-sky-400">
                                     <span class="font-semibold">{{ $subscriber->pivot->guest_name }}</span>
                                     <span class="opacity-70">({{ __('invited by') }} {{ $subscriber->name }})</span>:
                                     {{ $subscriber->pivot->guest_note }}
