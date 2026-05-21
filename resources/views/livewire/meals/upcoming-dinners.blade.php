@@ -25,37 +25,50 @@
                     </div>
                 </div>
 
-                {{-- Action Buttons: Edit Guests + Join / Cancel --}}
+                {{-- Action Buttons --}}
                 <div class="flex items-center gap-3">
-                    @if($dinner->isJoined)
-                        <button
-                            wire:click="startGuestEdit({{ $dinner->id }})"
-                            class="text-blue-500 hover:bg-neutral-100 border border-blue-200 dark:hover:bg-neutral-700 rounded p-[3px] bg-white"
-                            title="Add or edit guests"
-                        >
-                            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
-                              <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
-                            </svg>
-                        </button>
-                    @endif
-
-                    @if($dinner->isJoined)
-                        <button wire:click="cancelMeal({{ $dinner->id }})" class="bg-gradient-to-r from-blue-600 to-[#0ba5cc] hover:from-blue-700 hover:to-[#0896ba] text-white text-[15px] px-5 py-1.5 rounded-lg transition-colors">
-                            Cancel
-                        </button>
-                        <button disabled class="bg-[#8fd9b5] text-white text-[15px] px-5 py-1.5 rounded-lg cursor-not-allowed">
-                            Joined
-                        </button>
+                    @if($isChef)
+                        {{-- Chef cooks the meals: toggle prepared instead of joining --}}
+                        @if($dinner->is_prepared)
+                            <button wire:click="togglePrepared({{ $dinner->id }})" class="bg-gradient-to-r from-blue-600 to-[#0ba5cc] hover:from-blue-700 hover:to-[#0896ba] text-white text-[15px] px-5 py-1.5 rounded-lg transition-colors">
+                                Unmark
+                            </button>
+                            <button disabled class="bg-[#8fd9b5] text-white text-[15px] px-5 py-1.5 rounded-lg cursor-not-allowed">
+                                Prepared
+                            </button>
+                        @else
+                            <button wire:click="togglePrepared({{ $dinner->id }})" class="bg-[#1bcc8a] hover:bg-[#15ab73] text-white text-[15px] px-5 py-1.5 rounded-lg transition-colors">
+                                Mark Prepared
+                            </button>
+                        @endif
                     @else
-                        <button wire:click="joinMeal({{ $dinner->id }})" class="bg-[#1bcc8a] hover:bg-[#15ab73] text-white text-[15px] px-5 py-1.5 rounded-lg transition-colors">
-                            Join
-                        </button>
+                        @if($dinner->isJoined)
+                            <button
+                                wire:click="startGuestEdit({{ $dinner->id }})"
+                                class="text-blue-500 hover:bg-neutral-100 border border-blue-200 dark:hover:bg-neutral-700 rounded p-[3px] bg-white"
+                                title="Add or edit guests"
+                            >
+                                <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+                                </svg>
+                            </button>
+                            <button wire:click="cancelMeal({{ $dinner->id }})" class="bg-gradient-to-r from-blue-600 to-[#0ba5cc] hover:from-blue-700 hover:to-[#0896ba] text-white text-[15px] px-5 py-1.5 rounded-lg transition-colors">
+                                Cancel
+                            </button>
+                            <button disabled class="bg-[#8fd9b5] text-white text-[15px] px-5 py-1.5 rounded-lg cursor-not-allowed">
+                                Joined
+                            </button>
+                        @else
+                            <button wire:click="joinMeal({{ $dinner->id }})" class="bg-[#1bcc8a] hover:bg-[#15ab73] text-white text-[15px] px-5 py-1.5 rounded-lg transition-colors">
+                                Join
+                            </button>
+                        @endif
                     @endif
                 </div>
                 </div>
 
-                {{-- Guest Editor (only when editing this dinner) --}}
-                @if($editingGuestForMealId === $dinner->id)
+                {{-- Guest Editor (only when editing this dinner) — chef never joins or invites guests --}}
+                @if(! $isChef && $editingGuestForMealId === $dinner->id)
                     <div class="mt-3 flex flex-col gap-3">
                         {{-- Guest Input Rows --}}
                         @foreach($guests as $index => $g)
@@ -111,7 +124,7 @@
                         </div>
                     </div>
                 {{-- My Guests (read-only list when not editing) --}}
-                @elseif($dinner->hasGuest)
+                @elseif(! $isChef && $dinner->hasGuest)
                     <ul class="mt-3 space-y-2">
                         @foreach($dinner->myGuests as $g)
                             <li wire:key="my-guest-{{ $g->id }}" class="flex items-start justify-between gap-3">
