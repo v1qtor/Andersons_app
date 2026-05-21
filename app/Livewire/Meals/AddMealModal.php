@@ -28,15 +28,6 @@ class AddMealModal extends Component
         $this->showModal = true;
     }
 
-    public function toggleInvitee(int $userId): void
-    {
-        if (in_array($userId, $this->invitees)) {
-            $this->invitees = array_values(array_diff($this->invitees, [$userId]));
-        } else {
-            $this->invitees[] = $userId;
-        }
-    }
-
     public function rules(): array
     {
         return [

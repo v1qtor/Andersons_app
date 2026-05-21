@@ -10,30 +10,15 @@ use Livewire\Component;
 #[Layout('components.layouts.app')]
 class MealList extends Component
 {
-    public bool $showDeleteConfirm = false;
-    public ?int $deletingMealId = null;
-
     protected $listeners = ['mealCreated' => '$refresh'];
 
-    public function confirmDelete(int $mealId): void
+    public function deleteMeal(int $mealId): void
     {
-        $this->deletingMealId = $mealId;
-        $this->showDeleteConfirm = true;
-    }
-
-    public function deleteMeal(): void
-    {
-        if ($this->deletingMealId) {
-            PlannedMeal::find($this->deletingMealId)?->delete();
+        if (! $this->resolveCapabilities()['canManage']) {
+            abort(403, __('Unauthorized.'));
         }
 
-        $this->cancelDelete();
-    }
-
-    public function cancelDelete(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->deletingMealId = null;
+        PlannedMeal::find($mealId)?->delete();
     }
 
     public function toggleParticipation(int $mealId): void

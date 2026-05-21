@@ -1,12 +1,12 @@
 <div class="max-w-5xl mx-auto p-6">
 
     {{-- Header --}}
-    <div class="flex items-center justify-between mb-8">
+    <div class="flex flex-col gap-4 mb-8 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h1 class="text-2xl font-bold text-gray-900">Staff Availability</h1>
             <p class="text-sm text-gray-500 mt-1">View and manage unavailability periods for all staff.</p>
         </div>
-        <flux:button wire:click="openCreate()" variant="primary" icon="plus">
+        <flux:button wire:click="openCreate()" variant="primary" icon="plus" class="sm:self-start">
             Add Period
         </flux:button>
     </div>

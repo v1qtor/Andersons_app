@@ -1,6 +1,6 @@
 <div>
     {{-- View Toggle + New Task --}}
-    <div class="flex items-center justify-between gap-2 mb-4">
+    <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex items-center gap-2">
             <x-flux.button size="sm" :variant="$view === 'day' ? 'primary' : 'ghost'" wire:click="setView('day')">
                 {{ __('Day') }}
@@ -12,7 +12,7 @@
                 {{ __('Month') }}
             </x-flux.button>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 max-sm:flex-wrap">
             {{-- Ownership sub-filter (only visible when My Tasks is active) --}}
             @if ($showMyTasksOnly)
                 <div class="inline-flex rounded-lg border border-neutral-200 dark:border-neutral-700 overflow-hidden">
