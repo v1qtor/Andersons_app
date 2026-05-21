@@ -10,7 +10,7 @@
             </div>
             <ul class="space-y-2 ml-7">
                 @foreach($dietaryUsers as $user)
-                    <li class="flex items-start gap-2 text-sm text-amber-700 dark:text-amber-400">
+                    <li wire:key="dietary-{{ $user->id }}" class="flex items-start gap-2 text-sm text-amber-700 dark:text-amber-400">
                         <span class="mt-2 h-1.5 w-1.5 rounded-full bg-amber-500 dark:bg-amber-400"></span>
                         <span>
                             <span class="font-semibold" style="color: {{ $user->role?->color ?? '#92400e' }}">
@@ -35,7 +35,7 @@
     {{-- Meal Cards --}}
     <div class="space-y-4">
         @forelse($meals as $meal)
-            <div class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-zinc-800">
+            <div wire:key="meal-{{ $meal->id }}" class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-zinc-800">
 
                 {{-- Header Row: Name + Prepared Status + Delete --}}
                 <div class="flex items-start justify-between gap-4">
@@ -108,64 +108,118 @@
                     </div>
                 </div>
 
-                {{-- Invited Attendees with confirmation status (management roles only) --}}
-                @if($canManage && $meal->subscribers->isNotEmpty())
-                    <div class="mt-4">
-                        <p class="text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-2">
-                            <svg class="inline h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M7 8a3 3 0 100-6 3 3 0 000 6zM14.5 9a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM1.615 16.428a1.224 1.224 0 01-.569-1.175 6.002 6.002 0 0111.908 0c.058.467-.172.92-.57 1.174A9.953 9.953 0 017 18a9.953 9.953 0 01-5.385-1.572zM14.5 16h-.106c.07-.297.088-.611.048-.933a7.47 7.47 0 00-1.588-3.755 4.502 4.502 0 015.874 2.636.818.818 0 01-.36.98A7.465 7.465 0 0114.5 16z" />
-                            </svg>
-                            {{ __('Invited') }} ({{ $meal->subscribers->count() }}):
-                        </p>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach($meal->subscribers as $subscriber)
-                                <span
-                                    class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium text-white"
-                                    style="background-color: {{ $subscriber->role?->color ?? '#6b7280' }}"
-                                >
-                                    @if($subscriber->pivot->confirmed)
-                                        <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
-                                        </svg>
-                                    @else
-                                        <svg class="h-3 w-3 opacity-60" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z" clip-rule="evenodd" />
-                                        </svg>
-                                    @endif
-                                    {{ $subscriber->name }} ({{ $subscriber->role?->name ?? 'No Role' }})
-                                </span>
-                            @endforeach
-                        </div>
+                {{-- Invited / Accepted attendees + Guests --}}
+                @if($meal->subscribers->isNotEmpty())
+                    <div class="mt-4 space-y-3">
+                        @if($meal->invitedSubscribers->isNotEmpty())
+                            <div>
+                                <p class="text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-2">
+                                    <svg class="inline h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M7 8a3 3 0 100-6 3 3 0 000 6zM14.5 9a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM1.615 16.428a1.224 1.224 0 01-.569-1.175 6.002 6.002 0 0111.908 0c.058.467-.172.92-.57 1.174A9.953 9.953 0 017 18a9.953 9.953 0 01-5.385-1.572zM14.5 16h-.106c.07-.297.088-.611.048-.933a7.47 7.47 0 00-1.588-3.755 4.502 4.502 0 015.874 2.636.818.818 0 01-.36.98A7.465 7.465 0 0114.5 16z" />
+                                    </svg>
+                                    {{ __('Invited') }} ({{ $meal->invitedSubscribers->count() }}):
+                                </p>
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($meal->invitedSubscribers as $subscriber)
+                                        <span
+                                            wire:key="invited-{{ $meal->id }}-{{ $subscriber->id }}"
+                                            class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium text-white"
+                                            style="background-color: {{ $subscriber->role?->color ?? '#6b7280' }}"
+                                        >
+                                            {{ $subscriber->name }} ({{ $subscriber->role?->name ?? 'No Role' }})
+                                        </span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($meal->acceptedSubscribers->isNotEmpty())
+                            <div>
+                                <p class="text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-2">
+                                    <svg class="inline h-4 w-4 mr-1 text-emerald-600 dark:text-emerald-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
+                                    </svg>
+                                    {{ __('Accepted') }} ({{ $meal->acceptedSubscribers->count() }}):
+                                </p>
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($meal->acceptedSubscribers as $subscriber)
+                                        <span
+                                            wire:key="accepted-{{ $meal->id }}-{{ $subscriber->id }}"
+                                            class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium text-white"
+                                            style="background-color: {{ $subscriber->role?->color ?? '#6b7280' }}"
+                                        >
+                                            {{ $subscriber->name }} ({{ $subscriber->role?->name ?? 'No Role' }})
+                                        </span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($meal->guests->isNotEmpty())
+                            <div>
+                                <p class="text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-2">
+                                    <svg class="inline h-4 w-4 mr-1 text-sky-600 dark:text-sky-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M10 9a3 3 0 100-6 3 3 0 000 6zM6 8a2 2 0 11-4 0 2 2 0 014 0zM1.49 15.326a.78.78 0 01-.358-.442 3 3 0 014.308-3.516 6.484 6.484 0 00-1.905 3.959c-.023.222-.014.442.025.654a4.97 4.97 0 01-2.07-.655zM16.44 15.98a4.97 4.97 0 002.07-.654.78.78 0 00.357-.442 3 3 0 00-4.308-3.517 6.484 6.484 0 011.907 3.96 2.32 2.32 0 01-.026.654zM18 8a2 2 0 11-4 0 2 2 0 014 0zM5.304 16.19a.844.844 0 01-.277-.71 5 5 0 019.947 0 .843.843 0 01-.277.71A6.975 6.975 0 0110 18a6.974 6.974 0 01-4.696-1.81z" />
+                                    </svg>
+                                    {{ __('Guests') }} ({{ $meal->guests->count() }}):
+                                </p>
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($meal->guests as $guest)
+                                        <span
+                                            wire:key="guest-{{ $meal->id }}-{{ $guest->id }}"
+                                            class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium text-white"
+                                            style="background-color: {{ $guest->invitedBy?->role?->color ?? '#6b7280' }}"
+                                        >
+                                            {{ $guest->name }} ({{ __('invited by') }} {{ $guest->invitedBy?->name ?? __('unknown') }})
+                                        </span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 @endif
 
                 {{-- Attendee Dietary Info (management roles only) --}}
-                @if($canManage)
-                    @php
-                        $subscriberAllergies = $meal->subscribers->flatMap(fn($s) => $s->allergies->pluck('name'))->unique();
-                        $subscriberPreferences = $meal->subscribers->flatMap(fn($s) => $s->preferences->pluck('name'))->unique();
-                    @endphp
-
-                    @if($subscriberAllergies->isNotEmpty() || $subscriberPreferences->isNotEmpty())
-                        <div class="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-900/20">
-                            <div class="flex items-center gap-2 mb-1">
-                                <svg class="h-4 w-4 text-amber-600 dark:text-amber-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" />
-                                </svg>
-                                <span class="text-sm font-semibold text-amber-800 dark:text-amber-300">{{ __('Attendee Dietary Information:') }}</span>
-                            </div>
-                            @if($subscriberAllergies->isNotEmpty())
-                                <p class="text-sm text-amber-700 dark:text-amber-400 ml-6">
-                                    <span class="font-semibold">⚠ {{ __('Allergies:') }}</span> {{ $subscriberAllergies->implode(', ') }}
-                                </p>
-                            @endif
-                            @if($subscriberPreferences->isNotEmpty())
-                                <p class="text-sm text-amber-700 dark:text-amber-400 ml-6">
-                                    <span class="font-semibold">{{ __('Preferences:') }}</span> {{ $subscriberPreferences->implode(', ') }}
-                                </p>
-                            @endif
+                @if($canManage && ($meal->subscriberAllergies->isNotEmpty() || $meal->subscriberPreferences->isNotEmpty()))
+                    <div class="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-900/20">
+                        <div class="flex items-center gap-2 mb-1">
+                            <svg class="h-4 w-4 text-amber-600 dark:text-amber-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" />
+                            </svg>
+                            <span class="text-sm font-semibold text-amber-800 dark:text-amber-300">{{ __('Attendee Dietary Information:') }}</span>
                         </div>
-                    @endif
+                        @if($meal->subscriberAllergies->isNotEmpty())
+                            <p class="text-sm text-amber-700 dark:text-amber-400 ml-6">
+                                <span class="font-semibold">⚠ {{ __('Allergies:') }}</span> {{ $meal->subscriberAllergies->implode(', ') }}
+                            </p>
+                        @endif
+                        @if($meal->subscriberPreferences->isNotEmpty())
+                            <p class="text-sm text-amber-700 dark:text-amber-400 ml-6">
+                                <span class="font-semibold">{{ __('Preferences:') }}</span> {{ $meal->subscriberPreferences->implode(', ') }}
+                            </p>
+                        @endif
+                    </div>
+                @endif
+
+                {{-- Guest Notes (management roles only) --}}
+                @if($canManage && $meal->guestsWithNotes->isNotEmpty())
+                    <div class="mt-3 rounded-lg border border-sky-200 bg-sky-50 p-3 dark:border-sky-800 dark:bg-sky-900/20">
+                        <div class="flex items-center gap-2 mb-1">
+                            <svg class="h-4 w-4 text-sky-600 dark:text-sky-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" clip-rule="evenodd" />
+                            </svg>
+                            <span class="text-sm font-semibold text-sky-800 dark:text-sky-300">{{ __('Guest Notes:') }}</span>
+                        </div>
+                        <ul class="space-y-1 ml-6">
+                            @foreach($meal->guestsWithNotes as $guest)
+                                <li wire:key="guest-note-{{ $meal->id }}-{{ $guest->id }}" class="text-sm text-sky-700 dark:text-sky-400">
+                                    <span class="font-semibold">{{ $guest->name }}</span>
+                                    <span class="opacity-70">({{ __('invited by') }} {{ $guest->invitedBy?->name ?? __('unknown') }})</span>:
+                                    {{ $guest->note }}
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
                 @endif
 
                 {{-- Notes --}}
@@ -179,11 +233,10 @@
 
                 {{-- My Participation (only for roles that can participate) --}}
                 @if($canParticipate)
-                    @php $mySubscription = $meal->subscribers->firstWhere('id', auth()->id()); @endphp
                     <div class="mt-4 flex items-center justify-between border-t border-neutral-100 pt-4 dark:border-neutral-700">
                         <span class="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">{{ __('My participation') }}</span>
-                        @if($mySubscription)
-                            @if($mySubscription->pivot->confirmed)
+                        @if($meal->mySubscription)
+                            @if($meal->mySubscription->pivot->confirmed)
                                 <button
                                     wire:click="toggleParticipation({{ $meal->id }})"
                                     class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-4 py-1.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-400 dark:hover:bg-emerald-900/60 transition-colors"
@@ -220,6 +273,13 @@
             </div>
         @endforelse
     </div>
+
+    {{-- Pagination --}}
+    @if($meals->hasPages())
+        <div class="mt-6">
+            {{ $meals->onEachSide(1)->links('livewire::simple-tailwind') }}
+        </div>
+    @endif
 
     {{-- Delete Confirmation Modal --}}
     <flux:modal name="confirm-delete-meal">
