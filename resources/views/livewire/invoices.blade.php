@@ -85,12 +85,12 @@
 
     <div class="space-y-8">
         <!-- Page Header with Action Button -->
-        <div class="flex justify-between items-start mb-8">
+        <div class="flex flex-col gap-4 mb-8 sm:flex-row sm:items-start sm:justify-between">
             <div>
                 <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">{{ $isAdmin ? 'Expense Review' : 'Invoices' }}</h1>
                 <p class="text-gray-600 dark:text-gray-400">{{ $isAdmin ? 'Review and process submitted invoices' : 'Track your submitted invoices and reimbursement status' }}</p>
             </div>
-            <a href="{{ route('invoices.create') }}" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-semibold">
+            <a href="{{ route('invoices.create') }}" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-semibold sm:self-start">
                 + Submit Invoice
             </a>
         </div>
