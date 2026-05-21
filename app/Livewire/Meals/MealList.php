@@ -6,10 +6,13 @@ use App\Models\PlannedMeal;
 use App\Models\User;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 #[Layout('components.layouts.app')]
 class MealList extends Component
 {
+    use WithPagination;
+
     protected $listeners = ['mealCreated' => '$refresh'];
 
     public function deleteMeal(int $mealId): void
@@ -89,7 +92,7 @@ class MealList extends Component
             $query->whereHas('subscribers', fn ($q) => $q->where('user_id', auth()->id()));
         })
         ->orderBy('date_time', 'desc')
-        ->get();
+        ->paginate(5, ['*'], 'mealsPage');
 
         $users = User::with(['allergies', 'preferences', 'role'])
             // Chef prepares the meals — their own dietary info is not a concern for planning
