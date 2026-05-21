@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Allergy;
 use App\Models\Checkpoint;
 use App\Models\Location;
+use App\Models\MealGuest;
 use App\Models\NotificationType;
 use App\Models\PlannedMeal;
 use App\Models\Task;
@@ -72,13 +73,22 @@ class DatabaseSeeder extends Seeder
             );
         });
 
-        // MealSubscription
+        // MealSubscription + MealGuests
         $plannedMeals->each(function ($plannedMeal) use ($users) {
             $selectedUsers = $users->random(rand(1, 4));
             foreach ($selectedUsers as $user) {
+                $confirmed = fake()->boolean(70);
                 $plannedMeal->subscribers()->attach($user->id, [
-                    'guest_name' => fake()->optional(0.3)->name(),
+                    'confirmed' => $confirmed,
                 ]);
+
+                // Only confirmed subscribers can bring guests; give some of them 1–2.
+                if ($confirmed && fake()->boolean(30)) {
+                    MealGuest::factory()->count(rand(1, 2))->create([
+                        'planned_meal_id'    => $plannedMeal->id,
+                        'invited_by_user_id' => $user->id,
+                    ]);
+                }
             }
         });
 

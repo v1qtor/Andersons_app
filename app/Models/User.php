@@ -103,7 +103,12 @@ class User extends Authenticatable
 
     public function mealSubscriptions(): BelongsToMany
     {
-        return $this->belongsToMany(PlannedMeal::class, 'meal_subscriptions')->withPivot('guest_name');
+        return $this->belongsToMany(PlannedMeal::class, 'meal_subscriptions')->withPivot('confirmed');
+    }
+
+    public function invitedGuests(): HasMany
+    {
+        return $this->hasMany(MealGuest::class, 'invited_by_user_id');
     }
 
     public function tasks(): BelongsToMany
