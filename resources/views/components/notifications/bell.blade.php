@@ -35,15 +35,16 @@
 
     <!-- Notification Panel -->
     <div
-        class="absolute right-0 mt-2 w-96 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl shadow-xl z-50 overflow-hidden"
+        class="fixed sm:fixed md:fixed lg:absolute left-0 sm:left-0 md:left-0 md:right-0 lg:left-auto lg:right-0 bottom-0 sm:bottom-0 md:bottom-0 lg:bottom-auto lg:mt-2 w-full sm:w-full md:w-full lg:w-96 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 sm:rounded-t-2xl md:rounded-t-2xl lg:rounded-xl shadow-xl z-50 overflow-hidden flex flex-col"
         :class="{ 'hidden': !isPanelOpen }"
         x-show="isPanelOpen"
         x-transition:enter="ease-out duration-200"
-        x-transition:enter-start="opacity-0 scale-95"
-        x-transition:enter-end="opacity-100 scale-100"
+        x-transition:enter-start="opacity-0 translate-y-full lg:scale-95"
+        x-transition:enter-end="opacity-100 translate-y-0 lg:scale-100"
         x-transition:leave="ease-in duration-150"
-        x-transition:leave-start="opacity-100 scale-100"
-        x-transition:leave-end="opacity-0 scale-95"
+        x-transition:leave-start="opacity-100 translate-y-0 lg:scale-100"
+        x-transition:leave-end="opacity-0 translate-y-full lg:scale-95"
+        style="height: 40vh; overflow-y: auto;"
     >
         <!-- Panel Header -->
         <div class="bg-gray-50 dark:bg-neutral-700 border-b border-gray-200 dark:border-neutral-600 px-6 py-4 flex items-center justify-between">
@@ -59,7 +60,7 @@
         </div>
 
         <!-- Notifications List -->
-        <div class="max-h-96 overflow-y-auto">
+        <div class="overflow-y-auto flex-1">
             <template x-if="notifications.length === 0">
                 <div class="px-6 py-12 text-center">
                     <svg class="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
