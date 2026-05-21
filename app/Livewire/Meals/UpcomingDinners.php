@@ -45,6 +45,29 @@ class UpcomingDinners extends Component
         $this->dispatch('toast', message: 'You joined this dinner plan.', type: 'success');
     }
 
+    // Mark a meal as prepared / unmark it (Chef only).
+    public function togglePrepared(int $plannedMealId): void
+    {
+        if (auth()->user()->role?->name !== 'Chef') {
+            abort(403, __('Unauthorized.'));
+        }
+
+        $plannedMeal = PlannedMeal::find($plannedMealId);
+
+        if (! $plannedMeal) {
+            $this->dispatch('toast', message: 'Meal plan not found.', type: 'error');
+            return;
+        }
+
+        $plannedMeal->update(['is_prepared' => ! $plannedMeal->is_prepared]);
+
+        $this->dispatch(
+            'toast',
+            message: $plannedMeal->is_prepared ? 'Meal marked as prepared.' : 'Meal marked as not prepared.',
+            type: 'success',
+        );
+    }
+
     // Withdraw the current user's confirmation (keeps the subscription row, flips confirmed to false).
     public function cancelMeal(int $plannedMealId): void
     {
@@ -198,6 +221,7 @@ class UpcomingDinners extends Component
     public function render()
     {
         $user = auth()->user();
+        $isChef = $user->role?->name === 'Chef';
 
         $dinnerPlans = PlannedMeal::with(['meal', 'subscribers', 'guests'])
             ->whereDate('date_time', '>=', today())
@@ -205,16 +229,20 @@ class UpcomingDinners extends Component
             ->paginate(3, ['*'], 'dinnerPage');
 
         // Precompute per-dinner state for the current user so the view stays free of PHP logic.
-        $dinnerPlans->getCollection()->each(function ($dinner) use ($user) {
-            $sub = $dinner->subscribers->firstWhere('id', $user->id);
-            $dinner->mySubscription = $sub;
-            $dinner->isJoined       = (bool) ($sub?->pivot?->confirmed);
-            $dinner->myGuests       = $dinner->guests->where('invited_by_user_id', $user->id)->values();
-            $dinner->hasGuest       = $dinner->myGuests->isNotEmpty();
-        });
+        // Chef cooks the meals and does not subscribe — only attendee state is per-row work.
+        if (! $isChef) {
+            $dinnerPlans->getCollection()->each(function ($dinner) use ($user) {
+                $sub = $dinner->subscribers->firstWhere('id', $user->id);
+                $dinner->mySubscription = $sub;
+                $dinner->isJoined       = (bool) ($sub?->pivot?->confirmed);
+                $dinner->myGuests       = $dinner->guests->where('invited_by_user_id', $user->id)->values();
+                $dinner->hasGuest       = $dinner->myGuests->isNotEmpty();
+            });
+        }
 
         return view('livewire.meals.upcoming-dinners', [
             'dinnerPlans' => $dinnerPlans,
+            'isChef'      => $isChef,
         ]);
     }
 }
