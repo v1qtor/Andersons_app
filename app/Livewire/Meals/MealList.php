@@ -23,6 +23,13 @@ class MealList extends Component
         //
     }
 
+    // Re-render when invitees are edited (EditInviteesModal).
+    #[On('mealUpdated')]
+    public function refreshAfterUpdate(): void
+    {
+        //
+    }
+
     // Delete a planned meal (managers only).
     public function deleteMeal(int $mealId): void
     {

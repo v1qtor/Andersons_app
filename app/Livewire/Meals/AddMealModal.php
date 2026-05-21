@@ -126,11 +126,7 @@ class AddMealModal extends Component
     public function render()
     {
         return view('livewire.meals.add-meal-modal', [
-            // Chef schedules meals — they are never an invitee
-            'users' => User::with('role')
-                ->whereHas('role', fn ($q) => $q->where('name', '!=', 'Chef'))
-                ->orderBy('name')
-                ->get(),
+            'users' => User::invitableForMeals()->get(),
         ]);
     }
 
