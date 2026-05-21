@@ -208,31 +208,31 @@
                     </div>
                 </div>
 
-                <!-- Row 3: Address (full width) -->
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Address</label>
-                    <textarea
-                        wire:model="address"
-                        rows="3"
-                        placeholder="Enter your address"
-                        class="w-full px-4 py-3 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                    ></textarea>
-                    @error('address') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
+                <!-- Row 3: Address & Date of Birth -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Address</label>
+                        <textarea
+                            wire:model="address"
+                            rows="3"
+                            placeholder="Enter your address"
+                            class="w-full px-4 py-3 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                        ></textarea>
+                        @error('address') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Date of Birth</label>
+                        <input
+                            type="date"
+                            wire:model="birthdate"
+                            class="w-full px-4 py-3 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                        />
+                        @error('birthdate') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
+                    </div>
                 </div>
 
-
-                <!-- Row 4: Date of Birth -->
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Date of Birth</label>
-                    <input
-                        type="date"
-                        wire:model="birthdate"
-                        class="w-full px-4 py-3 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                    />
-                    @error('birthdate') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
-                </div>
-
-                <!-- Row 5: Change Password Button -->
+                <!-- Row 4: Change Password Button -->
                 <div>
                     <button
                         type="button"
@@ -259,150 +259,52 @@
         <!-- Notification Preferences Section -->
         <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 p-8">
             <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Notification Preferences</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-6">Choose which notifications you'd like to receive as pop-ups.</p>
 
             <div class="space-y-4">
-                <!-- Header Row -->
-                <div class="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-neutral-700">
-                    <div class="text-sm font-semibold text-gray-600 dark:text-gray-400"></div>
-                    <div class="flex gap-16">
-                        <div class="text-sm font-semibold text-gray-600 dark:text-gray-400 text-center w-20">Email</div>
-                        <div class="text-sm font-semibold text-gray-600 dark:text-gray-400 text-center w-20">Pop-up</div>
-                    </div>
-                </div>
-
-                <!-- Trip Delay Alerts -->
-                <div class="flex items-center justify-between py-4">
+                <!-- Trips -->
+                <div class="flex items-center justify-between py-4 border-b border-gray-200 dark:border-neutral-700">
                     <div>
-                        <p class="text-sm font-semibold text-gray-900 dark:text-white">Trip Delay Alerts</p>
+                        <p class="text-sm font-semibold text-gray-900 dark:text-white">Trips</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Get notified for trips (invites, alerts, reminders)</p>
                     </div>
-                    <div class="flex gap-16">
-                        <!-- Email Toggle -->
-                        <div class="flex justify-center w-20">
-                            <button 
-                                wire:click="toggleNotification('tripDelayAlerts', 'email')"
-                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['tripDelayAlerts']['email']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['tripDelayAlerts']['email']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
-                            </button>
-                        </div>
-                        <!-- Popup Toggle -->
-                        <div class="flex justify-center w-20">
-                            <button 
-                                wire:click="toggleNotification('tripDelayAlerts', 'popup')"
-                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['tripDelayAlerts']['popup']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['tripDelayAlerts']['popup']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
-                            </button>
-                        </div>
-                    </div>
+                    <x-ui.toggle :enabled="$notifications['trips']" wire="toggleNotification('trips')" />
                 </div>
 
                 <!-- Task Assignments -->
-                <div class="flex items-center justify-between py-4 border-t border-gray-100 dark:border-neutral-700">
+                <div class="flex items-center justify-between py-4 border-b border-gray-200 dark:border-neutral-700">
                     <div>
-                        <p class="text-sm font-semibold text-gray-900 dark:text-white">Task Assignment</p>
+                        <p class="text-sm font-semibold text-gray-900 dark:text-white">Task Assignments</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Get notified when assigned a new task</p>
                     </div>
-                    <div class="flex gap-16">
-                        <!-- Email Toggle -->
-                        <div class="flex justify-center w-20">
-                            <button 
-                                wire:click="toggleNotification('taskAssignments', 'email')"
-                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['taskAssignments']['email']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['taskAssignments']['email']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
-                            </button>
-                        </div>
-                        <!-- Popup Toggle -->
-                        <div class="flex justify-center w-20">
-                            <button 
-                                wire:click="toggleNotification('taskAssignments', 'popup')"
-                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['taskAssignments']['popup']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['taskAssignments']['popup']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
-                            </button>
-                        </div>
-                    </div>
+                    <x-ui.toggle :enabled="$notifications['taskAssignments']" wire="toggleNotification('taskAssignments')" />
                 </div>
 
                 <!-- Collaboration Requests -->
-                <div class="flex items-center justify-between py-4 border-t border-gray-100 dark:border-neutral-700">
+                <div class="flex items-center justify-between py-4 border-b border-gray-200 dark:border-neutral-700">
                     <div>
-                        <p class="text-sm font-semibold text-gray-900 dark:text-white">Collaboration Request</p>
+                        <p class="text-sm font-semibold text-gray-900 dark:text-white">Collaboration Requests</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Get notified of collaboration opportunities</p>
                     </div>
-                    <div class="flex gap-16">
-                        <!-- Email Toggle -->
-                        <div class="flex justify-center w-20">
-                            <button 
-                                wire:click="toggleNotification('collaborationRequests', 'email')"
-                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['collaborationRequests']['email']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['collaborationRequests']['email']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
-                            </button>
-                        </div>
-                        <!-- Popup Toggle -->
-                        <div class="flex justify-center w-20">
-                            <button 
-                                wire:click="toggleNotification('collaborationRequests', 'popup')"
-                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['collaborationRequests']['popup']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['collaborationRequests']['popup']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
-                            </button>
-                        </div>
-                    </div>
+                    <x-ui.toggle :enabled="$notifications['collaborationRequests']" wire="toggleNotification('collaborationRequests')" />
                 </div>
 
                 <!-- Receipt Approvals -->
-                <div class="flex items-center justify-between py-4 border-t border-gray-100 dark:border-neutral-700">
+                <div class="flex items-center justify-between py-4 border-b border-gray-200 dark:border-neutral-700">
                     <div>
                         <p class="text-sm font-semibold text-gray-900 dark:text-white">Receipt Approvals</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Get notified when your receipts are approved</p>
                     </div>
-                    <div class="flex gap-16">
-                        <!-- Email Toggle -->
-                        <div class="flex justify-center w-20">
-                            <button 
-                                wire:click="toggleNotification('receiptApprovals', 'email')"
-                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['receiptApprovals']['email']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['receiptApprovals']['email']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
-                            </button>
-                        </div>
-                        <!-- Popup Toggle -->
-                        <div class="flex justify-center w-20">
-                            <button 
-                                wire:click="toggleNotification('receiptApprovals', 'popup')"
-                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['receiptApprovals']['popup']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['receiptApprovals']['popup']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
-                            </button>
-                        </div>
-                    </div>
+                    <x-ui.toggle :enabled="$notifications['receiptApprovals']" wire="toggleNotification('receiptApprovals')" />
                 </div>
 
                 <!-- Meal Notifications -->
-                <div class="flex items-center justify-between py-4 border-t border-gray-100 dark:border-neutral-700">
+                <div class="flex items-center justify-between py-4">
                     <div>
                         <p class="text-sm font-semibold text-gray-900 dark:text-white">Meal Notifications</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Get notified about meal invitations</p>
                     </div>
-                    <div class="flex gap-16">
-                        <!-- Email Toggle -->
-                        <div class="flex justify-center w-20">
-                            <button 
-                                wire:click="toggleNotification('mealNotifications', 'email')"
-                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['mealNotifications']['email']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['mealNotifications']['email']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
-                            </button>
-                        </div>
-                        <!-- Popup Toggle -->
-                        <div class="flex justify-center w-20">
-                            <button 
-                                wire:click="toggleNotification('mealNotifications', 'popup')"
-                                class="relative inline-flex h-5 w-9 items-center rounded-full border transition-all duration-200 outline-none focus-visible:ring-[3px] @if($notifications['mealNotifications']['popup']) bg-indigo-600 border-transparent focus-visible:ring-indigo-500/50 @else bg-gray-200 border-gray-300 dark:bg-neutral-700 dark:border-neutral-600 focus-visible:ring-gray-400/50 @endif disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                <span class="inline-block h-4 w-4 transform rounded-full transition-transform duration-200 pointer-events-none block shrink-0 @if($notifications['mealNotifications']['popup']) translate-x-4 bg-white @else translate-x-0.5 bg-gray-50 dark:bg-gray-300 @endif" />
-                            </button>
-                        </div>
-                    </div>
+                    <x-ui.toggle :enabled="$notifications['mealNotifications']" wire="toggleNotification('mealNotifications')" />
                 </div>
             </div>
         </div>
