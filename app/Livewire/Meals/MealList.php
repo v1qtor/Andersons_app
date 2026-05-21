@@ -15,6 +15,7 @@ class MealList extends Component
 
     protected $listeners = ['mealCreated' => '$refresh'];
 
+    // Delete a planned meal (managers only).
     public function deleteMeal(int $mealId): void
     {
         if (! $this->resolveCapabilities()['canManage']) {
@@ -24,6 +25,7 @@ class MealList extends Component
         PlannedMeal::find($mealId)?->delete();
     }
 
+    // Flip the current user's confirmed flag on an invitation (only for users who can participate).
     public function toggleParticipation(int $mealId): void
     {
         // Chef schedules meals — participation confirmation is not their concern
@@ -49,6 +51,7 @@ class MealList extends Component
         ]);
     }
 
+    // Mark a meal as prepared / unmark it (Chef only).
     public function togglePrepared(int $mealId): void
     {
         if (! $this->resolveCapabilities()['canTogglePrepared']) {
@@ -59,10 +62,7 @@ class MealList extends Component
         $meal->update(['is_prepared' => ! $meal->is_prepared]);
     }
 
-    /**
-     * Derive what the authenticated user is allowed to do in the meal list.
-     * Role names are only ever referenced here — never in the view.
-     */
+    // Derive what the authenticated user can do (manage / toggle prepared / participate) so role checks stay out of the view.
     private function resolveCapabilities(): array
     {
         $role = auth()->user()->role?->name;
@@ -77,6 +77,7 @@ class MealList extends Component
         ];
     }
 
+    // Load the paginated meal list, attach per-meal subscriber buckets, and render the view.
     public function render()
     {
         $capabilities = $this->resolveCapabilities();

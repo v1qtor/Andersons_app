@@ -3,6 +3,7 @@
 namespace App\Livewire\Meals;
 
 use App\Models\PlannedMeal;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -11,9 +12,14 @@ class UpcomingDinners extends Component
     use WithPagination;
 
     public $editingGuestForMealId = null;
+
+    #[Validate('required|string|max:100')]
     public $guestName = '';
+
+    #[Validate('nullable|string|max:500')]
     public $guestNote = '';
 
+    // Confirm the current user's participation in a dinner (attaching them if not yet a subscriber).
     public function joinMeal($plannedMealId)
     {
         $user = auth()->user();
@@ -35,6 +41,7 @@ class UpcomingDinners extends Component
         $this->dispatch('toast', message: 'You joined this dinner plan.', type: 'success');
     }
 
+    // Withdraw the current user's confirmation (keeps the subscription row, flips confirmed to false).
     public function cancelMeal($plannedMealId)
     {
         $user = auth()->user();
@@ -56,6 +63,7 @@ class UpcomingDinners extends Component
         $this->dispatch('toast', message: 'No dinner subscription found to cancel.', type: 'error');
     }
 
+    // Open the guest editor and prefill it with any existing guest name and note.
     public function startGuestEdit($plannedMealId)
     {
         $plannedMeal = PlannedMeal::with('subscribers')->find($plannedMealId);
@@ -78,6 +86,7 @@ class UpcomingDinners extends Component
         $this->guestNote = (string) ($mySubscription?->pivot?->guest_note ?? '');
     }
 
+    // Persist the +1 guest name (and optional note) onto the current user's subscription pivot.
     public function saveGuest($plannedMealId)
     {
         $user = auth()->user();
@@ -88,10 +97,7 @@ class UpcomingDinners extends Component
             return;
         }
 
-        $this->validate([
-            'guestName' => 'required|string|max:100',
-            'guestNote' => 'nullable|string|max:500',
-        ]);
+        $this->validate();
 
         $isSubscribed = $plannedMeal->subscribers()->where('user_id', $user->id)->exists();
 
@@ -111,6 +117,7 @@ class UpcomingDinners extends Component
         $this->dispatch('toast', message: 'Guest saved successfully.', type: 'success');
     }
 
+    // Clear the +1 guest name and note from the current user's subscription pivot.
     public function removeGuest($plannedMealId)
     {
         $user = auth()->user();
@@ -139,12 +146,23 @@ class UpcomingDinners extends Component
         $this->dispatch('toast', message: 'Guest removed.', type: 'success');
     }
 
+    // Load today and future dinners, precompute per-row state for the current user, and render the widget.
     public function render()
     {
+        $user = auth()->user();
+
         $dinnerPlans = PlannedMeal::with(['meal', 'subscribers'])
             ->whereDate('date_time', '>=', today())
             ->orderBy('date_time')
             ->paginate(3, ['*'], 'dinnerPage');
+
+        // Precompute per-dinner state for the current user so the view stays free of PHP logic.
+        $dinnerPlans->getCollection()->each(function ($dinner) use ($user) {
+            $sub = $dinner->subscribers->firstWhere('id', $user->id);
+            $dinner->mySubscription = $sub;
+            $dinner->isJoined       = (bool) ($sub?->pivot?->confirmed);
+            $dinner->hasGuest       = filled($sub?->pivot?->guest_name);
+        });
 
         return view('livewire.meals.upcoming-dinners', [
             'dinnerPlans' => $dinnerPlans,

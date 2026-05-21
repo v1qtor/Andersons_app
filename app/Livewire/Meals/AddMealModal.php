@@ -21,6 +21,7 @@ class AddMealModal extends Component
 
     protected $listeners = ['openAddMeal' => 'openModal'];
 
+    // Reset form fields and validation, then show the modal (triggered by the openAddMeal event).
     public function openModal(): void
     {
         $this->reset(['name', 'date', 'time', 'invitees', 'notes']);
@@ -28,6 +29,7 @@ class AddMealModal extends Component
         $this->showModal = true;
     }
 
+    // Validation rules for the add-meal form fields.
     public function rules(): array
     {
         return [
@@ -40,6 +42,7 @@ class AddMealModal extends Component
         ];
     }
 
+    // Validate input, create the planned meal, attach invitees, and notify the chef + invitees.
     public function save(): void
     {
         $this->validate();
@@ -101,6 +104,7 @@ class AddMealModal extends Component
         $this->dispatch('mealCreated');
     }
 
+    // Render the modal with the list of potential invitees (everyone except the Chef).
     public function render()
     {
         return view('livewire.meals.add-meal-modal', [
@@ -112,9 +116,7 @@ class AddMealModal extends Component
         ]);
     }
 
-    /**
-     * Check if user has meal notifications (popup) enabled
-     */
+    // Check whether the given user has popup meal notifications enabled in their preferences.
     private function userHasMealNotificationsEnabled(User $user): bool
     {
         $setting = $user->notificationSettings()

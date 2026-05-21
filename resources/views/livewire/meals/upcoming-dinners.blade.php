@@ -3,12 +3,7 @@
 
     <div class="flex flex-col gap-3">
         @forelse($dinnerPlans as $dinner)
-            @php
-                $mySubscription = $dinner->subscribers->firstWhere('id', auth()->id());
-                $isJoined = (bool) ($mySubscription?->pivot?->confirmed);
-                $hasGuest = filled($mySubscription?->pivot?->guest_name);
-            @endphp
-            <div class="bg-white dark:bg-neutral-800 border border-neutral-100 dark:border-neutral-700 rounded-xl p-4 shadow-sm">
+            <div wire:key="dinner-{{ $dinner->id }}" class="bg-white dark:bg-neutral-800 border border-neutral-100 dark:border-neutral-700 rounded-xl p-4 shadow-sm">
                 <div class="flex items-center justify-between gap-4">
                     <div class="flex items-center gap-4">
                     <div class="bg-[#fdf4ee] dark:bg-orange-900/20 text-[#ea580c] size-[42px] rounded-xl flex items-center justify-center">
@@ -27,10 +22,10 @@
                 </div>
 
                 <div class="flex items-center gap-3">
-                    @if($isJoined)
+                    @if($dinner->isJoined)
                         <button
                             wire:click="removeGuest({{ $dinner->id }})"
-                            @disabled(!$hasGuest)
+                            @disabled(!$dinner->hasGuest)
                             class="text-red-400 hover:bg-neutral-100 border border-red-200 dark:hover:bg-neutral-700 rounded p-[3px] bg-white disabled:opacity-40 disabled:cursor-not-allowed"
                             title="Remove guest"
                         >
@@ -50,7 +45,7 @@
                         </button>
                     @endif
 
-                    @if($isJoined)
+                    @if($dinner->isJoined)
                         <button wire:click="cancelMeal({{ $dinner->id }})" class="bg-gradient-to-r from-blue-600 to-[#0ba5cc] hover:from-blue-700 hover:to-[#0896ba] text-white text-[15px] px-5 py-1.5 rounded-lg transition-colors">
                             Cancel
                         </button>
@@ -94,10 +89,10 @@
                     @error('guestNote')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
-                @elseif($hasGuest)
-                    <p class="mt-3 text-sm text-neutral-600 dark:text-neutral-300">Guest: {{ $mySubscription->pivot->guest_name }}</p>
-                    @if(filled($mySubscription->pivot->guest_note))
-                        <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400 italic">{{ $mySubscription->pivot->guest_note }}</p>
+                @elseif($dinner->hasGuest)
+                    <p class="mt-3 text-sm text-neutral-600 dark:text-neutral-300">Guest: {{ $dinner->mySubscription->pivot->guest_name }}</p>
+                    @if(filled($dinner->mySubscription->pivot->guest_note))
+                        <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400 italic">{{ $dinner->mySubscription->pivot->guest_note }}</p>
                     @endif
                 @endif
             </div>
