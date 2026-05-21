@@ -27,7 +27,6 @@ class TripFactory extends Factory
             'trip_category_id' => TripCategory::inRandomOrder()->first()?->id,
             'buffer_alert' => fake()->dateTimeBetween('now', $startDate),
             'status_id' => Status::inRandomOrder()->first()?->id,
-            'attached_file_id' => null,
             'notes' => fake()->optional()->sentence(),
         ];
     }
