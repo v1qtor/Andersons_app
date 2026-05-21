@@ -1,90 +1,111 @@
-<div class="p-6">
-    <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">Staff Availability</h1>
-        <flux:button wire:click="openCreate()" variant="primary" icon="plus">
+<div class="max-w-5xl mx-auto p-6">
+
+    {{-- Header --}}
+    <div class="flex flex-col gap-4 mb-8 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Staff Availability</h1>
+            <p class="text-sm text-gray-500 mt-1">View and manage unavailability periods for all staff.</p>
+        </div>
+        <flux:button wire:click="openCreate()" variant="primary" icon="plus" class="sm:self-start">
             Add Period
         </flux:button>
     </div>
 
-    @if(session('success'))
-        <div class="mb-4 p-3 bg-green-100 text-green-800 rounded-lg">
-            {{ session('success') }}
-        </div>
-    @endif
-
-    <div class="flex items-center justify-between mb-4">
-        <flux:button wire:click="previousWeek()" variant="ghost" icon="chevron-left">Previous</flux:button>
-        <div class="flex items-center gap-3">
-            <span class="text-lg font-semibold text-gray-900">
-                {{ \Carbon\Carbon::parse($currentWeekStart)->format('d M') }}
-                –
-                {{ \Carbon\Carbon::parse($currentWeekStart)->addDays(6)->format('d M Y') }}
-            </span>
-            <flux:button wire:click="goToCurrentWeek()" variant="ghost" size="sm">This Week</flux:button>
-        </div>
-        <flux:button wire:click="nextWeek()" variant="ghost" icon-trailing="chevron-right">Next</flux:button>
+    {{-- Filters --}}
+    <div class="bg-white border border-gray-200 rounded-xl p-4 mb-6 flex flex-wrap gap-4">
+        <flux:field class="flex-1 min-w-[180px]">
+            <flux:label>Filter by name</flux:label>
+            <flux:input wire:model.live="filterName" type="text" placeholder="Search name..." icon="magnifying-glass" />
+        </flux:field>
+        <flux:field class="flex-1 min-w-[180px]">
+            <flux:label>Filter by date</flux:label>
+            <flux:input wire:model.live="filterDate" type="date" />
+        </flux:field>
+        @if($filterName || $filterDate)
+            <div class="flex items-end">
+                <flux:button wire:click="$set('filterName', ''); $set('filterDate', '')" variant="ghost" size="sm" icon="x-mark">
+                    Clear
+                </flux:button>
+            </div>
+        @endif
     </div>
 
-    <div class="bg-white rounded-xl border border-gray-200 overflow-x-auto mb-8">
-        <table class="w-full">
-            <thead class="bg-gray-50 border-b border-gray-200">
-                <tr>
-                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700 w-40">Staff Member</th>
-                    @foreach($this->weekDays as $day)
-                        <th class="px-3 py-3 text-center text-sm font-semibold text-gray-700 min-w-[110px]">
-                            <div>{{ \Carbon\Carbon::parse($day)->format('D') }}</div>
-                            <div class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($day)->format('d M') }}</div>
-                        </th>
+    {{-- Staff Cards --}}
+    <div class="space-y-4">
+        @forelse($this->filteredUsers as $user)
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+                {{-- Card Header --}}
+                <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-bold text-indigo-700">
+                            {{ strtoupper(substr($user->name, 0, 1)) }}
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-900 text-sm">{{ $user->name }}</p>
+                            <p class="text-xs text-gray-500">{{ $user->role?->name }}</p>
+                        </div>
+                    </div>
+                    <span class="text-xs bg-red-100 text-red-700 font-semibold px-2 py-0.5 rounded-full">
+                        {{ $user->unavailabilityPeriods->count() }} period{{ $user->unavailabilityPeriods->count() !== 1 ? 's' : '' }}
+                    </span>
+                </div>
+
+                {{-- Periods --}}
+                <div class="divide-y divide-gray-100">
+                    @foreach($user->unavailabilityPeriods->sortBy('start_date') as $period)
+                        <div class="flex items-center justify-between px-5 py-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-2 h-2 rounded-full bg-red-400 flex-shrink-0"></div>
+                                <div>
+                                    <span class="text-sm font-medium text-gray-900">
+                                        @if($period->start_date->format('Y-m-d') === $period->end_date->format('Y-m-d'))
+                                            {{ $period->start_date->format('d M Y') }}
+                                        @else
+                                            {{ $period->start_date->format('d M Y') }} → {{ $period->end_date->format('d M Y') }}
+                                        @endif
+                                    </span>
+                                    <span class="text-sm text-gray-400 ml-2">
+                                        {{ $period->start_date->format('H:i') }} – {{ $period->end_date->format('H:i') }}
+                                    </span>
+                                    @if($period->description)
+                                        <span class="text-xs text-gray-400 italic ml-2">— {{ $period->description }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="flex gap-1">
+                                <flux:button wire:click="openEdit({{ $period->id }})" size="sm" variant="ghost" icon="pencil" />
+                                <flux:button wire:click="delete({{ $period->id }})" wire:confirm="Remove this period?" size="sm" variant="ghost" icon="trash" />
+                            </div>
+                        </div>
                     @endforeach
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                @foreach($this->allUsers as $user)
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3">
-                            <div class="font-semibold text-gray-900 text-sm">{{ $user->name }}</div>
-                            <div class="text-xs text-gray-500">{{ $user->role?->name }}</div>
-                        </td>
-                        @foreach($this->weekDays as $day)
-                            @php $period = $this->getPeriodForDate($user->id, $day); @endphp
-                            <td class="px-2 py-2 text-center">
-                                @if($period)
-                                    <div class="relative group">
-                                        <div class="bg-red-100 border border-red-400 rounded-lg p-2 text-xs text-red-800 cursor-pointer"
-                                             wire:click="openEdit({{ $period->id }})">
-                                            <div class="font-semibold">Unavailable</div>
-                                            @if($period->description)
-                                                <div class="truncate max-w-[90px]">{{ $period->description }}</div>
-                                            @endif
-                                        </div>
-                                        <button wire:click="delete({{ $period->id }})"
-                                                wire:confirm="Remove this unavailability period?"
-                                                class="absolute -top-1 -right-1 hidden group-hover:flex w-5 h-5 bg-red-500 text-white rounded-full items-center justify-center text-xs hover:bg-red-700">
-                                            ×
-                                        </button>
-                                    </div>
-                                @else
-                                    <button wire:click="openCreate('{{ $day }}', '{{ $user->id }}')"
-                                            class="w-full h-10 rounded-lg border-2 border-dashed border-gray-300 hover:border-red-400 hover:bg-red-50 transition-colors text-gray-400 hover:text-red-500 text-xs">
-                                        + Add
-                                    </button>
-                                @endif
-                            </td>
-                        @endforeach
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
+                </div>
+            </div>
+        @empty
+            <div class="text-center py-16 bg-white border border-dashed border-gray-300 rounded-xl">
+                <svg class="w-10 h-10 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <p class="text-gray-400 text-sm">No unavailability periods found.</p>
+                @if($filterName || $filterDate)
+                    <p class="text-gray-300 text-xs mt-1">Try clearing the filters.</p>
+                @endif
+            </div>
+        @endforelse
     </div>
 
+    {{-- Modal --}}
     <flux:modal wire:model="showModal" class="max-w-md w-full">
-        <div class="p-6 space-y-4">
-            <flux:heading size="lg">
-                {{ $editingId ? 'Edit Period' : 'Add Unavailability Period' }}
-            </flux:heading>
+        <div class="p-6 space-y-5">
+            <div>
+                <flux:heading size="lg">
+                    {{ $editingId ? 'Edit Unavailability Period' : 'Add Unavailability Period' }}
+                </flux:heading>
+                <p class="text-sm text-gray-500 mt-1">Set unavailability for a staff member.</p>
+            </div>
 
+            {{-- Person --}}
             <flux:field>
-                <flux:label>Staff Member</flux:label>
+                <flux:label>Person</flux:label>
                 <flux:select wire:model="selectedUserId">
                     <option value="">Select a person</option>
                     @foreach($this->allUsers as $user)
@@ -94,27 +115,50 @@
                 @error('selectedUserId') <flux:error>{{ $message }}</flux:error> @enderror
             </flux:field>
 
-            <flux:field>
-                <flux:label>Start Date</flux:label>
-                <flux:input type="date" wire:model="startDate" />
-                @error('startDate') <flux:error>{{ $message }}</flux:error> @enderror
-            </flux:field>
+            {{-- From --}}
+            <div>
+                <p class="text-sm font-semibold text-gray-700 mb-2">Unavailable from</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <flux:field>
+                        <flux:label>Date</flux:label>
+                        <flux:input type="date" wire:model="startDate" />
+                        @error('startDate') <flux:error>{{ $message }}</flux:error> @enderror
+                    </flux:field>
+                    <flux:field>
+                        <flux:label>Time</flux:label>
+                        <flux:input type="time" wire:model="startTime" />
+                        @error('startTime') <flux:error>{{ $message }}</flux:error> @enderror
+                    </flux:field>
+                </div>
+            </div>
 
-            <flux:field>
-                <flux:label>End Date</flux:label>
-                <flux:input type="date" wire:model="endDate" />
-                @error('endDate') <flux:error>{{ $message }}</flux:error> @enderror
-            </flux:field>
+            {{-- To --}}
+            <div>
+                <p class="text-sm font-semibold text-gray-700 mb-2">Unavailable until</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <flux:field>
+                        <flux:label>Date</flux:label>
+                        <flux:input type="date" wire:model="endDate" />
+                        @error('endDate') <flux:error>{{ $message }}</flux:error> @enderror
+                    </flux:field>
+                    <flux:field>
+                        <flux:label>Time</flux:label>
+                        <flux:input type="time" wire:model="endTime" />
+                        @error('endTime') <flux:error>{{ $message }}</flux:error> @enderror
+                    </flux:field>
+                </div>
+            </div>
 
+            {{-- Description --}}
             <flux:field>
-                <flux:label>Description (optional)</flux:label>
-                <flux:input type="text" wire:model="description" placeholder="e.g. Sick leave" />
+                <flux:label>Reason <span class="text-gray-400 font-normal">(optional)</span></flux:label>
+                <flux:input type="text" wire:model="description" placeholder="e.g. Sick leave, holiday..." />
                 @error('description') <flux:error>{{ $message }}</flux:error> @enderror
             </flux:field>
 
-            <div class="flex gap-3 pt-2">
+            <div class="flex gap-3 pt-1">
                 <flux:button wire:click="save()" variant="primary" class="flex-1">
-                    {{ $editingId ? 'Update' : 'Save' }}
+                    {{ $editingId ? 'Update Period' : 'Save Period' }}
                 </flux:button>
                 <flux:button wire:click="$set('showModal', false)" variant="ghost">
                     Cancel

@@ -1,4 +1,4 @@
-<div>
+<div x-data="{ deletingId: null }">
     {{-- Dietary Information Banner (management roles only) --}}
     @if($dietaryUsers->isNotEmpty() && $canManage)
         <div class="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
@@ -8,13 +8,14 @@
                 </svg>
                 <span class="font-semibold text-amber-800 dark:text-amber-300">{{ __('Dietary Information:') }}</span>
             </div>
-            <ul class="space-y-1 ml-7">
+            <ul class="space-y-2 ml-7">
                 @foreach($dietaryUsers as $user)
-                    <li class="text-sm text-amber-700 dark:text-amber-400">
-                        &middot;
-                        <span class="font-semibold" style="color: {{ $user->role?->color ?? '#92400e' }}">
-                            {{ $user->name }} ({{ $user->role?->name ?? 'No Role' }})
-                        </span>
+                    <li class="flex items-start gap-2 text-sm text-amber-700 dark:text-amber-400">
+                        <span class="mt-2 h-1.5 w-1.5 rounded-full bg-amber-500 dark:bg-amber-400"></span>
+                        <span>
+                            <span class="font-semibold" style="color: {{ $user->role?->color ?? '#92400e' }}">
+                                {{ $user->name }} ({{ $user->role?->name ?? 'No Role' }})
+                            </span>
                         @if($user->allergies->isNotEmpty())
                             has <span class="font-semibold">allergies:</span> {{ $user->allergies->pluck('name')->implode(', ') }}
                         @endif
@@ -24,6 +25,7 @@
                         @if($user->preferences->isNotEmpty())
                             has <span class="font-semibold">preferences:</span> {{ $user->preferences->pluck('name')->implode(', ') }}
                         @endif
+                        </span>
                     </li>
                 @endforeach
             </ul>
@@ -93,7 +95,8 @@
                         {{-- Delete Button (management roles only) --}}
                         @if($canManage)
                             <button
-                                wire:click="confirmDelete({{ $meal->id }})"
+                                type="button"
+                                @click="deletingId = {{ $meal->id }}; $dispatch('modal-show', { name: 'confirm-delete-meal' })"
                                 class="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors"
                                 title="{{ __('Delete meal') }}"
                             >
@@ -219,7 +222,7 @@
     </div>
 
     {{-- Delete Confirmation Modal --}}
-    <flux:modal name="confirm-delete-meal" :show="$showDeleteConfirm" wire:model="showDeleteConfirm">
+    <flux:modal name="confirm-delete-meal">
         <div class="space-y-6">
             <div>
                 <flux:heading size="lg">{{ __('Delete Meal') }}</flux:heading>
@@ -227,8 +230,8 @@
             </div>
 
             <div class="flex gap-2 justify-end">
-                <x-flux.button variant="ghost" wire:click="cancelDelete">{{ __('Cancel') }}</x-flux.button>
-                <x-flux.button variant="danger" wire:click="deleteMeal">{{ __('Delete') }}</x-flux.button>
+                <x-flux.button variant="ghost" @click="$dispatch('modal-close', { name: 'confirm-delete-meal' })">{{ __('Cancel') }}</x-flux.button>
+                <x-flux.button variant="danger" @click="$wire.deleteMeal(deletingId); $dispatch('modal-close', { name: 'confirm-delete-meal' })">{{ __('Delete') }}</x-flux.button>
             </div>
         </div>
     </flux:modal>
