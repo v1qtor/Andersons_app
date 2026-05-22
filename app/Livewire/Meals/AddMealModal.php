@@ -6,7 +6,7 @@ use App\Models\Meal;
 use App\Models\PlannedMeal;
 use App\Models\User;
 use App\Models\UserNotification;
-use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class AddMealModal extends Component
@@ -19,8 +19,8 @@ class AddMealModal extends Component
     public array $invitees = [];
     public string $notes = '';
 
-    protected $listeners = ['openAddMeal' => 'openModal'];
-
+    // Reset form fields and validation, then show the modal (triggered by the openAddMeal event).
+    #[On('openAddMeal')]
     public function openModal(): void
     {
         $this->reset(['name', 'date', 'time', 'invitees', 'notes']);
@@ -28,18 +28,39 @@ class AddMealModal extends Component
         $this->showModal = true;
     }
 
+    // Validation rules for the add-meal form fields.
     public function rules(): array
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'date' => ['required', 'date'],
-            'time' => ['required', 'date_format:H:i'],
+            'date' => ['required', 'date', 'after_or_equal:today'],
+            'time' => [
+                'required',
+                'date_format:H:i',
+                function ($attribute, $value, $fail) {
+                    if (! $this->date) {
+                        return;
+                    }
+                    if (\Carbon\Carbon::parse($this->date . ' ' . $value)->isPast()) {
+                        $fail(__('The meal cannot be scheduled in the past.'));
+                    }
+                },
+            ],
             'invitees' => ['array'],
             'invitees.*' => ['exists:users,id'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
     }
 
+    // Custom validation messages.
+    public function messages(): array
+    {
+        return [
+            'date.after_or_equal' => __('The meal cannot be scheduled in the past.'),
+        ];
+    }
+
+    // Validate input, create the planned meal, attach invitees, and notify the chef + invitees.
     public function save(): void
     {
         $this->validate();
@@ -59,7 +80,7 @@ class AddMealModal extends Component
         }
 
         // Notify chef if not added by chef
-        $currentUser = Auth::user();
+        $currentUser = auth()->user();
         $isChef = $currentUser && $currentUser->role && $currentUser->role->name === 'Chef';
         
         if (!$isChef) {
@@ -101,20 +122,15 @@ class AddMealModal extends Component
         $this->dispatch('mealCreated');
     }
 
+    // Render the modal with the list of potential invitees (everyone except the Chef).
     public function render()
     {
         return view('livewire.meals.add-meal-modal', [
-            // Chef schedules meals — they are never an invitee
-            'users' => User::with('role')
-                ->whereHas('role', fn ($q) => $q->where('name', '!=', 'Chef'))
-                ->orderBy('name')
-                ->get(),
+            'users' => User::invitableForMeals()->get(),
         ]);
     }
 
-    /**
-     * Check if user has meal notifications (popup) enabled
-     */
+    // Check whether the given user has popup meal notifications enabled in their preferences.
     private function userHasMealNotificationsEnabled(User $user): bool
     {
         $setting = $user->notificationSettings()
@@ -126,8 +142,7 @@ class AddMealModal extends Component
         }
 
         try {
-            $preferences = json_decode($setting->pivot->value, true);
-            return $preferences['popup'] ?? true;
+            return filter_var($setting->pivot->value, FILTER_VALIDATE_BOOLEAN);
         } catch (\Exception $e) {
             return true; // Default to enabled if decode fails
         }

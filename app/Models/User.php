@@ -103,7 +103,12 @@ class User extends Authenticatable
 
     public function mealSubscriptions(): BelongsToMany
     {
-        return $this->belongsToMany(PlannedMeal::class, 'meal_subscriptions')->withPivot('guest_name');
+        return $this->belongsToMany(PlannedMeal::class, 'meal_subscriptions')->withPivot('confirmed');
+    }
+
+    public function invitedGuests(): HasMany
+    {
+        return $this->hasMany(MealGuest::class, 'invited_by_user_id');
     }
 
     public function tasks(): BelongsToMany
@@ -129,6 +134,14 @@ class User extends Authenticatable
     public function sentCollaborationRequests(): HasMany
     {
         return $this->hasMany(CollaborationRequest::class, 'requester_id');
+    }
+
+    // Users eligible to be invited to a meal: everyone except the Chef, with role eager-loaded.
+    public function scopeInvitableForMeals($query)
+    {
+        return $query->with('role')
+            ->whereHas('role', fn ($q) => $q->where('name', '!=', 'Chef'))
+            ->orderBy('name');
     }
 
     public function receivedCollaborationRequests(): HasMany

@@ -1,3 +1,19 @@
+<style>
+    @media (max-width: 1024px) {
+        .notification-panel-desktop {
+            height: 40vh !important;
+            bottom: auto !important;
+            overflow-y: auto !important;
+        }
+    }
+    @media (min-width: 1025px) {
+        .notification-panel-desktop {
+            height: 100vh !important;
+            bottom: 0 !important;
+        }
+    }
+</style>
+
 <div class="relative" x-data="desktopNotificationBell()" x-init="init()">
     <!-- Desktop Notification Bell -->
     <div class="py-2 px-4">
@@ -43,7 +59,7 @@
 
     <!-- Right-Side Notification Panel -->
     <div
-        class="fixed right-0 top-0 bottom-0 w-96 max-w-full bg-white dark:bg-neutral-900 shadow-2xl z-50 flex flex-col border-l border-gray-200 dark:border-neutral-700"
+        class="notification-panel-desktop fixed right-0 top-0 w-96 max-w-full bg-white dark:bg-neutral-900 shadow-2xl z-50 flex flex-col border-l border-gray-200 dark:border-neutral-700"
         x-show="isPanelOpen"
         x-transition:enter="ease-out duration-300"
         x-transition:enter-start="translate-x-full"
@@ -51,6 +67,7 @@
         x-transition:leave="ease-in duration-200"
         x-transition:leave-start="translate-x-0"
         x-transition:leave-end="translate-x-full"
+        style="height: 40vh; overflow-y: auto;"
     >
         <!-- Panel Header -->
         <div class="bg-gray-50 dark:bg-neutral-800 border-b border-gray-200 dark:border-neutral-700 px-6 py-4 flex items-center justify-between flex-shrink-0">
