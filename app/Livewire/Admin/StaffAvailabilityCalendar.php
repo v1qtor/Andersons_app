@@ -133,6 +133,12 @@ class StaffAvailabilityCalendar extends Component
     public function openEdit($periodId)
     {
         $period = UnavailabilityPeriod::findOrFail($periodId);
+
+        if ($period->end_date->isPast()) {
+            $this->dispatch('toast', title: 'Read-only Period', message: 'Past unavailability periods cannot be edited.', type: 'error');
+            return;
+        }
+
         $this->editingId      = $period->id;
         $this->selectedUserId = $period->user_id;
         $this->startDate      = $period->start_date->format('Y-m-d');
@@ -156,20 +162,39 @@ class StaffAvailabilityCalendar extends Component
 
         $startDateTime = $this->startDate . ' ' . $this->startTime . ':00';
         $endDateTime   = $this->endDate . ' ' . $this->endTime . ':00';
+        $start = Carbon::parse($startDateTime);
+        $end = Carbon::parse($endDateTime);
+
+        if ($start->lt(now())) {
+            $this->addError('startTime', 'Start date and time cannot be in the past.');
+            return;
+        }
+
+        if ($end->lte($start)) {
+            $this->addError('endTime', 'End date and time must be after the start date and time.');
+            return;
+        }
 
         if ($this->editingId) {
-            UnavailabilityPeriod::findOrFail($this->editingId)->update([
+            $period = UnavailabilityPeriod::findOrFail($this->editingId);
+
+            if ($period->end_date->isPast()) {
+                $this->dispatch('toast', title: 'Read-only Period', message: 'Past unavailability periods cannot be updated.', type: 'error');
+                return;
+            }
+
+            $period->update([
                 'user_id'     => $this->selectedUserId,
-                'start_date'  => $startDateTime,
-                'end_date'    => $endDateTime,
+                'start_date'  => $start,
+                'end_date'    => $end,
                 'description' => $this->description,
             ]);
             $this->dispatch('toast', title: 'Period Updated', message: 'The unavailability period has been updated.', type: 'success');
         } else {
             UnavailabilityPeriod::create([
                 'user_id'     => $this->selectedUserId,
-                'start_date'  => $startDateTime,
-                'end_date'    => $endDateTime,
+                'start_date'  => $start,
+                'end_date'    => $end,
                 'description' => $this->description,
             ]);
             $this->dispatch('toast', title: 'Period Added', message: 'The unavailability period has been added.', type: 'success');
@@ -181,7 +206,14 @@ class StaffAvailabilityCalendar extends Component
 
     public function delete($id)
     {
-        UnavailabilityPeriod::findOrFail($id)->delete();
+        $period = UnavailabilityPeriod::findOrFail($id);
+
+        if ($period->end_date->isPast()) {
+            $this->dispatch('toast', title: 'Read-only Period', message: 'Past unavailability periods cannot be deleted.', type: 'error');
+            return;
+        }
+
+        $period->delete();
         $this->dispatch('toast', title: 'Period Removed', message: 'The unavailability period has been removed.', type: 'success');
     }
 
