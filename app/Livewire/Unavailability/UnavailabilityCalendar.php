@@ -82,6 +82,20 @@ class UnavailabilityCalendar extends Component
             return;
         }
 
+        // Check for duplicate exact period for this user
+        $duplicateQuery = UnavailabilityPeriod::where('user_id', Auth::id())
+            ->where('start_date', $start)
+            ->where('end_date', $end);
+
+        if ($this->editingId) {
+            $duplicateQuery->where('id', '!=', $this->editingId);
+        }
+
+        if ($duplicateQuery->exists()) {
+            $this->addError('duplicate', 'this period already exist. Select a new one or change the already available one.');
+            return;
+        }
+
         if ($this->editingId) {
             $period = UnavailabilityPeriod::findOrFail($this->editingId);
             if ($period->user_id !== Auth::id()) {
