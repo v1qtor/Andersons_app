@@ -10,7 +10,7 @@
         </div>
 
         {{-- Top Cards Row --}}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 {{ $isAdmin ? 'lg:grid-cols-4' : '' }} gap-6">
             {{-- Card 1: Tasks Today --}}
             <div class="bg-white dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-700/50 rounded-2xl p-5 flex items-center justify-between shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)]">
                 <div>
@@ -52,6 +52,21 @@
                     </svg>
                 </div>
             </div>
+
+            @if($isAdmin)
+                {{-- Card 4: Upcoming Unavailability --}}
+                <div class="bg-white dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-700/50 rounded-2xl p-5 flex items-center justify-between shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)]">
+                    <div>
+                        <h3 class="text-lg text-neutral-600 dark:text-neutral-400">Upcoming Unavailability</h3>
+                        <p class="text-3xl mt-1 text-neutral-800 dark:text-neutral-200 overflow-auto">{{ $upcomingAvailabilityCount }}</p>
+                    </div>
+                    <div class="bg-[#ef4444] rounded-full p-2.5 text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4.5m0 3.75h.008v.008H12v-.008Zm-7.071 2.121A9 9 0 1 1 19.071 5.378 9 9 0 0 1 4.929 19.371Z" />
+                        </svg>
+                    </div>
+                </div>
+            @endif
         </div>
 
         {{-- Main Content 2 Columns --}}

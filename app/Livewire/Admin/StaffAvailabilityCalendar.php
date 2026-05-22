@@ -32,28 +32,6 @@ class StaffAvailabilityCalendar extends Component
             abort(403);
         }
     }
-
-    public function dashboardUpcomingAvailability(){
-        // for the upcoming 2 days, show who is unavailable and when
-        $startDate  = Carbon::today();
-        $endDate = Carbon::tomorrow()->endOfDay();
-        $startDate = $startDate->startOfDay();
-        $endDate = $endDate->endOfDay();
-
-        $periods = UnavailabilityPeriod::with('user')
-            ->where(function($q) use ($startDate, $endDate) {
-                $q->whereBetween('start_date', [$startDate, $endDate])
-                  ->orWhereBetween('end_date', [$startDate, $endDate])
-                  ->orWhere(function($q2) use ($startDate, $endDate) {
-                      $q2->where('start_date', '<', $startDate)
-                         ->where('end_date', '>', $endDate);
-                  });
-            })
-            ->orderBy('start_date')
-            ->get();
-
-        return $periods;
-    }
     
     public function staffThreeOrMoreUnavailableSendNotification(){
         // if there are 3 or more staff unavailable on the same day, send a notification to the admin.
