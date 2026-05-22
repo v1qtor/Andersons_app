@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\PlannedMeal;
+use App\Models\UnavailabilityPeriod;
 use App\Models\Task;
 use App\Models\Trip;
 use Illuminate\Support\Carbon;
@@ -15,6 +16,24 @@ class Dashboard extends Component
 
     public $priorityFilter = '';
     public $timeFilter = '';
+
+    public function dashboardUpcomingAvailability()
+    {
+        $startDate = Carbon::today()->startOfDay();
+        $endDate = Carbon::tomorrow()->endOfDay();
+
+        return UnavailabilityPeriod::with('user.role')
+            ->where(function ($query) use ($startDate, $endDate) {
+                $query->whereBetween('start_date', [$startDate, $endDate])
+                    ->orWhereBetween('end_date', [$startDate, $endDate])
+                    ->orWhere(function ($nestedQuery) use ($startDate, $endDate) {
+                        $nestedQuery->where('start_date', '<', $startDate)
+                            ->where('end_date', '>', $endDate);
+                    });
+            })
+            ->orderBy('start_date')
+            ->get();
+    }
 
     public function markTaskAsDone($taskId)
     {
@@ -34,6 +53,7 @@ class Dashboard extends Component
     {
         $user = auth()->user();
         $isFamilyView = in_array($user->role?->name, ['Family Member', 'The Andersons']);
+        $isAdmin = $user->role?->name === 'Admin';
 
         if ($isFamilyView) {
             // Family views all tasks but cannot edit
@@ -77,6 +97,7 @@ class Dashboard extends Component
 
         $totalDinnerPlans = PlannedMeal::whereDate('date_time', '>=', today())->count();
         $totalUpcomingTrips = $user->trips()->where('start_date', '>=', today())->count();
+        $upcomingAvailability = $isAdmin ? $this->dashboardUpcomingAvailability() : collect();
 
         return view('livewire.dashboard', [
             'todayTasks' => $todayTasks,
@@ -85,8 +106,10 @@ class Dashboard extends Component
             'completedCount' => $completedCount,
             'totalTripsCount' => $totalUpcomingTrips,
             'totalDinnerCount' => $totalDinnerPlans,
+            'upcomingAvailabilityCount' => $upcomingAvailability->count(),
             'priorities' => \App\Models\TaskPriority::all(),
             'canManageTasks' => !$isFamilyView,
+            'isAdmin' => $isAdmin,
         ])->layout('components.layouts.app');
     }
 }
