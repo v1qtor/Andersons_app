@@ -58,7 +58,7 @@
                 <div class="bg-white dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-700/50 rounded-2xl p-5 flex items-center justify-between shadow-[0_2px_10px_-3px_rgba(0,0,0,0.05)]">
                     <div>
                         <h3 class="text-lg text-neutral-600 dark:text-neutral-400">Upcoming Unavailability</h3>
-                        <p class="text-3xl mt-1 text-neutral-800 dark:text-neutral-200 overflow-auto">{{ $upcomingAvailabilityCount }}</p>
+                        <p class="text-3xl mt-1 text-neutral-800 dark:text-neutral-200">{{ $upcomingUnavailabilityCount }}</p>
                     </div>
                     <div class="bg-[#ef4444] rounded-full p-2.5 text-white">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-6">
@@ -238,6 +238,55 @@
                     @endif
                 </div>
 
+                @if($isAdmin)
+                    <div class="mt-6 rounded-2xl border border-[#fecdd3] dark:border-[#881337] bg-[#fff1f2] dark:bg-[#4c0519] p-5 sm:p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
+                        <div class="flex items-center justify-between gap-3 mb-4">
+                            <div>
+                                <h3 class="text-xl font-medium text-neutral-800 dark:text-neutral-100">Upcoming Unavailability</h3>
+                                <p class="text-sm text-neutral-500 dark:text-neutral-400">Unavailability for the next 2 days.</p>
+                            </div>
+                            <div class="bg-[#ef4444] rounded-full p-2.5 text-white shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4.5m0 3.75h.008v.008H12v-.008Zm-7.071 2.121A9 9 0 1 1 19.071 5.378 9 9 0 0 1 4.929 19.371Z" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-2">
+                            @forelse($upcomingUnavailability as $unavailability)
+                                <div class="rounded-2xl border border-[#fecdd3] dark:border-[#881337] bg-white/80 dark:bg-neutral-900/60 p-4">
+                                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                        <div class="flex items-center gap-4 min-w-0 overflow-auto">
+                                            <div class="bg-[#ef4444] rounded-full p-2.5 text-white shrink-0">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                                </svg>
+                                            </div>
+                                            <div class="min-w-0">
+                                                <h4 class="text-base font-medium text-neutral-800 dark:text-neutral-100 truncate">
+                                                    {{ $unavailability->user->name }}
+                                                </h4>
+                                                <p class="text-sm text-neutral-500 dark:text-neutral-400 break-words">
+                                                    {{ $unavailability->start_date->format('M j, Y g:i A') }} - {{ $unavailability->end_date->format('M j, Y g:i A') }}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        @if($unavailability->description)
+                                            <div class="text-sm text-neutral-600 dark:text-neutral-300 sm:text-right sm:max-w-[16rem] break-words">
+                                                {{ $unavailability->description }}
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="py-8 text-center text-neutral-500 dark:text-neutral-400">
+                                    No upcoming unavailability periods.
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
