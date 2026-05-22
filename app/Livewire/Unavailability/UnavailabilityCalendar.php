@@ -43,6 +43,11 @@ class UnavailabilityCalendar extends Component
             abort(403);
         }
 
+        if ($period->end_date->isPast()) {
+            $this->dispatch('toast', title: 'Read-only Period', message: 'Past unavailability periods cannot be edited.', type: 'error');
+            return;
+        }
+
         $this->editingId   = $period->id;
         $this->startDate   = $period->start_date->format('Y-m-d');
         $this->startTime   = $period->start_date->format('H:i');
@@ -64,23 +69,41 @@ class UnavailabilityCalendar extends Component
 
         $startDateTime = $this->startDate . ' ' . $this->startTime . ':00';
         $endDateTime   = $this->endDate . ' ' . $this->endTime . ':00';
+        $start = Carbon::parse($startDateTime);
+        $end = Carbon::parse($endDateTime);
+
+        if ($start->lt(now())) {
+            $this->addError('startTime', 'Start date and time cannot be in the past.');
+            return;
+        }
+
+        if ($end->lte($start)) {
+            $this->addError('endTime', 'End date and time must be after the start date and time.');
+            return;
+        }
 
         if ($this->editingId) {
             $period = UnavailabilityPeriod::findOrFail($this->editingId);
             if ($period->user_id !== Auth::id()) {
                 abort(403);
             }
+
+            if ($period->end_date->isPast()) {
+                $this->dispatch('toast', title: 'Read-only Period', message: 'Past unavailability periods cannot be updated.', type: 'error');
+                return;
+            }
+
             $period->update([
-                'start_date'  => $startDateTime,
-                'end_date'    => $endDateTime,
+                'start_date'  => $start,
+                'end_date'    => $end,
                 'description' => $this->description,
             ]);
             $this->dispatch('toast', title: 'Period Updated', message: 'Your unavailability period has been updated.', type: 'success');
         } else {
             UnavailabilityPeriod::create([
                 'user_id'     => Auth::id(),
-                'start_date'  => $startDateTime,
-                'end_date'    => $endDateTime,
+                'start_date'  => $start,
+                'end_date'    => $end,
                 'description' => $this->description,
             ]);
             $this->dispatch('toast', title: 'Period Added', message: 'Your unavailability period has been added.', type: 'success');
@@ -96,6 +119,12 @@ class UnavailabilityCalendar extends Component
         if ($period->user_id !== Auth::id()) {
             abort(403);
         }
+
+        if ($period->end_date->isPast()) {
+            $this->dispatch('toast', title: 'Read-only Period', message: 'Past unavailability periods cannot be deleted.', type: 'error');
+            return;
+        }
+
         $period->delete();
         $this->dispatch('toast', title: 'Period Removed', message: 'The unavailability period has been removed.', type: 'success');
     }

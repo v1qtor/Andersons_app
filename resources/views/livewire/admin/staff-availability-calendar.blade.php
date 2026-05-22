@@ -53,29 +53,36 @@
                 {{-- Periods --}}
                 <div class="divide-y divide-gray-100">
                     @foreach($user->unavailabilityPeriods->sortBy('start_date') as $period)
-                        <div class="flex items-center justify-between px-5 py-3">
+                        @php
+                            $isPast = $period->end_date->isPast();
+                        @endphp
+                        <div class="flex items-center justify-between px-5 py-3 {{ $isPast ? 'bg-gray-50 opacity-75' : '' }}">
                             <div class="flex items-center gap-3">
-                                <div class="w-2 h-2 rounded-full bg-red-400 flex-shrink-0"></div>
+                                <div class="w-2 h-2 rounded-full flex-shrink-0 {{ $isPast ? 'bg-gray-400' : 'bg-red-400' }}"></div>
                                 <div>
-                                    <span class="text-sm font-medium text-gray-900">
+                                    <span class="text-sm font-medium {{ $isPast ? 'text-gray-600' : 'text-gray-900' }}">
                                         @if($period->start_date->format('Y-m-d') === $period->end_date->format('Y-m-d'))
                                             {{ $period->start_date->format('d M Y') }}
                                         @else
                                             {{ $period->start_date->format('d M Y') }} → {{ $period->end_date->format('d M Y') }}
                                         @endif
                                     </span>
-                                    <span class="text-sm text-gray-400 ml-2">
+                                    <span class="text-sm ml-2 {{ $isPast ? 'text-gray-400' : 'text-gray-500' }}">
                                         {{ $period->start_date->format('H:i') }} – {{ $period->end_date->format('H:i') }}
                                     </span>
                                     @if($period->description)
-                                        <span class="text-xs text-gray-400 italic ml-2">— {{ $period->description }}</span>
+                                        <span class="text-xs italic ml-2 {{ $isPast ? 'text-gray-400' : 'text-gray-500' }}">— {{ $period->description }}</span>
                                     @endif
                                 </div>
                             </div>
-                            <div class="flex gap-1">
-                                <flux:button wire:click="openEdit({{ $period->id }})" size="sm" variant="ghost" icon="pencil" />
-                                <flux:button wire:click="delete({{ $period->id }})" wire:confirm="Remove this period?" size="sm" variant="ghost" icon="trash" />
-                            </div>
+                            @if(! $isPast)
+                                <div class="flex gap-1">
+                                    <flux:button wire:click="openEdit({{ $period->id }})" size="sm" variant="ghost" icon="pencil" />
+                                    <flux:button wire:click="delete({{ $period->id }})" wire:confirm="Remove this period?" size="sm" variant="ghost" icon="trash" />
+                                </div>
+                            @else
+                                <span class="text-xs text-gray-400 italic">Read-only</span>
+                            @endif
                         </div>
                     @endforeach
                 </div>
@@ -121,7 +128,7 @@
                 <div class="grid grid-cols-2 gap-3">
                     <flux:field>
                         <flux:label>Date</flux:label>
-                        <flux:input type="date" wire:model="startDate" />
+                        <flux:input type="date" wire:model="startDate" min="{{ now()->format('Y-m-d') }}" />
                         @error('startDate') <flux:error>{{ $message }}</flux:error> @enderror
                     </flux:field>
                     <flux:field>
@@ -138,7 +145,7 @@
                 <div class="grid grid-cols-2 gap-3">
                     <flux:field>
                         <flux:label>Date</flux:label>
-                        <flux:input type="date" wire:model="endDate" />
+                        <flux:input type="date" wire:model="endDate" min="{{ now()->format('Y-m-d') }}" />
                         @error('endDate') <flux:error>{{ $message }}</flux:error> @enderror
                     </flux:field>
                     <flux:field>
