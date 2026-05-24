@@ -7,19 +7,24 @@
     @if(session('success'))<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">{{ session('success') }}</div>@endif
     @if($errors->any())<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">@foreach($errors->all() as $e)<p>{{ $e }}</p>@endforeach</div>@endif
 
-    <div class="mb-6 flex items-center gap-3">
+    <form method="GET" action="{{ route('trips.index') }}" class="mb-6 flex items-center gap-3">
         <label class="text-base font-semibold text-gray-800">Show:</label>
-        <select id="trip-filter" class="text-base px-3 py-1.5 rounded border">
-            <option value="all">All</option>
-            <option value="upcoming">Upcoming</option>
-            <option value="active">Active</option>
-            <option value="completed">Past</option>
-            <option value="cancelled">Cancelled</option>
+        @if(request('search'))
+            <input type="hidden" name="search" value="{{ request('search') }}">
+        @endif
+        <select id="trip-filter" name="status" class="text-base px-3 py-1.5 rounded border" onchange="this.form.submit()">
+            <option value="all" @selected(request('status', 'all') === 'all')>All</option>
+            @foreach($statusOptions as $status)
+                <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
+            @endforeach
         </select>
-    </div>
+    </form>
 
     <div class="mb-6">
         <form method="GET" action="{{ route('trips.index') }}" class="flex gap-2">
+            @if(request('status') && request('status') !== 'all')
+                <input type="hidden" name="status" value="{{ request('status') }}">
+            @endif
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search trips by name or description..." class="flex-1 px-4 py-3 rounded-lg border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-blue-400" />
             <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg">Search</button>
             @if(request('search'))
@@ -419,14 +424,6 @@ function reorderCheckpoint(tripId, cpId, dir) {
         body:JSON.stringify({order})
     });
 }
-
-document.getElementById('trip-filter').addEventListener('change', function(){
-    const status = this.value;
-    document.querySelectorAll('.trip-card').forEach(card => {
-        const cardStatus = card.dataset.status;
-        card.style.display = (status === 'all' || cardStatus === status) ? '' : 'none';
-    });
-});
 
 // Maps
 document.addEventListener('DOMContentLoaded', ()=>{

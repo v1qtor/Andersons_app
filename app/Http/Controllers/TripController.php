@@ -28,12 +28,17 @@ class TripController extends Controller
         }
         
         $trips = $query->orderBy('start_date', 'desc')->paginate(3)->withQueryString();
+        $statusOptions = Status::query()
+            ->select('name')
+            ->distinct()
+            ->orderBy('name')
+            ->pluck('name');
         $categories = TripCategory::all();
         $users = User::all();
         $checkpoints = Checkpoint::whereNotNull('folder_id')
             ->whereDoesntHave('trips', fn($q) => $q->where('trip_checkpoints.is_temporary', true))
             ->get();
-        return view('trips.index', compact('trips', 'categories', 'users', 'checkpoints'));
+        return view('trips.index', compact('trips', 'categories', 'users', 'checkpoints', 'statusOptions'));
     }
 
     public function store(Request $request)
