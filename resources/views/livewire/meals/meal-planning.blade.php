@@ -16,5 +16,8 @@
 
         {{-- Reusable Add Meal Modal Component --}}
         <livewire:meals.add-meal-modal />
+
+        {{-- Edit Invitees Modal (Admin/Chef only) --}}
+        <livewire:meals.edit-invitees-modal />
     </div>
 </section>

@@ -136,6 +136,14 @@ class User extends Authenticatable
         return $this->hasMany(CollaborationRequest::class, 'requester_id');
     }
 
+    // Users eligible to be invited to a meal: everyone except the Chef, with role eager-loaded.
+    public function scopeInvitableForMeals($query)
+    {
+        return $query->with('role')
+            ->whereHas('role', fn ($q) => $q->where('name', '!=', 'Chef'))
+            ->orderBy('name');
+    }
+
     public function receivedCollaborationRequests(): HasMany
     {
         return $this->hasMany(CollaborationRequest::class, 'target_user_id');
