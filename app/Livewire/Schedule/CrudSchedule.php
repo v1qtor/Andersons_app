@@ -8,7 +8,6 @@ use App\Models\UnavailabilityPeriod;
 use App\Models\UserNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
-use App\Models\UnavailabilityPeriod;
 
 trait CrudSchedule
 {
