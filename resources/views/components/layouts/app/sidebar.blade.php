@@ -128,6 +128,12 @@
     @endauth
 </flux:header>
 
+@auth
+    @if(auth()->user()->role?->name === 'Admin')
+        @livewire('admin.staff-shortage-banner')
+    @endif
+@endauth
+
 {{ $slot }}
 
 <!-- Toast Notifications Container -->

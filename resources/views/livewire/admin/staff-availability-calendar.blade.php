@@ -23,7 +23,7 @@
         </flux:field>
         @if($filterName || $filterDate)
             <div class="flex items-end">
-                <flux:button wire:click="$set('filterName', ''); $set('filterDate', '')" variant="ghost" size="sm" icon="x-mark">
+                <flux:button wire:click="clearFilters" variant="ghost" size="sm" icon="x-mark">
                     Clear
                 </flux:button>
             </div>
