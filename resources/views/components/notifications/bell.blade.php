@@ -80,6 +80,13 @@
                             <h4 class="font-semibold text-gray-900 dark:text-white text-sm" x-text="notification.title"></h4>
                             <p class="text-gray-600 dark:text-gray-400 text-sm mt-1" x-text="notification.message"></p>
                             <p class="text-gray-500 dark:text-gray-500 text-xs mt-2" x-text="formatTime(notification.created_at)"></p>
+                            
+                            <!-- Action Link -->
+                            <template x-if="notification.action_url">
+                                <a :href="notification.action_url" class="inline-block text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 mt-2 transition-colors">
+                                    View Details →
+                                </a>
+                            </template>
                         </div>
                         <button
                             @click="deleteNotification(notification.id)"

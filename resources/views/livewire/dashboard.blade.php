@@ -238,12 +238,11 @@
                     @endif
                 </div>
 
-                @if($isAdmin)
                     <div class="mt-6 rounded-2xl border border-[#fecdd3] dark:border-[#881337] bg-[#fff1f2] dark:bg-[#4c0519] p-5 sm:p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
                         <div class="flex items-center justify-between gap-3 mb-4">
                             <div>
                                 <h3 class="text-xl font-medium text-neutral-800 dark:text-neutral-100">Upcoming Unavailability</h3>
-                                <p class="text-sm text-neutral-500 dark:text-neutral-400">Unavailability for the next 2 days.</p>
+                                <p class="text-sm text-neutral-500 dark:text-neutral-400">Unavailability for the next 7 days.</p>
                             </div>
                             <div class="bg-[#ef4444] rounded-full p-2.5 text-white shrink-0">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-6">
@@ -286,7 +285,6 @@
                             @endforelse
                         </div>
                     </div>
-                @endif
             </div>
         </div>
     </div>
