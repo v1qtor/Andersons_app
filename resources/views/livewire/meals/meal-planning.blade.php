@@ -1,3 +1,8 @@
+{{--
+    meal-planning.blade.php: view half of the MealPlanning page
+    component. Manager page that embeds MealList together with the
+    add-meal and edit-invitees popups.
+--}}
 <section class="w-full">
     <div class="max-w-5xl mx-auto">
         {{-- Header --}}
@@ -6,18 +11,19 @@
                 <flux:heading size="xl">{{ __('Meal Planning') }}</flux:heading>
                 <flux:subheading>{{ __('Manage planned meals for the household') }}</flux:subheading>
             </div>
+            {{-- Tells the AddMealModal child to open. --}}
             <x-flux.button variant="primary" wire:click="$dispatch('openAddMeal')" icon="plus" class="sm:self-start">
                 {{ __('Add Meal') }}
             </x-flux.button>
         </div>
 
-        {{-- Reusable Meal List Component --}}
+        {{-- The shared meal list. --}}
         <livewire:meals.meal-list />
 
-        {{-- Reusable Add Meal Modal Component --}}
+        {{-- Add-meal popup. --}}
         <livewire:meals.add-meal-modal />
 
-        {{-- Edit Invitees Modal (Admin/Chef only) --}}
+        {{-- Edit-invitees popup. --}}
         <livewire:meals.edit-invitees-modal />
     </div>
 </section>

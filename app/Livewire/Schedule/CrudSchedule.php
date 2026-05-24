@@ -4,6 +4,7 @@ namespace App\Livewire\Schedule;
 
 use App\Models\CollaborationRequest;
 use App\Models\Task;
+use App\Models\UnavailabilityPeriod;
 use App\Models\UserNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
