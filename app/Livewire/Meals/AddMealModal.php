@@ -33,11 +33,30 @@ class AddMealModal extends Component
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'date' => ['required', 'date'],
-            'time' => ['required', 'date_format:H:i'],
+            'date' => ['required', 'date', 'after_or_equal:today'],
+            'time' => [
+                'required',
+                'date_format:H:i',
+                function ($attribute, $value, $fail) {
+                    if (! $this->date) {
+                        return;
+                    }
+                    if (\Carbon\Carbon::parse($this->date . ' ' . $value)->isPast()) {
+                        $fail(__('The meal cannot be scheduled in the past.'));
+                    }
+                },
+            ],
             'invitees' => ['array'],
             'invitees.*' => ['exists:users,id'],
             'notes' => ['nullable', 'string', 'max:1000'],
+        ];
+    }
+
+    // Custom validation messages.
+    public function messages(): array
+    {
+        return [
+            'date.after_or_equal' => __('The meal cannot be scheduled in the past.'),
         ];
     }
 
@@ -107,11 +126,7 @@ class AddMealModal extends Component
     public function render()
     {
         return view('livewire.meals.add-meal-modal', [
-            // Chef schedules meals — they are never an invitee
-            'users' => User::with('role')
-                ->whereHas('role', fn ($q) => $q->where('name', '!=', 'Chef'))
-                ->orderBy('name')
-                ->get(),
+            'users' => User::invitableForMeals()->get(),
         ]);
     }
 
@@ -127,8 +142,7 @@ class AddMealModal extends Component
         }
 
         try {
-            $preferences = json_decode($setting->pivot->value, true);
-            return $preferences['popup'] ?? true;
+            return filter_var($setting->pivot->value, FILTER_VALIDATE_BOOLEAN);
         } catch (\Exception $e) {
             return true; // Default to enabled if decode fails
         }

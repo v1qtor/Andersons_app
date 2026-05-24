@@ -30,11 +30,11 @@ class Settings extends Component
     public string $newPasswordConfirmation = '';
 
     public array $notifications = [
-        'tripDelayAlerts' => ['email' => true, 'popup' => true],
-        'taskAssignments' => ['email' => false, 'popup' => true],
-        'collaborationRequests' => ['email' => true, 'popup' => true],
-        'receiptApprovals' => ['email' => true, 'popup' => false],
-        'mealNotifications' => ['email' => true, 'popup' => true],
+        'trips' => true,
+        'taskAssignments' => true,
+        'collaborationRequests' => true,
+        'receiptApprovals' => true,
+        'mealNotifications' => true,
     ];
 
     /**
@@ -53,13 +53,24 @@ class Settings extends Component
 
         // Load notification settings from database
         $notificationSettings = $user->notificationSettings()->get();
+        
+        // Initialize with defaults first
+        $this->notifications = [
+            'trips' => true,
+            'taskAssignments' => true,
+            'collaborationRequests' => true,
+            'receiptApprovals' => true,
+            'mealNotifications' => true,
+        ];
+        
+        // Override with database values if they exist
         foreach ($notificationSettings as $setting) {
             $typeId = $setting->pivot->notification_type_id;
             $value = $setting->pivot->value;
 
             // Parse stored notification settings
             $category = match ($typeId) {
-                1 => 'tripDelayAlerts',
+                1 => 'trips',
                 2 => 'taskAssignments',
                 5 => 'collaborationRequests',
                 3 => 'receiptApprovals',
@@ -67,12 +78,10 @@ class Settings extends Component
                 default => null
             };
 
-            if ($category && $value) {
+            if ($category && $value !== null) {
                 try {
-                    $decoded = json_decode($value, true);
-                    if (is_array($decoded)) {
-                        $this->notifications[$category] = $decoded;
-                    }
+                    // Value is stored as a string ("true" or "false")
+                    $this->notifications[$category] = filter_var($value, FILTER_VALIDATE_BOOLEAN);
                 } catch (\Exception $e) {
                     // Use default values if decode fails
                 }
@@ -127,27 +136,27 @@ class Settings extends Component
     }
 
     /**
-     * Toggle notification setting.
+     * Toggle notification setting (popup only).
      */
-    public function toggleNotification(string $category, string $type): void
+    public function toggleNotification(string $category): void
     {
-        $this->notifications[$category][$type] = !$this->notifications[$category][$type];
+        $this->notifications[$category] = !$this->notifications[$category];
 
         // Map notification settings to the database
         $user = Auth::user();
 
         // Get notification type ID based on category
         $notificationTypeId = match ($category) {
-            'tripDelayAlerts' => 1,
+            'trips' => 1,
             'taskAssignments' => 2,
             'collaborationRequests' => 5,
             'receiptApprovals' => 3,
-            'dinnerSignups' => 4,
+            'mealNotifications' => 4,
             default => null
         };
 
         if ($notificationTypeId) {
-            $settingValue = json_encode($this->notifications[$category]);
+            $settingValue = $this->notifications[$category] ? 'true' : 'false';
             $user->notificationSettings()
                 ->syncWithoutDetaching([
                     $notificationTypeId => ['value' => $settingValue]

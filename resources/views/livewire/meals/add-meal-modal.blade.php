@@ -19,9 +19,10 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <flux:input
-                            wire:model="date"
+                            wire:model.live="date"
                             type="date"
                             label="{{ __('Date') }} *"
+                            min="{{ now()->toDateString() }}"
                             required
                         />
                         @error('date') <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
@@ -31,6 +32,7 @@
                             wire:model="time"
                             type="time"
                             label="{{ __('Time') }} *"
+                            :min="$date === now()->toDateString() ? now()->format('H:i') : null"
                             required
                         />
                         @error('time') <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror

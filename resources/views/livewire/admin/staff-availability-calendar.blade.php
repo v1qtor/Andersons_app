@@ -51,8 +51,14 @@
                 </div>
 
                 {{-- Periods --}}
+                @php
+                    $periods = $user->unavailabilityPeriods->sortBy('start_date');
+                    $upcoming = $periods->filter(fn($p) => $p->end_date->isFuture() || $p->start_date->isFuture());
+                    $past = $periods->filter(fn($p) => $p->end_date->isPast());
+                @endphp
+
                 <div class="divide-y divide-gray-100">
-                    @foreach($user->unavailabilityPeriods->sortBy('start_date') as $period)
+                    @foreach($upcoming as $period)
                         <div class="flex items-center justify-between px-5 py-3">
                             <div class="flex items-center gap-3">
                                 <div class="w-2 h-2 rounded-full bg-red-400 flex-shrink-0"></div>
@@ -78,6 +84,33 @@
                             </div>
                         </div>
                     @endforeach
+
+                    @if($past->isNotEmpty())
+                        <div class="px-5 pt-4 text-xs text-gray-500">Past</div>
+                        @foreach($past as $period)
+                            <div class="flex items-center justify-between px-5 py-3 bg-gray-50 opacity-75">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-2 h-2 rounded-full bg-gray-400 flex-shrink-0"></div>
+                                    <div>
+                                        <span class="text-sm font-medium text-gray-600">
+                                            @if($period->start_date->format('Y-m-d') === $period->end_date->format('Y-m-d'))
+                                                {{ $period->start_date->format('d M Y') }}
+                                            @else
+                                                {{ $period->start_date->format('d M Y') }} → {{ $period->end_date->format('d M Y') }}
+                                            @endif
+                                        </span>
+                                        <span class="text-sm text-gray-400 ml-2">
+                                            {{ $period->start_date->format('H:i') }} – {{ $period->end_date->format('H:i') }}
+                                        </span>
+                                        @if($period->description)
+                                            <span class="text-xs text-gray-400 italic ml-2">— {{ $period->description }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                                <span class="text-xs text-gray-400 italic">Read-only</span>
+                            </div>
+                        @endforeach
+                    @endif
                 </div>
             </div>
         @empty
@@ -101,6 +134,9 @@
                     {{ $editingId ? 'Edit Unavailability Period' : 'Add Unavailability Period' }}
                 </flux:heading>
                 <p class="text-sm text-gray-500 mt-1">Set unavailability for a staff member.</p>
+                @error('duplicate')
+                    <div class="mt-3 text-sm text-red-600 font-medium">{{ $message }}</div>
+                @enderror
             </div>
 
             {{-- Person --}}
@@ -121,7 +157,7 @@
                 <div class="grid grid-cols-2 gap-3">
                     <flux:field>
                         <flux:label>Date</flux:label>
-                        <flux:input type="date" wire:model="startDate" />
+                        <flux:input type="date" wire:model="startDate" min="{{ now()->format('Y-m-d') }}" />
                         @error('startDate') <flux:error>{{ $message }}</flux:error> @enderror
                     </flux:field>
                     <flux:field>
@@ -138,7 +174,7 @@
                 <div class="grid grid-cols-2 gap-3">
                     <flux:field>
                         <flux:label>Date</flux:label>
-                        <flux:input type="date" wire:model="endDate" />
+                        <flux:input type="date" wire:model="endDate" min="{{ now()->format('Y-m-d') }}" />
                         @error('endDate') <flux:error>{{ $message }}</flux:error> @enderror
                     </flux:field>
                     <flux:field>

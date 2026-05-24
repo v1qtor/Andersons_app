@@ -181,7 +181,7 @@ class InvoiceForm extends Component
     }
 
     /**
-     * Check if user has invoice notifications (popup) enabled
+     * Check if user has invoice notifications enabled
      */
     private function userHasInvoiceNotificationsEnabled($user): bool
     {
@@ -194,8 +194,7 @@ class InvoiceForm extends Component
         }
 
         try {
-            $preferences = json_decode($setting->pivot->value, true);
-            return $preferences['popup'] ?? true;
+            return filter_var($setting->pivot->value, FILTER_VALIDATE_BOOLEAN);
         } catch (\Exception $e) {
             return true; // Default to enabled if decode fails
         }

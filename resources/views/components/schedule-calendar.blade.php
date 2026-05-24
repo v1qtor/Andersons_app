@@ -754,7 +754,7 @@
                     const el = document.getElementById('printArea');
                     if (!el) return;
                     const css = `
-                        @page { size: landscape; margin: 1.5cm 1cm; }
+                        @page { size: landscape; margin: 1.5cm 1cm; @top-center { content: none; } @bottom-center { content: none; } }
                         * { box-sizing: border-box; margin: 0; padding: 0; }
                         body { font-family: Arial, sans-serif; font-size: 10pt; color: #111; background: white; }
                         h2 { font-size: 16pt; font-weight: 700; margin-bottom: 4px; }
@@ -780,7 +780,7 @@
                     `;
                     const win = window.open('', '_blank', 'width=1200,height=900');
                     if (!win) { alert('Lütfen tarayıcınızda pop-up izni verin.'); return; }
-                    win.document.write('<html><head><meta charset=utf-8><title>Schedule</title><style>' + css + '</style></head><body>' + el.innerHTML + '</body></html>');
+                    win.document.write('<html><head><meta charset=utf-8><title></title><style>' + css + '</style></head><body>' + el.innerHTML + '</body></html>');
                     win.document.close();
                     win.focus();
                     setTimeout(() => { win.print(); win.close(); }, 500);
@@ -901,13 +901,20 @@
                     @if ($printData && $printData['rangeStart'])
                         <div class="border border-neutral-200 dark:border-neutral-700 rounded-lg p-6 bg-neutral-50 dark:bg-zinc-900" id="printArea">
                             <div class="mb-6">
-                                <h2 class="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">
-                                    {{ __('Schedule') }}
-                                </h2>
-                                <p class="text-sm text-neutral-600 dark:text-neutral-400">
-                                    {{ $printData['rangeStart']->format('j M Y') }} - {{ $printData['rangeEnd']->format('j M Y') }}
-                                    · {{ $printData['scope'] === 'myTasks' ? __('My Tasks') : __('All Tasks') }}
-                                </p>
+                                <div class="flex items-start justify-between">
+                                    <div>
+                                        <h2 class="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">
+                                            {{ __('Schedule') }}
+                                        </h2>
+                                        <p class="text-sm text-neutral-600 dark:text-neutral-400">
+                                            {{ $printData['rangeStart']->format('j M Y') }} - {{ $printData['rangeEnd']->format('j M Y') }}
+                                            · {{ $printData['scope'] === 'myTasks' ? __('My Tasks') : __('All Tasks') }}
+                                        </p>
+                                    </div>
+                                    <p class="text-xs text-neutral-400 dark:text-neutral-500 text-right">
+                                        {{ __('Printed') }}: {{ \Carbon\Carbon::now()->format('d/m/Y H:i') }}
+                                    </p>
+                                </div>
                             </div>
 
                             @if ($printData['tasks']->isEmpty())
@@ -927,7 +934,6 @@
                                                 <th class="text-left py-2 px-1.5 text-[10px] font-bold text-neutral-900 dark:text-neutral-100">{{ __('Owner') }}</th>
                                                 <th class="text-left py-2 px-1.5 text-[10px] font-bold text-neutral-900 dark:text-neutral-100">{{ __('Assigned To') }}</th>
                                                 <th class="text-left py-2 px-1.5 text-[10px] font-bold text-neutral-900 dark:text-neutral-100">{{ __('Location') }}</th>
-                                                <th class="text-left py-2 px-1.5 text-[10px] font-bold text-neutral-900 dark:text-neutral-100">{{ __('Status') }}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -971,28 +977,12 @@
                                                             -
                                                         @endif
                                                     </td>
-                                                    <td class="py-1.5 px-1.5 text-[10px] whitespace-nowrap">
-                                                        @if ($task->is_complete)
-                                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300">
-                                                                ✓ {{ __('Done') }}
-                                                            </span>
-                                                        @else
-                                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-neutral-100 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-300">
-                                                                {{ __('Pending') }}
-                                                            </span>
-                                                        @endif
-                                                    </td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
                                     </table>
                                 </div>
 
-                                <div class="mt-4 text-xs text-neutral-600 dark:text-neutral-400">
-                                    {{ __('Total Tasks:') }} {{ $printData['tasks']->count() }}
-                                    · {{ __('Completed:') }} {{ $printData['tasks']->where('is_complete', true)->count() }}
-                                    · {{ __('Pending:') }} {{ $printData['tasks']->where('is_complete', false)->count() }}
-                                </div>
                             @endif
                         </div>
                     @endif
