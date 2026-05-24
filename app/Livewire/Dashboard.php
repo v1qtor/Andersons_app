@@ -20,7 +20,7 @@ class Dashboard extends Component
     public function dashboardUpcomingAvailability()
     {
         $startDate = Carbon::today()->startOfDay();
-        $endDate = Carbon::tomorrow()->endOfDay();
+        $endDate = Carbon::today()->addDays(7)->endOfDay();
 
         return UnavailabilityPeriod::with('user.role')
             ->where(function ($query) use ($startDate, $endDate) {
@@ -97,7 +97,7 @@ class Dashboard extends Component
 
         $totalDinnerPlans = PlannedMeal::whereDate('date_time', '>=', today())->count();
         $totalUpcomingTrips = $user->trips()->where('start_date', '>=', today())->count();
-        $upcomingAvailability = $isAdmin ? $this->dashboardUpcomingAvailability() : collect();
+        $upcomingAvailability = $this->dashboardUpcomingAvailability();
 
         return view('livewire.dashboard', [
             'todayTasks' => $todayTasks,

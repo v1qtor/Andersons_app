@@ -22,7 +22,7 @@
                     {{-- @if(auth()->user()->role && in_array(auth()->user()->role->name, ['Staff', 'Chef', 'Admin']))
                         <flux:navlist.item icon="no-symbol" :href="route('unavailabilities')" :current="request()->routeIs('unavailabilities')" wire:navigate>{{ __('Unavailabilities') }}</flux:navlist.item>
                     @endif --}}
-                    @if(auth()->user()->role && in_array(auth()->user()->role->name, ['Staff', 'Chef', 'Family Member', 'The Andersons']))
+                    @if(auth()->user()->role && in_array(auth()->user()->role->name, ['Staff', 'Chef']))
                         <flux:navlist.item icon="no-symbol" :href="route('unavailability')" :current="request()->routeIs('unavailability')" wire:navigate>{{ __('My Unavailability') }}</flux:navlist.item>
                     @endif
                     @if(auth()->user()->role?->name === 'Admin')
