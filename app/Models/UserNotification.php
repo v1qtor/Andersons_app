@@ -15,6 +15,7 @@ class UserNotification extends Model
     protected $fillable = [
         'user_id',
         'from_user_id',
+        'trip_id',
         'title',
         'message',
         'type',
@@ -40,4 +41,8 @@ class UserNotification extends Model
     {
         return $this->belongsTo(User::class, 'from_user_id');
     }
-}
+
+    public function trip(): BelongsTo
+    {
+        return $this->belongsTo(Trip::class);
+    }

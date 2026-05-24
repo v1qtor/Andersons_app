@@ -60,7 +60,6 @@ class TripSeeder extends Seeder
                 'trip_category_id' => $category->id,
                 'buffer_alert'     => $bufferAlert,
                 'status_id'        => $status->id,
-                'attached_file_id' => null,
                 'notes'            => $tripData['notes'],
             ]);
         }

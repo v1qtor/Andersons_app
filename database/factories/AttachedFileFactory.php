@@ -15,7 +15,9 @@ class AttachedFileFactory extends Factory
     public function definition(): array
     {
         return [
+            'name'=> fake()->word(),
             'file_path' => 'attachments/' . fake()->uuid() . '.' . fake()->fileExtension(),
+            'trip_id' => \App\Models\Trip::factory(),
         ];
     }
 }

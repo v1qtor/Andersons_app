@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Checkpoint extends Model
 {
@@ -13,9 +14,13 @@ class Checkpoint extends Model
 
     protected $fillable = [
         'location',
+        'description',
         'address',
+        'latitude',
+        'longitude',
         'coordinates',
         'folder_id',
+        'user_id',
     ];
 
     public function folder(): BelongsTo
@@ -23,8 +28,20 @@ class Checkpoint extends Model
         return $this->belongsTo(Folder::class);
     }
 
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function trips(): BelongsToMany
     {
-        return $this->belongsToMany(Trip::class, 'trip_checkpoints')->withPivot('arrival_date', 'is_confirmed', 'order');
+        return $this->belongsToMany(Trip::class, 'trip_checkpoints')
+            ->withPivot('arrival_date', 'is_confirmed', 'order', 'is_temporary', 'temp_location', 'temp_address', 'image_path')
+            ->withTimestamps();
+    }
+
+    public function images(): HasMany
+    {
+        return $this->hasMany(CheckpointImage::class);
     }
 }
