@@ -51,6 +51,9 @@ Route::middleware(['auth'])->group(function () {
     // API-style notification endpoint for AJAX calls (session auth)
     Route::get('api/notifications', 'App\Http\Controllers\Api\NotificationController@index')->name('notifications.list');
 
+    // Geocoding API routes
+    Route::post('api/geocode-address', 'App\Http\Controllers\GeocodingController@geocodeAddress')->name('geocode.address');
+    Route::post('api/reverse-geocode', 'App\Http\Controllers\GeocodingController@reverseGeocode')->name('geocode.reverse');
 
     // Admin Management
     Route::middleware(['admin'])->group(function () {

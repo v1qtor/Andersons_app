@@ -65,4 +65,9 @@ class Trip extends Model
     {
         return $this->hasMany(CheckpointImage::class);
     }
+
+    public function plusOnes(): HasMany
+    {
+        return $this->hasMany(PlusOne::class);
+    }
 }

@@ -82,17 +82,20 @@
             <input type="text" name="description" placeholder="e.g., Natural limestone formation" class="w-full px-4 py-3 rounded-lg border border-gray-300 text-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
         </div>
         <div class="mb-4">
-            <label class="block text-lg font-semibold mb-1">Address (optional)</label>
-            <input type="text" name="address" placeholder="e.g., Malham Cove, Settle BD24 9PT" class="w-full px-4 py-3 rounded-lg border border-gray-300 text-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            <label class="block text-lg font-semibold mb-1">Address (optional - enter to geocode)</label>
+            <div class="flex gap-2">
+                <input type="text" id="createCheckpointAddress" placeholder="e.g., Malham Cove, Settle BD24 9PT" class="flex-1 px-4 py-3 rounded-lg border border-gray-300 text-lg focus:outline-none focus:ring-2 focus:ring-blue-400" name="address" />
+                <button type="button" onclick="geocodeCheckpointField('createCheckpointAddress', 'createCheckpointLat', 'createCheckpointLng')" class="bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold py-2 px-4 rounded text-sm">Find</button>
+            </div>
         </div>
         <div class="flex gap-4 mb-4">
             <div class="flex-1">
-                <label class="block text-lg font-semibold mb-1">Latitude (optional)</label>
-                <input type="text" name="latitude" placeholder="e.g., 54.0749" class="w-full px-4 py-3 rounded-lg border border-gray-300 text-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                <label class="block text-lg font-semibold mb-1">Latitude (auto-filled)</label>
+                <input type="text" id="createCheckpointLat" name="latitude" placeholder="e.g., 54.0749" class="w-full px-4 py-3 rounded-lg border border-gray-300 text-lg focus:outline-none focus:ring-2 focus:ring-blue-400" readonly />
             </div>
             <div class="flex-1">
-                <label class="block text-lg font-semibold mb-1">Longitude (optional)</label>
-                <input type="text" name="longitude" placeholder="e.g., -2.1628" class="w-full px-4 py-3 rounded-lg border border-gray-300 text-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                <label class="block text-lg font-semibold mb-1">Longitude (auto-filled)</label>
+                <input type="text" id="createCheckpointLng" name="longitude" placeholder="e.g., -2.1628" class="w-full px-4 py-3 rounded-lg border border-gray-300 text-lg focus:outline-none focus:ring-2 focus:ring-blue-400" readonly />
             </div>
         </div>
         <div class="mb-4">
@@ -134,7 +137,10 @@
         </div>
         <div class="mb-4">
             <label class="block text-lg font-semibold mb-1">Address</label>
-            <input type="text" name="address" id="edit_address" class="w-full px-4 py-3 rounded-lg border border-gray-300 text-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            <div class="flex gap-2">
+                <input type="text" name="address" id="edit_address" class="flex-1 px-4 py-3 rounded-lg border border-gray-300 text-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                <button type="button" onclick="geocodeCheckpointField('edit_address', 'edit_latitude', 'edit_longitude')" class="bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold py-2 px-4 rounded text-sm">Find</button>
+            </div>
         </div>
         <div class="flex gap-4 mb-4">
             <div class="flex-1">
@@ -209,5 +215,40 @@
             }
         });
     });
+
+    async function geocodeCheckpointField(addressFieldId, latFieldId, lngFieldId) {
+        const addressInput = document.getElementById(addressFieldId);
+        const latInput = document.getElementById(latFieldId);
+        const lngInput = document.getElementById(lngFieldId);
+        
+        const address = addressInput.value.trim();
+        if (!address) {
+            alert('Please enter an address first');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/geocode-address', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+                },
+                body: JSON.stringify({ address })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                latInput.value = data.data.latitude;
+                lngInput.value = data.data.longitude;
+                alert('Location found!');
+            } else {
+                alert(data.message || 'Could not find address. Try a more specific location.');
+            }
+        } catch (error) {
+            console.error('Geocoding error:', error);
+            alert('Error searching for location. Please try again.');
+        }
+    }
 </script>
 @endsection

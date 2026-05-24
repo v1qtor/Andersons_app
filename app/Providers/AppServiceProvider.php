@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schedule;
 use Laravel\Fortify\Fortify;
 
 class AppServiceProvider extends ServiceProvider
@@ -30,5 +31,10 @@ class AppServiceProvider extends ServiceProvider
         });
         // Load broadcast channels
         require base_path('routes/channels.php');
+
+        // Schedule notification commands
+        Schedule::command('trips:send-reminders')->daily();
+        Schedule::command('checkpoints:check-arrivals')->everyThirtyMinutes();
+        Schedule::command('trips:check-overdue')->hourly();
     }
 }

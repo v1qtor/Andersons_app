@@ -202,7 +202,9 @@ class Dashboard extends Component
             ->paginate(3, ['*'], 'dinnerPage');
             
         $totalDinnerPlans = PlannedMeal::whereDate('date_time', '>=', today())->count();
-        $totalUpcomingTrips = $user->trips()->where('start_date', '>=', today())->count();
+        $totalUpcomingTrips = $user->trips()
+            ->where('start_date', '>=', today())
+            ->count();
 
         return view('livewire.dashboard', [
             'todayTasks' => $todayTasks,
