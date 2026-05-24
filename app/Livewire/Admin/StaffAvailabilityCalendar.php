@@ -56,7 +56,7 @@ class StaffAvailabilityCalendar extends Component
                 $admins = User::whereHas('role', fn($q) => $q->where('name', 'Admin'))->get();
 
                 foreach ($admins as $admin) {
-                    // prevent duplicate alerts for the same day/type
+                    
                     $exists = UserNotification::where('user_id', $admin->id)
                         ->where('type', 'staff_shortage')
                         ->whereBetween('created_at', [$dayStart, $dayEnd])
@@ -74,7 +74,7 @@ class StaffAvailabilityCalendar extends Component
                         'action_url' => route('admin.staff-unavailability'),
                     ]);
 
-                    // broadcast to the admin's private channel
+                    
                     try {
                         broadcast(new NotificationCreated($notification));
                     } catch (\Throwable $e) {
@@ -214,6 +214,8 @@ class StaffAvailabilityCalendar extends Component
             $this->dispatch('toast', title: 'Period Added', message: 'The unavailability period has been added.', type: 'success');
         }
 
+        $this->staffThreeOrMoreUnavailableSendNotification();
+
         $this->showModal = false;
         $this->reset(['editingId', 'startDate', 'startTime', 'endDate', 'endTime', 'description', 'selectedUserId']);
     }
@@ -229,6 +231,12 @@ class StaffAvailabilityCalendar extends Component
 
         $period->delete();
         $this->dispatch('toast', title: 'Period Removed', message: 'The unavailability period has been removed.', type: 'success');
+    }
+
+    public function clearFilters()
+    {
+        $this->filterName = '';
+        $this->filterDate = null;
     }
 
     public function render()
