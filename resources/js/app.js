@@ -136,32 +136,6 @@ window.desktopNotificationBell = function() {
             }
         },
 
-        togglePanel() {
-            this.isPanelOpen = !this.isPanelOpen;
-            if (this.isPanelOpen) {
-                this.loadNotifications();
-            }
-        },
-
-        addNotification(notification) {
-            this.notifications.unshift(notification);
-            this.unreadCount = this.notifications.filter(n => !n.is_read).length;
-        },
-
-        deleteNotification(id) {
-            this.notifications = this.notifications.filter(n => n.id !== id);
-            this.unreadCount = this.notifications.filter(n => !n.is_read).length;
-
-            fetch(`/notifications/${id}`, {
-                method: 'DELETE',
-                credentials: 'same-origin',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
-                    'X-Requested-With': 'XMLHttpRequest',
-                }
-            }).catch(error => console.error('Error deleting notification:', error));
-        },
-
         async clearAll() {
             this.notifications = [];
             this.unreadCount = 0;
@@ -202,6 +176,13 @@ window.desktopNotificationBell = function() {
             this.$nextTick(() => {
                 this.loadNotifications();
             });
+
+            window.desktopNotificationBellInstance = this;
+            if (!window.desktopNotificationBellPoller) {
+                window.desktopNotificationBellPoller = setInterval(() => {
+                    window.desktopNotificationBellInstance?.loadNotifications();
+                }, 30000);
+            }
 
             // Listen for real-time notifications - ONLY HERE to avoid duplication
             if (window.Echo) {
