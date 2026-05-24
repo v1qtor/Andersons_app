@@ -173,6 +173,12 @@
 @empty
     <div class="bg-white rounded-xl shadow p-6 text-center text-gray-500"><p>No trips yet</p></div>
 @endforelse
+
+@if($trips->hasPages())
+    <div class="mt-6 flex justify-center">
+        {{ $trips->links() }}
+    </div>
+@endif
 </div>
 
 <!-- Edit Trip Modal -->
