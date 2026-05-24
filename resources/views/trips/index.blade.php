@@ -324,10 +324,13 @@ function addTempCheckpointField() {
             <input type="text" name="temp_checkpoint_names[]" placeholder="Checkpoint name" class="flex-1 px-4 py-2 rounded-lg border border-gray-300 font-semibold" />
             <button type="button" onclick="this.closest('.temp-checkpoint-entry').remove()" class="bg-red-100 hover:bg-red-200 text-red-800 font-bold py-2 px-3 rounded text-sm">Remove</button>
         </div>
-        <input type="text" name="temp_checkpoint_addresses[]" placeholder="Address (optional)" class="w-full px-4 py-2 rounded-lg border border-gray-300 mb-2" />
+        <div class="flex gap-2 mb-2">
+            <input type="text" name="temp_checkpoint_addresses[]" placeholder="Address (optional - enter to geocode)" class="flex-1 px-4 py-2 rounded-lg border border-gray-300 address-field" />
+            <button type="button" onclick="geocodeCheckpoint(this)" class="bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold py-2 px-3 rounded text-sm">Find Location</button>
+        </div>
         <div class="flex gap-2">
-            <input type="text" name="temp_checkpoint_lat[]" placeholder="Latitude (optional)" class="flex-1 px-4 py-2 rounded-lg border border-gray-300" />
-            <input type="text" name="temp_checkpoint_lng[]" placeholder="Longitude (optional)" class="flex-1 px-4 py-2 rounded-lg border border-gray-300" />
+            <input type="text" name="temp_checkpoint_lat[]" placeholder="Latitude (auto-filled)" class="flex-1 px-4 py-2 rounded-lg border border-gray-300 latitude-field" readonly />
+            <input type="text" name="temp_checkpoint_lng[]" placeholder="Longitude (auto-filled)" class="flex-1 px-4 py-2 rounded-lg border border-gray-300 longitude-field" readonly />
         </div>
     `;
     container.appendChild(newEntry);
