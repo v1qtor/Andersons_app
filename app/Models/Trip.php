@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Trip extends Model
 {
@@ -19,8 +20,6 @@ class Trip extends Model
         'trip_category_id',
         'buffer_alert',
         'status_id',
-        'attached_file_id',
-        'notes',
     ];
 
     protected function casts(): array
@@ -42,18 +41,33 @@ class Trip extends Model
         return $this->belongsTo(Status::class);
     }
 
-    public function attachedFile(): BelongsTo
+    public function attachedFiles(): HasMany
     {
-        return $this->belongsTo(AttachedFile::class);
+        return $this->hasMany(AttachedFile::class);
     }
 
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'user_trips')->withPivot('is_organizer');
+        return $this->belongsToMany(User::class, 'user_trips')
+            ->withPivot('is_organizer')
+            ->withTimestamps();
     }
 
     public function checkpoints(): BelongsToMany
     {
-        return $this->belongsToMany(Checkpoint::class, 'trip_checkpoints')->withPivot('arrival_date', 'is_confirmed', 'order');
+        return $this->belongsToMany(Checkpoint::class, 'trip_checkpoints')
+            ->withPivot('arrival_date', 'is_confirmed', 'order', 'is_temporary', 'image_path', 'temp_location', 'temp_address')
+            ->withTimestamps()
+            ->orderByPivot('order');
+    }
+
+    public function checkpointImages(): HasMany
+    {
+        return $this->hasMany(CheckpointImage::class);
+    }
+
+    public function plusOnes(): HasMany
+    {
+        return $this->hasMany(PlusOne::class);
     }
 }

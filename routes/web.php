@@ -14,6 +14,7 @@ use App\Livewire\Settings;
 use App\Livewire\Unavailability;
 use App\Livewire\Unavailability\UnavailabilityCalendar;
 use App\Livewire\Dashboard;
+use App\Http\Controllers\TripController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -53,6 +54,9 @@ Route::middleware(['auth'])->group(function () {
     // API-style notification endpoint for AJAX calls (session auth)
     Route::get('api/notifications', 'App\Http\Controllers\Api\NotificationController@index')->name('notifications.list');
 
+    // Geocoding API routes
+    Route::post('api/geocode-address', 'App\Http\Controllers\GeocodingController@geocodeAddress')->name('geocode.address');
+    Route::post('api/reverse-geocode', 'App\Http\Controllers\GeocodingController@reverseGeocode')->name('geocode.reverse');
 
     // Admin Management
     Route::middleware(['admin'])->group(function () {
@@ -80,4 +84,26 @@ Route::middleware(['auth'])->group(function () {
     Route::get('meals', MealSchedule::class)->name('meals.index');
 });
 
-require __DIR__.'/auth.php';
+Route::middleware(['auth'])->group(function () {
+    Route::get('trips', [App\Http\Controllers\TripController::class, 'index'])->name('trips.index');
+    Route::post('trips', [App\Http\Controllers\TripController::class, 'store'])->name('trips.store');
+    Route::put('trips/{trip}', [App\Http\Controllers\TripController::class, 'update'])->name('trips.update');
+    Route::delete('trips/{trip}', [App\Http\Controllers\TripController::class, 'destroy'])->name('trips.destroy');
+    Route::post('trips/{trip}/cancel', [App\Http\Controllers\TripController::class, 'cancel'])->name('trips.cancel');
+
+    Route::post('trips/{trip}/checkpoints', [App\Http\Controllers\TripController::class, 'addCheckpoint'])->name('trips.checkpoints.add');
+    Route::delete('trips/{trip}/checkpoints/{checkpoint}', [App\Http\Controllers\TripController::class, 'removeCheckpoint'])->name('trips.checkpoints.remove');
+    Route::post('trips/{trip}/checkpoints/{checkpoint}/arrive', [App\Http\Controllers\TripController::class, 'markCheckpointArrived'])->name('trips.checkpoints.arrive');
+    Route::post('trips/{trip}/checkpoints/{checkpoint}/unarrive', [TripController::class, 'unmarkCheckpointArrived'])->name('trips.checkpoints.unarrive');
+    Route::post('trips/{trip}/checkpoints/{checkpoint}/upload-image', [App\Http\Controllers\TripController::class, 'uploadCheckpointImage'])->name('trips.checkpoints.upload-image');
+    Route::delete('trips/{trip}/checkpoints/{checkpoint}/images/{image}', [App\Http\Controllers\TripController::class, 'removeCheckpointImage'])->name('trips.checkpoints.images.remove');
+    Route::post('trips/{trip}/checkpoints/reorder', [App\Http\Controllers\TripController::class, 'reorderCheckpointsRoute'])->name('trips.checkpoints.reorder');
+    
+
+    Route::post('trips/{trip}/files', [App\Http\Controllers\TripController::class, 'uploadFile'])->name('trips.files.upload');
+    Route::delete('trips/{trip}/files/{file}', [App\Http\Controllers\TripController::class, 'removeFile'])->name('trips.files.remove');
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::resource('checkpoints', App\Http\Controllers\CheckpointController::class)->except(['show', 'create', 'edit']);
+});

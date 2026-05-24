@@ -17,7 +17,6 @@ return new class extends Migration
             $table->foreignId('trip_category_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('set null');
             $table->dateTime('buffer_alert');
             $table->foreignId('status_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('set null');
-            $table->foreignId('attached_file_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('set null');
             $table->string('notes')->nullable();
             $table->timestamps();
         });
