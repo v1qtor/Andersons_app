@@ -336,11 +336,11 @@ function addTempCheckpointField() {
 function addPlusOneField() {
     const container = document.getElementById('plusOnesContainer');
     const newEntry = document.createElement('div');
-    newEntry.className = 'bg-gray-50 p-4 rounded-lg mb-2 border border-gray-300';
+    newEntry.className = 'plus-one-entry bg-gray-50 p-4 rounded-lg mb-2 border border-gray-300';
     newEntry.innerHTML = `
         <div class="flex gap-3 mb-2">
             <input type="text" name="plus_one_names[]" placeholder="Guest name" class="flex-1 px-4 py-2 rounded-lg border border-gray-300 font-semibold" required />
-            <button type="button" onclick="this.closest('div').remove()" class="bg-red-100 hover:bg-red-200 text-red-800 font-bold py-2 px-3 rounded text-sm">Remove</button>
+            <button type="button" onclick="this.closest('.plus-one-entry').remove()" class="bg-red-100 hover:bg-red-200 text-red-800 font-bold py-2 px-3 rounded text-sm">Remove</button>
         </div>
         <input type="email" name="plus_one_emails[]" placeholder="Email (optional)" class="w-full px-4 py-2 rounded-lg border border-gray-300 mb-2" />
         <input type="tel" name="plus_one_phones[]" placeholder="Phone (optional)" class="w-full px-4 py-2 rounded-lg border border-gray-300" />
