@@ -22,7 +22,7 @@
 
 ## Hosting:
 
-- [https://myDomain.be](https://myDomain.be)
+- [https://skil2-app-635w5ighga-ew.a.run.app/login](https://skil2-app-635w5ighga-ew.a.run.app/login)
 
 ### Hosing credentials:
 
