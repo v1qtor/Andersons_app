@@ -27,7 +27,7 @@ class TripController extends Controller
                   ->orWhere('description', 'like', $searchTerm);
         }
         
-        $trips = $query->orderBy('start_date', 'desc')->get();
+        $trips = $query->orderBy('start_date', 'desc')->paginate(3)->withQueryString();
         $categories = TripCategory::all();
         $users = User::all();
         $checkpoints = Checkpoint::whereNotNull('folder_id')
