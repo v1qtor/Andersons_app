@@ -9,17 +9,31 @@ use App\Models\UserNotification;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
+/*
+| AddMealModal: class half of a reusable nested Livewire component
+| (paired with resources/views/livewire/meals/add-meal-modal.blade.php).
+| Owns the "Add New Meal" popup: collects a dish name, date, time,
+| invitees and notes; on save creates the meal and sends notifications
+| to the chef and everyone invited.
+|
+| Models: Meal (reuses or creates a dish by name), PlannedMeal (the
+| new scheduled meal), User (looks up the chef and the invitees),
+| UserNotification (one row per recipient).
+*/
 class AddMealModal extends Component
 {
+    // Whether the popup is currently open.
     public bool $showModal = false;
 
+    // Form fields bound to the inputs in the view.
     public string $name = '';
     public string $date = '';
     public string $time = '';
     public array $invitees = [];
     public string $notes = '';
 
-    // Reset form fields and validation, then show the modal (triggered by the openAddMeal event).
+    // Opens the popup with a clean form whenever another component
+    // dispatches 'openAddMeal' (the "Add Meal" button on the page).
     #[On('openAddMeal')]
     public function openModal(): void
     {
@@ -28,7 +42,12 @@ class AddMealModal extends Component
         $this->showModal = true;
     }
 
-    // Validation rules for the add-meal form fields.
+    /*
+     * Returns the validation rules for the form: name must be filled,
+     * date must be today or later, time together with the date must
+     * not be in the past, invitees must be real users, and notes are
+     * optional with a length cap.
+     */
     public function rules(): array
     {
         return [
@@ -52,7 +71,7 @@ class AddMealModal extends Component
         ];
     }
 
-    // Custom validation messages.
+    // Custom error messages shown for specific rule failures.
     public function messages(): array
     {
         return [
@@ -60,29 +79,39 @@ class AddMealModal extends Component
         ];
     }
 
-    // Validate input, create the planned meal, attach invitees, and notify the chef + invitees.
+    /*
+     * Saves the form: validates input, creates (or reuses) the dish,
+     * stores the planned meal with its invitees, sends notifications
+     * to the chef (if someone else added it) and to every invitee,
+     * then closes the popup and asks the meal list to refresh.
+     */
     public function save(): void
     {
         $this->validate();
 
+        // Reuse the existing dish with this name if there is one,
+        // otherwise create a new entry.
         $meal = Meal::firstOrCreate(
             ['name' => trim($this->name)],
         );
 
+        // Store the new scheduled meal on the chosen date and time.
         $plannedMeal = PlannedMeal::create([
             'meal_id' => $meal->id,
             'date_time' => $this->date . ' ' . $this->time,
             'notes' => $this->notes ?: null,
         ]);
 
+        // Add the chosen invitees to the meal.
         if (!empty($this->invitees)) {
             $plannedMeal->subscribers()->attach($this->invitees);
         }
 
-        // Notify chef if not added by chef
+        // If the Chef scheduled the meal themselves they don't need to be told.
         $currentUser = auth()->user();
         $isChef = $currentUser && $currentUser->role && $currentUser->role->name === 'Chef';
-        
+
+        // Otherwise let the Chef know a new meal was scheduled.
         if (!$isChef) {
             $chef = User::whereHas('role', fn ($q) => $q->where('name', 'Chef'))->first();
             if ($chef && $this->userHasMealNotificationsEnabled($chef)) {
@@ -99,7 +128,8 @@ class AddMealModal extends Component
             }
         }
 
-        // Notify all invitees
+        // Send each invitee a notification so they see the invitation
+        // on their dashboard (only those who haven't disabled it).
         if (!empty($this->invitees)) {
             foreach ($this->invitees as $inviteeId) {
                 $invitee = User::find($inviteeId);
@@ -118,11 +148,16 @@ class AddMealModal extends Component
             }
         }
 
+        // Close the popup and tell the MealList component to refresh
+        // so the new meal shows up immediately.
         $this->showModal = false;
         $this->dispatch('mealCreated');
     }
 
-    // Render the modal with the list of potential invitees (everyone except the Chef).
+    /*
+     * Builds the data the view needs: the list of people who can be
+     * invited (everyone in the household except the Chef).
+     */
     public function render()
     {
         return view('livewire.meals.add-meal-modal', [
@@ -130,7 +165,10 @@ class AddMealModal extends Component
         ]);
     }
 
-    // Check whether the given user has popup meal notifications enabled in their preferences.
+    /*
+     * Returns true if the given user has meal notifications turned on
+     * (or hasn't picked a setting yet, in which case the default is on).
+     */
     private function userHasMealNotificationsEnabled(User $user): bool
     {
         $setting = $user->notificationSettings()

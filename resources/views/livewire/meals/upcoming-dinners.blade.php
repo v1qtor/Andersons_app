@@ -1,3 +1,15 @@
+{{--
+    upcoming-dinners.blade.php: view half of the UpcomingDinners
+    Livewire component (paired with app/Livewire/Meals/UpcomingDinners.php).
+    Reusable nested component, embeddable via
+    <livewire:meals.upcoming-dinners /> in any view (used on the dashboard).
+
+    Renders a card per upcoming dinner with the meal name, date/time
+    and the action buttons appropriate for the current user (Chef sees
+    a prepared toggle, others see Join / Cancel and a guest editor).
+
+    Data from render(): $dinnerPlans, $isChef.
+--}}
 <div class="bg-[#f0fcfc] dark:bg-neutral-900/50 border border-[#e1f7f6] dark:border-neutral-700/50 rounded-2xl p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
     {{-- Widget Heading --}}
     <h2 class="text-2xl font-medium text-neutral-800 dark:text-neutral-200 mb-4">Upcoming Dinners</h2>
@@ -27,8 +39,9 @@
 
                 {{-- Action Buttons --}}
                 <div class="flex items-center gap-3">
+                    {{-- Chef branch: the only action is marking the dinner prepared. --}}
                     @if($isChef)
-                        {{-- Chef cooks the meals: toggle prepared instead of joining --}}
+                        {{-- Already prepared: blue "Unmark" + disabled "Prepared" label. --}}
                         @if($dinner->is_prepared)
                             <button wire:click="togglePrepared({{ $dinner->id }})" class="bg-gradient-to-r from-blue-600 to-[#0ba5cc] hover:from-blue-700 hover:to-[#0896ba] text-white text-[15px] px-5 py-1.5 rounded-lg transition-colors">
                                 Unmark
@@ -36,12 +49,15 @@
                             <button disabled class="bg-[#8fd9b5] text-white text-[15px] px-5 py-1.5 rounded-lg cursor-not-allowed">
                                 Prepared
                             </button>
+                        {{-- Not yet prepared: green "Mark Prepared" button. --}}
                         @else
                             <button wire:click="togglePrepared({{ $dinner->id }})" class="bg-[#1bcc8a] hover:bg-[#15ab73] text-white text-[15px] px-5 py-1.5 rounded-lg transition-colors">
                                 Mark Prepared
                             </button>
                         @endif
+                    {{-- Non-Chef branch: Join / Cancel and the guest editor entry point. --}}
                     @else
+                        {{-- User has joined: guest editor icon + Cancel + disabled "Joined" badge. --}}
                         @if($dinner->isJoined)
                             <button
                                 wire:click="startGuestEdit({{ $dinner->id }})"
@@ -58,6 +74,7 @@
                             <button disabled class="bg-[#8fd9b5] text-white text-[15px] px-5 py-1.5 rounded-lg cursor-not-allowed">
                                 Joined
                             </button>
+                        {{-- User has not joined yet: single green Join button. --}}
                         @else
                             <button wire:click="joinMeal({{ $dinner->id }})" class="bg-[#1bcc8a] hover:bg-[#15ab73] text-white text-[15px] px-5 py-1.5 rounded-lg transition-colors">
                                 Join
@@ -67,19 +84,25 @@
                 </div>
                 </div>
 
-                {{-- Guest Editor (only when editing this dinner) — chef never joins or invites guests --}}
+                {{-- The guest editor for the dinner the user is currently
+                     editing. The Chef branch is excluded because they
+                     don't join meals or bring guests. --}}
                 @if(! $isChef && $editingGuestForMealId === $dinner->id)
                     <div class="mt-3 flex flex-col gap-3">
-                        {{-- Guest Input Rows --}}
+                        {{-- One row per guest the user is editing. --}}
                         @foreach($guests as $index => $g)
                             <div wire:key="guest-row-{{ $dinner->id }}-{{ $index }}" class="flex flex-col gap-2 border border-neutral-200 dark:border-neutral-700 rounded-lg p-3">
                                 <div class="flex items-center gap-2">
+                                    {{-- wire:model.defer keeps typing local until the
+                                         user clicks Save, so each keystroke does not
+                                         trigger a server request. --}}
                                     <input
                                         type="text"
                                         wire:model.defer="guests.{{ $index }}.name"
                                         placeholder="Guest name"
                                         class="flex-1 px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 dark:text-white"
                                     >
+                                    {{-- Drops this row from the editor (no save yet). --}}
                                     <button
                                         type="button"
                                         wire:click="removeGuestRow({{ $index }})"
@@ -97,6 +120,7 @@
                                     placeholder="Optional note (allergies, dietary preferences, …)"
                                     class="w-full px-3 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 dark:text-white"
                                 ></textarea>
+                                {{-- Validation errors for this specific row. --}}
                                 @error('guests.'.$index.'.name')
                                     <p class="text-sm text-red-600">{{ $message }}</p>
                                 @enderror
@@ -108,6 +132,7 @@
 
                         {{-- Editor Actions: Add row / Save / Close --}}
                         <div class="flex items-center gap-2">
+                            {{-- Appends a fresh empty row to the editor. --}}
                             <button
                                 type="button"
                                 wire:click="addGuestRow"
@@ -115,25 +140,30 @@
                             >
                                 + Add another guest
                             </button>
+                            {{-- Sends all rows to the component to persist. --}}
                             <button wire:click="saveGuests({{ $dinner->id }})" class="px-3 py-2 text-sm rounded-lg bg-[#1bcc8a] hover:bg-[#15ab73] text-white">
                                 Save guests
                             </button>
+                            {{-- Closes the editor and discards the unsaved input. --}}
                             <button wire:click="cancelGuestEdit" class="px-3 py-2 text-sm rounded-lg border border-neutral-300 dark:border-neutral-600 text-neutral-700 dark:text-neutral-200">
                                 Close
                             </button>
                         </div>
                     </div>
-                {{-- My Guests (read-only list when not editing) --}}
+                {{-- Editor is not open for this dinner, but the user has
+                     saved guests to show. Renders them as a read-only list. --}}
                 @elseif(! $isChef && $dinner->hasGuest)
                     <ul class="mt-3 space-y-2">
                         @foreach($dinner->myGuests as $g)
                             <li wire:key="my-guest-{{ $g->id }}" class="flex items-start justify-between gap-3">
                                 <div>
                                     <p class="text-sm text-neutral-600 dark:text-neutral-300">Guest: {{ $g->name }}</p>
+                                    {{-- Show the note line only if there is one. --}}
                                     @if(filled($g->note))
                                         <p class="text-sm text-neutral-500 dark:text-neutral-400 italic">{{ $g->note }}</p>
                                     @endif
                                 </div>
+                                {{-- Deletes this guest right away (no editor / confirmation). --}}
                                 <button
                                     wire:click="removeGuest({{ $g->id }})"
                                     class="text-red-400 hover:bg-neutral-100 border border-red-200 dark:hover:bg-neutral-700 rounded p-[3px] bg-white shrink-0"
@@ -149,14 +179,14 @@
                 @endif
             </div>
         @empty
-            {{-- Empty State --}}
+            {{-- Shown when there are no upcoming dinners at all. --}}
             <div class="bg-white dark:bg-neutral-800 border border-neutral-100 dark:border-neutral-700 rounded-xl p-4 shadow-sm text-center text-neutral-500">
                 No dinners planned for today.
             </div>
         @endforelse
     </div>
 
-    {{-- Pagination --}}
+    {{-- Page navigation under the list. --}}
     @if($dinnerPlans->hasPages())
         <div class="mt-4">
             {{ $dinnerPlans->onEachSide(1)->links('livewire::simple-tailwind') }}
