@@ -12,6 +12,7 @@
     </a>
 
     <flux:navlist variant="outline">
+        @auth
                 <flux:navlist.group :heading="__('Pages')" class="grid">
                     <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
                     <flux:navlist.item icon="calendar-days" :href="route('schedule')" :current="request()->routeIs('schedule')" wire:navigate>{{ __('Schedule') }}</flux:navlist.item>
@@ -40,6 +41,7 @@
                     @endif
                     <flux:navlist.item icon="beaker" :href="route('trips.index')" :current="request()->routeIs('trips.index')" wire:navigate>{{ __('Trips') }}</flux:navlist.item>
                 </flux:navlist.group>
+        @endauth
     </flux:navlist>
 
     <flux:spacer />

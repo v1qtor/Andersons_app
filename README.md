@@ -28,8 +28,8 @@
 
 | Role  | Email           | Password    |
 |:------|:----------------|:------------|
-| The Andersons | andersons@andersons.com | password |
-| Family Member | emily@andersons.com | password |
+| The Ander| password |
+| Family Member | emilsons | andersons@andersons.com y@andersons.com | password |
 | Family Member | james@andersons.com | password |
 | Family Member | sophie@andersons.com | password |
 | Staff | tom.gardener@andersons.com | password |
