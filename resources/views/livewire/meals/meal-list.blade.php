@@ -11,9 +11,10 @@
     $canTogglePrepared, $canParticipate.
 --}}
 
-{{-- `deletingId` (Alpine state) holds the id the delete modal targets. --}}
+{{-- Alpine keeps the picked meal id in the browser so the click and the
+     modal don't each cost a Livewire request; only the final Delete does. --}}
 <div x-data="{ deletingId: null }">
-    {{-- Dietary Information Banner (managers only) --}}
+    {{-- Dietary Information Banner --}}
     @if($dietaryUsers->isNotEmpty() && $canManage)
         <div class="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
             <div class="flex items-center gap-2 mb-2">
@@ -30,12 +31,15 @@
                             <span class="font-semibold" style="color: {{ $user->role?->color ?? '#92400e' }}">
                                 {{ $user->name }} ({{ $user->role?->name ?? 'No Role' }})
                             </span>
+                        {{-- Show the allergy list only if the user actually has any. --}}
                         @if($user->allergies->isNotEmpty())
                             has <span class="font-semibold">allergies:</span> {{ $user->allergies->pluck('name')->implode(', ') }}
                         @endif
+                        {{-- Separator dot, only when both lists will be shown. --}}
                         @if($user->allergies->isNotEmpty() && $user->preferences->isNotEmpty())
                             &middot;
                         @endif
+                        {{-- Show the preferences list only if the user actually has any. --}}
                         @if($user->preferences->isNotEmpty())
                             has <span class="font-semibold">preferences:</span> {{ $user->preferences->pluck('name')->implode(', ') }}
                         @endif
@@ -46,7 +50,7 @@
         </div>
     @endif
 
-    {{-- Meal Cards. $meals is a paginator of PlannedMeal. --}}
+    {{-- Meal Cards --}}
     <div class="space-y-4">
         @forelse($meals as $meal)
             <div wire:key="meal-{{ $meal->id }}" class="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-zinc-800">
@@ -58,16 +62,15 @@
                             {{ $meal->meal?->name ?? __('Unnamed Meal') }}
                         </h3>
                         <p class="text-sm text-neutral-500 dark:text-neutral-400">
-                            {{-- date_time is cast to Carbon on PlannedMeal. --}}
                             {{ $meal->date_time->translatedFormat('l, d F Y') }} {{ __('at') }} {{ $meal->date_time->format('H:i') }}
                         </p>
                     </div>
 
                     <div class="flex items-center gap-3 shrink-0">
-                        {{-- Prepared status: interactive toggle (Chef) or read-only pill (others). --}}
+                        {{-- Prepared status: Chef gets a clickable toggle, everyone else a read-only label. --}}
                         @if($canTogglePrepared)
+                            {{-- Already prepared: filled "Unmark" button. --}}
                             @if($meal->is_prepared)
-                                {{-- wire:click calls togglePrepared() on the component class. --}}
                                 <button
                                     wire:click="togglePrepared({{ $meal->id }})"
                                     class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-400 dark:hover:bg-emerald-900/60 transition-colors"
@@ -79,6 +82,7 @@
                                     <span class="ml-0.5 font-normal opacity-60">· {{ __('Unmark') }}</span>
                                 </button>
                             @else
+                                {{-- Not prepared yet: outlined "Mark Prepared" button. --}}
                                 <button
                                     wire:click="togglePrepared({{ $meal->id }})"
                                     class="inline-flex items-center gap-1 rounded-full border border-emerald-300 px-3 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-900/30 transition-colors"
@@ -90,14 +94,15 @@
                                     {{ __('Mark Prepared') }}
                                 </button>
                             @endif
+                        {{-- Non-Chef, meal is prepared: read-only green badge. --}}
                         @elseif($meal->is_prepared)
-                            {{-- Read-only badge. --}}
                             <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
                                 <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
                                 </svg>
                                 {{ __('Prepared') }}
                             </span>
+                        {{-- Non-Chef, not yet prepared: read-only grey label. --}}
                         @else
                             <span class="inline-flex items-center gap-1 rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-500 dark:bg-zinc-700 dark:text-neutral-400">
                                 <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -107,9 +112,7 @@
                             </span>
                         @endif
 
-                        {{-- Edit Invitees (managers only).
-                             $dispatch fires a Livewire event picked up by
-                             EditInviteesModal's #[On('editInvitees')]. --}}
+                        {{-- Tells the EditInviteesModal to open for this meal. --}}
                         @if($canManage)
                             <button
                                 type="button"
@@ -123,9 +126,8 @@
                             </button>
                         @endif
 
-                        {{-- Delete (managers only).
-                             @click is Alpine's click handler: stashes the
-                             id and opens the confirm modal below. --}}
+                        {{-- Stores the meal id in Alpine and opens the
+                             confirm modal, no server request yet. --}}
                         @if($canManage)
                             <button
                                 type="button"
@@ -141,10 +143,10 @@
                     </div>
                 </div>
 
-                {{-- Invited / Accepted / Guests. Collections are
-                     pre-grouped in render() so the view just loops. --}}
+                {{-- Lists of who is invited, who has accepted, and external guests. --}}
                 @if($meal->subscribers->isNotEmpty())
                     <div class="mt-4 space-y-3">
+                        {{-- People invited but who haven't confirmed yet. --}}
                         @if($meal->invitedSubscribers->isNotEmpty())
                             <div>
                                 <p class="text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-2">
@@ -154,7 +156,7 @@
                                     {{ __('Invited') }} ({{ $meal->invitedSubscribers->count() }}):
                                 </p>
                                 <div class="flex flex-wrap gap-2">
-                                    {{-- One chip per invited subscriber; colour from Role. --}}
+                                    {{-- One coloured chip per invited person. --}}
                                     @foreach($meal->invitedSubscribers as $subscriber)
                                         <span
                                             wire:key="invited-{{ $meal->id }}-{{ $subscriber->id }}"
@@ -168,6 +170,7 @@
                             </div>
                         @endif
 
+                        {{-- People who have confirmed they will attend. --}}
                         @if($meal->acceptedSubscribers->isNotEmpty())
                             <div>
                                 <p class="text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-2">
@@ -190,6 +193,7 @@
                             </div>
                         @endif
 
+                        {{-- External guests brought by a household member. --}}
                         @if($meal->guests->isNotEmpty())
                             <div>
                                 <p class="text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-2">
@@ -214,7 +218,7 @@
                     </div>
                 @endif
 
-                {{-- Aggregated allergies/preferences across this meal's subscribers (managers only). --}}
+                {{-- Aggregated allergies/preferences across this meal's subscribers. --}}
                 @if($canManage && ($meal->subscriberAllergies->isNotEmpty() || $meal->subscriberPreferences->isNotEmpty()))
                     <div class="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-900/20">
                         <div class="flex items-center gap-2 mb-1">
@@ -223,11 +227,13 @@
                             </svg>
                             <span class="text-sm font-semibold text-amber-800 dark:text-amber-300">{{ __('Attendee Dietary Information:') }}</span>
                         </div>
+                        {{-- Allergy row, only if any attendee has allergies. --}}
                         @if($meal->subscriberAllergies->isNotEmpty())
                             <p class="text-sm text-amber-700 dark:text-amber-400 ml-6">
                                 <span class="font-semibold">⚠ {{ __('Allergies:') }}</span> {{ $meal->subscriberAllergies->implode(', ') }}
                             </p>
                         @endif
+                        {{-- Preferences row, only if any attendee has preferences. --}}
                         @if($meal->subscriberPreferences->isNotEmpty())
                             <p class="text-sm text-amber-700 dark:text-amber-400 ml-6">
                                 <span class="font-semibold">{{ __('Preferences:') }}</span> {{ $meal->subscriberPreferences->implode(', ') }}
@@ -236,7 +242,7 @@
                     </div>
                 @endif
 
-                {{-- Guest Notes (management roles only) --}}
+                {{-- Guest Notes --}}
                 @if($canManage && $meal->guestsWithNotes->isNotEmpty())
                     <div class="mt-3 rounded-lg border border-sky-200 bg-sky-50 p-3 dark:border-sky-800 dark:bg-sky-900/20">
                         <div class="flex items-center gap-2 mb-1">
@@ -266,15 +272,15 @@
                     </div>
                 @endif
 
-                {{-- Current user's RSVP toggle.
-                     $meal->mySubscription is their meal_subscriptions
-                     join-table row (set in render()), or null if not invited. --}}
+                {{-- Lets the current user confirm or unconfirm that they
+                     will attend this meal. --}}
                 @if($canParticipate)
                     <div class="mt-4 flex items-center justify-between border-t border-neutral-100 pt-4 dark:border-neutral-700">
                         <span class="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">{{ __('My participation') }}</span>
+                        {{-- The user has an invitation for this meal: show a button. --}}
                         @if($meal->mySubscription)
+                            {{-- Already confirmed: filled button that unconfirms on click. --}}
                             @if($meal->mySubscription->pivot->confirmed)
-                                {{-- toggleParticipation() flips the join row's `confirmed` flag. --}}
                                 <button
                                     wire:click="toggleParticipation({{ $meal->id }})"
                                     class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-4 py-1.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-400 dark:hover:bg-emerald-900/60 transition-colors"
@@ -286,6 +292,7 @@
                                     <span class="ml-0.5 font-normal opacity-60">· {{ __('Unconfirm') }}</span>
                                 </button>
                             @else
+                                {{-- Not yet confirmed: outlined button that confirms on click. --}}
                                 <button
                                     wire:click="toggleParticipation({{ $meal->id }})"
                                     class="inline-flex items-center gap-1.5 rounded-full border border-neutral-300 px-4 py-1.5 text-sm font-medium text-neutral-600 hover:border-emerald-400 hover:text-emerald-600 dark:border-neutral-600 dark:text-neutral-400 dark:hover:border-emerald-600 dark:hover:text-emerald-400 transition-colors"
@@ -296,6 +303,7 @@
                                     {{ __('Confirm participation') }}
                                 </button>
                             @endif
+                        {{-- Not invited: italic placeholder text instead of a button. --}}
                         @else
                             <span class="text-sm text-neutral-400 dark:text-neutral-500 italic">
                                 {{ $canManage ? __('You have not added yourself to this meal') : __('Not invited') }}
@@ -312,14 +320,14 @@
         @endforelse
     </div>
 
-    {{-- Pagination links from WithPagination; click triggers a Livewire re-render. --}}
+    {{-- Page navigation under the list. --}}
     @if($meals->hasPages())
         <div class="mt-6">
             {{ $meals->onEachSide(1)->links('livewire::simple-tailwind') }}
         </div>
     @endif
 
-    {{-- Delete confirmation modal. `name` is the target of modal-show / modal-close events. --}}
+    {{-- Confirmation popup shown before deleting a meal. --}}
     <flux:modal name="confirm-delete-meal">
         <div class="space-y-6">
             <div>
@@ -328,10 +336,9 @@
             </div>
 
             <div class="flex gap-2 justify-end">
-                {{-- Cancel: close-only. --}}
+                {{-- Closes the popup without deleting anything. --}}
                 <x-flux.button variant="ghost" @click="$dispatch('modal-close', { name: 'confirm-delete-meal' })">{{ __('Cancel') }}</x-flux.button>
-                {{-- Confirm: $wire is Alpine's bridge to the Livewire component;
-                     calls deleteMeal() with the stashed id, then closes. --}}
+                {{-- Actually deletes the meal, then closes the popup. --}}
                 <x-flux.button variant="danger" @click="$wire.deleteMeal(deletingId); $dispatch('modal-close', { name: 'confirm-delete-meal' })">{{ __('Delete') }}</x-flux.button>
             </div>
         </div>
