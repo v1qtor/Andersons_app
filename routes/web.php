@@ -18,6 +18,9 @@ use App\Http\Controllers\TripController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
+// Load authentication routes
+require __DIR__.'/auth.php';
+
 Route::redirect('/', '/login');
 
 // Broadcasting authentication route - must be before other routes and inside auth middleware
