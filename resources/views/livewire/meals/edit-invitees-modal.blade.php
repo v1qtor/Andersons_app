@@ -1,8 +1,19 @@
+{{--
+    edit-invitees-modal.blade.php: view half of the EditInviteesModal
+    Livewire component (paired with app/Livewire/Meals/EditInviteesModal.php).
+    Reusable nested component, opened from MealList for managers to
+    add or remove invitees on an existing meal.
+
+    Data from render(): $users (the people who can be invited).
+--}}
 <div>
+    {{-- The popup opens or closes based on the component's state. --}}
     <flux:modal name="edit-invitees-modal" :show="$showModal" wire:model="showModal">
         <div class="space-y-6">
             <div>
                 <flux:heading size="lg">{{ __('Edit Invitees') }}</flux:heading>
+                {{-- Subtitle showing which meal is being edited; hidden
+                     until the popup has been opened with a meal id. --}}
                 @if($mealId)
                     <flux:subheading>
                         {{ $mealName }} &middot; {{ $mealDateTime }}
@@ -10,12 +21,17 @@
                 @endif
             </div>
 
+            {{-- Alpine keeps the picked invitees in the browser so
+                 toggling chips does not hit the server; only Confirm does. --}}
             <form wire:submit="save" class="space-y-4" x-data="{ invitees: @entangle('invitees') }">
                 <div>
                     <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                         {{ __('Who to invite?') }} <span class="text-xs font-normal text-neutral-500">({{ __('Changes are applied when you confirm') }})</span>
                     </label>
                     <div class="grid grid-cols-2 gap-2">
+                        {{-- One toggle button per user that can be invited.
+                             Clicking toggles whether they are picked;
+                             the colour reflects the current state. --}}
                         @foreach($users as $user)
                             <button
                                 wire:key="edit-invitee-{{ $mealId }}-{{ $user->id }}"
@@ -40,9 +56,11 @@
                 </div>
 
                 <div class="flex gap-2 pt-2">
+                    {{-- Applies the picker selection to the meal. --}}
                     <x-flux.button type="submit" variant="primary" class="flex-1">
                         {{ __('Confirm Selection') }}
                     </x-flux.button>
+                    {{-- Closes the popup without applying any changes. --}}
                     <x-flux.button type="button" variant="ghost" wire:click="$set('showModal', false)">
                         {{ __('Cancel') }}
                     </x-flux.button>

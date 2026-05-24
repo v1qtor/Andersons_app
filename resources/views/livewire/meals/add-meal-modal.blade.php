@@ -1,10 +1,25 @@
+{{--
+    add-meal-modal.blade.php: view half of the AddMealModal Livewire
+    component (paired with app/Livewire/Meals/AddMealModal.php).
+    Reusable nested component, embeddable via
+    <livewire:meals.add-meal-modal /> in any view.
+
+    Renders the "Add New Meal" popup: name, date, time, invitee picker
+    (Alpine-driven so toggling chips does not hit the server) and notes.
+    Submitting calls save() on the component class.
+
+    Data from render(): $users (the people who can be invited).
+--}}
 <div>
+    {{-- The popup opens or closes based on the component's state. --}}
     <flux:modal name="add-meal-modal" :show="$showModal" wire:model="showModal">
         <div class="space-y-6">
             <div class="flex items-center justify-between">
                 <flux:heading size="lg">{{ __('Add New Meal') }}</flux:heading>
             </div>
 
+            {{-- Alpine keeps the picked invitees in the browser so
+                 toggling chips does not hit the server; only Create does. --}}
             <form wire:submit="save" class="space-y-4" x-data="{ invitees: @entangle('invitees') }">
                 {{-- Meal Name --}}
                 <flux:input
@@ -13,11 +28,14 @@
                     placeholder="{{ __('e.g., Sunday Roast') }}"
                     required
                 />
+                {{-- Shows the validation error returned for `name`, if any. --}}
                 @error('name') <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
 
                 {{-- Date and Time --}}
                 <div class="grid grid-cols-2 gap-4">
                     <div>
+                        {{-- wire:model.live keeps $date in sync as the user types
+                             so the time field's `min` recalculates immediately. --}}
                         <flux:input
                             wire:model.live="date"
                             type="date"
@@ -28,6 +46,8 @@
                         @error('date') <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
                     </div>
                     <div>
+                        {{-- If the picked date is today, prevent selecting an
+                             earlier time than the current one. --}}
                         <flux:input
                             wire:model="time"
                             type="time"
@@ -45,6 +65,9 @@
                         {{ __('Who to invite?') }} * <span class="text-xs font-normal text-neutral-500">({{ __('They will accept on their dashboard') }})</span>
                     </label>
                     <div class="grid grid-cols-2 gap-2">
+                        {{-- One toggle button per user that can be invited.
+                             Clicking toggles whether they are picked;
+                             the colour reflects the current state. --}}
                         @foreach($users as $user)
                             <button
                                 wire:key="invitee-{{ $user->id }}"
@@ -82,9 +105,11 @@
 
                 {{-- Actions --}}
                 <div class="flex gap-2 pt-2">
+                    {{-- Creates the new meal with the chosen details. --}}
                     <x-flux.button type="submit" variant="primary" class="flex-1">
                         {{ __('Create Meal') }}
                     </x-flux.button>
+                    {{-- Closes the popup without saving anything. --}}
                     <x-flux.button type="button" variant="ghost" wire:click="$set('showModal', false)">
                         {{ __('Cancel') }}
                     </x-flux.button>

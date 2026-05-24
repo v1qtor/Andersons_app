@@ -9,15 +9,36 @@ use App\Models\UserNotification;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
+/*
+| EditInviteesModal: class half of a reusable nested Livewire component
+| (paired with resources/views/livewire/meals/edit-invitees-modal.blade.php).
+| Owns the "Edit Invitees" popup, opened from the MealList edit button
+| for managers (Admin / Chef). Lets them change who is invited to an
+| existing meal and notifies anyone newly added.
+|
+| Models: PlannedMeal (the meal being edited), User (invitee picker
+| and notification target), UserNotification (one row per newly
+| invited user).
+*/
 class EditInviteesModal extends Component
 {
+    // Whether the popup is currently open.
     public bool $showModal = false;
+
+    // The meal currently being edited and the labels shown in the
+    // popup header (filled when the popup opens).
     public ?int $mealId = null;
     public string $mealName = '';
     public string $mealDateTime = '';
+
+    // Ids of users currently selected in the picker.
     public array $invitees = [];
 
-    // Open the modal for a given meal — managers (Admin/Chef) only.
+    /*
+     * Opens the popup for a specific meal when MealList dispatches
+     * 'editInvitees'. Prefills the picker with the meal's current
+     * attendees so the user sees the starting state.
+     */
     #[On('editInvitees')]
     public function openModal(int $mealId): void
     {
@@ -38,6 +59,7 @@ class EditInviteesModal extends Component
         $this->showModal    = true;
     }
 
+    // Validation rules: the picker must contain real user ids.
     public function rules(): array
     {
         return [
@@ -46,7 +68,12 @@ class EditInviteesModal extends Component
         ];
     }
 
-    // Diff staged invitees against current pivot, attach/detach accordingly, and notify newly invited users only.
+    /*
+     * Saves the picker selection: works out who was added and who was
+     * removed compared to the meal's current attendees, applies both
+     * changes, sends an invitation notification to the newly added,
+     * and tells MealList to refresh.
+     */
     public function save(): void
     {
         if (! $this->canManage() || ! $this->mealId) {
@@ -61,21 +88,26 @@ class EditInviteesModal extends Component
             return;
         }
 
+        // Compare the saved attendees with the freshly chosen ones.
         $current = $meal->subscribers()->pluck('users.id')->map(fn ($id) => (int) $id)->all();
         $staged  = array_map('intval', $this->invitees);
 
         $toAdd    = array_values(array_diff($staged, $current));
         $toRemove = array_values(array_diff($current, $staged));
 
+        // Drop anyone the manager removed from the picker.
         if (! empty($toRemove)) {
             $meal->subscribers()->detach($toRemove);
         }
 
+        // Add anyone newly picked, starting them off as unconfirmed.
         if (! empty($toAdd)) {
             $meal->subscribers()->attach(
                 collect($toAdd)->mapWithKeys(fn ($id) => [$id => ['confirmed' => false]])->all()
             );
 
+            // Send each new invitee a notification on their dashboard
+            // (only those who haven't disabled meal notifications).
             foreach ($toAdd as $userId) {
                 $invitee = User::find($userId);
                 if ($invitee && $this->userHasMealNotificationsEnabled($invitee)) {
@@ -93,10 +125,15 @@ class EditInviteesModal extends Component
             }
         }
 
+        // Close the popup and let MealList refresh so the new chips show up.
         $this->showModal = false;
         $this->dispatch('mealUpdated');
     }
 
+    /*
+     * Builds the data the view needs: the list of users that can be
+     * invited (everyone in the household except the Chef).
+     */
     public function render()
     {
         return view('livewire.meals.edit-invitees-modal', [
@@ -104,6 +141,7 @@ class EditInviteesModal extends Component
         ]);
     }
 
+    // Returns true when the current user is Admin or Chef.
     private function canManage(): bool
     {
         $role = auth()->user()?->role?->name;
@@ -111,6 +149,10 @@ class EditInviteesModal extends Component
         return in_array($role, ['Admin', 'Chef'], true);
     }
 
+    /*
+     * Returns true if the given user has meal notifications turned on
+     * (or hasn't picked a setting yet, in which case the default is on).
+     */
     private function userHasMealNotificationsEnabled(User $user): bool
     {
         $setting = $user->notificationSettings()
