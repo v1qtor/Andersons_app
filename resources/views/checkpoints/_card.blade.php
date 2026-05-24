@@ -26,10 +26,10 @@
             '{{ $checkpoint->longitude ?? '' }}',
             '{{ $checkpoint->folder_id ?? '' }}'
         )" class="bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold py-1.5 px-4 rounded text-sm flex-1 transition-colors duration-200">
-            ✏️ Edit
+            Edit
         </button>
         <button onclick="confirmDeleteCheckpoint({{ $checkpoint->id }}, '{{ addslashes($checkpoint->location) }}')" class="bg-red-100 hover:bg-red-200 text-red-800 font-bold py-1.5 px-4 rounded text-sm transition-colors duration-200">
-            🗑️ Delete
+            Delete
         </button>
     </div>
 </div>

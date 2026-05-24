@@ -7,6 +7,7 @@ use App\Models\TripCategory;
 use App\Models\Status;
 use App\Models\Checkpoint;
 use App\Models\CheckpointImage;
+use App\Models\PlusOne;
 use App\Models\User;
 use App\Models\AttachedFile;
 use Illuminate\Http\Request;
@@ -16,10 +17,16 @@ class TripController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Trip::with(['status', 'tripCategory', 'users', 'checkpoints', 'checkpointImages']);
+        $query = Trip::with(['status', 'tripCategory', 'users', 'checkpoints', 'checkpointImages', 'plusOnes']);
         if ($request->has('status') && $request->status !== 'all' && $request->status !== '') {
             $query->whereHas('status', fn($q) => $q->where('name', $request->status));
         }
+        if ($request->has('search') && $request->search !== '') {
+            $searchTerm = '%' . $request->search . '%';
+            $query->where('name', 'like', $searchTerm)
+                  ->orWhere('description', 'like', $searchTerm);
+        }
+        
         $trips = $query->orderBy('start_date', 'desc')->get();
         $categories = TripCategory::all();
         $users = User::all();
@@ -31,6 +38,12 @@ class TripController extends Controller
 
     public function store(Request $request)
     {
+        // Check if user is authorized to create trips
+        $canCreateTrip = auth()->user()->email === 'laurien@andersons.com' || auth()->user()->email === 'andersons@andersons.com';
+        if (!$canCreateTrip) {
+            abort(403, 'You are not authorized to create trips.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -50,6 +63,12 @@ class TripController extends Controller
             'temp_checkpoint_lat.*' => 'nullable|string',
             'temp_checkpoint_lng' => 'nullable|array',
             'temp_checkpoint_lng.*' => 'nullable|string',
+            'plus_one_names' => 'nullable|array',
+            'plus_one_names.*' => 'nullable|string',
+            'plus_one_emails' => 'nullable|array',
+            'plus_one_emails.*' => 'nullable|email',
+            'plus_one_phones' => 'nullable|array',
+            'plus_one_phones.*' => 'nullable|string',
         ]);
 
         $this->ensureStatusesExist();
@@ -113,6 +132,20 @@ class TripController extends Controller
             }
         }
 
+        // Add plus-ones
+        if (!empty($validated['plus_one_names'])) {
+            foreach ($validated['plus_one_names'] as $idx => $name) {
+                if (empty($name)) continue;
+                PlusOne::create([
+                    'trip_id' => $trip->id,
+                    'added_by' => auth()->id(),
+                    'name' => $name,
+                    'email' => $validated['plus_one_emails'][$idx] ?? null,
+                    'phone' => $validated['plus_one_phones'][$idx] ?? null,
+                ]);
+            }
+        }
+
         return redirect()->route('trips.index')->with('success', 'Trip planned successfully!');
     }
 
@@ -127,6 +160,12 @@ class TripController extends Controller
             'buffer_alert' => 'nullable|date',
             'user_ids' => 'required|array',
             'user_ids.*' => 'exists:users,id',
+            'plus_one_names' => 'nullable|array',
+            'plus_one_names.*' => 'nullable|string',
+            'plus_one_emails' => 'nullable|array',
+            'plus_one_emails.*' => 'nullable|email',
+            'plus_one_phones' => 'nullable|array',
+            'plus_one_phones.*' => 'nullable|string',
         ]);
 
         $this->ensureStatusesExist();
@@ -151,6 +190,24 @@ class TripController extends Controller
             'status_id' => $status->id ?? Status::where('name', 'upcoming')->where('type', 'trip')->first()->id,
         ]);
         $trip->users()->sync($validated['user_ids']);
+
+        // Handle plus-ones
+        if (!empty($validated['plus_one_names'])) {
+            $existingPlusOnes = $trip->plusOnes()->where('added_by', auth()->id())->pluck('id')->toArray();
+            $trip->plusOnes()->whereIn('id', $existingPlusOnes)->delete();
+            
+            foreach ($validated['plus_one_names'] as $index => $name) {
+                if (!empty($name)) {
+                    PlusOne::create([
+                        'trip_id' => $trip->id,
+                        'added_by' => auth()->id(),
+                        'name' => $name,
+                        'email' => $validated['plus_one_emails'][$index] ?? null,
+                        'phone' => $validated['plus_one_phones'][$index] ?? null,
+                    ]);
+                }
+            }
+        }
 
         return redirect()->route('trips.index')->with('success', 'Trip updated!');
     }

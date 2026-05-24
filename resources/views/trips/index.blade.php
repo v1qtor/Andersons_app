@@ -18,9 +18,23 @@
         </select>
     </div>
 
+    <div class="mb-6">
+        <form method="GET" action="{{ route('trips.index') }}" class="flex gap-2">
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search trips by name or description..." class="flex-1 px-4 py-3 rounded-lg border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg">Search</button>
+            @if(request('search'))
+                <a href="{{ route('trips.index') }}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-6 rounded-lg">Clear</a>
+            @endif
+        </form>
+    </div>
+
     <div class="flex justify-between items-center mb-3">
         <a href="{{ route('checkpoints.index') }}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Checkpoints</a>
-        <button onclick="document.getElementById('createTripModal').showModal()" class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded">+ Plan Trip</button>
+        @if(auth()->user()->email === 'laurien@andersons.com' || auth()->user()->email === 'andersons@andersons.com')
+            <button onclick="document.getElementById('createTripModal').showModal()" class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded">+ Plan Trip</button>
+        @else
+            <div class="text-gray-500 text-sm italic">Only trip organizers can create trips</div>
+        @endif
     </div>
 
     @include('trips._create-modal')
@@ -60,8 +74,11 @@
                 <div class="text-sm text-gray-600">Route Progress: <span class="font-bold progress-text">{{ $confirmed }} of {{ $total }} reached</span></div>
                 <div class="w-full bg-gray-200 rounded h-2 mt-1"><div class="bg-blue-400 h-2 rounded progress-bar" style="width:{{ $pct }}%"></div></div>
             </div>
-            <div class="mb-3"><span class="font-bold">Participants:</span> <span class="ml-2 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">{{ $trip->users->count() }} people</span>
-                <div class="mt-2 flex gap-2 flex-wrap">@foreach($trip->users as $u)<span class="bg-purple-200 text-purple-800 px-3 py-1 rounded-full text-sm">{{ $u->name }}</span>@endforeach</div>
+            <div class="mb-3"><span class="font-bold">Participants:</span> <span class="ml-2 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">{{ $trip->users->count() + $trip->plusOnes->count() }} people</span>
+                <div class="mt-2 flex gap-2 flex-wrap">
+                    @foreach($trip->users as $u)<span class="bg-purple-200 text-purple-800 px-3 py-1 rounded-full text-sm">{{ $u->name }}</span>@endforeach
+                    @foreach($trip->plusOnes as $po)<span class="bg-orange-200 text-orange-800 px-3 py-1 rounded-full text-sm text-xs" title="Guest">👤 {{ $po->name }}</span>@endforeach
+                </div>
             </div>
 
             <!-- OVERDUE BANNER (restored) -->
@@ -172,6 +189,11 @@
         <div class="mb-4"><label class="block text-lg font-semibold mb-1">Category *</label><select name="trip_category_id" id="edit_trip_category_id" required class="w-full px-4 py-3 rounded-lg border">@foreach($categories as $cat)<option value="{{ $cat->id }}">{{ $cat->name }}</option>@endforeach</select></div>
         <div class="mb-4"><label class="block text-lg font-semibold mb-1">Buffer Alert</label><input type="datetime-local" name="buffer_alert" id="edit_buffer_alert" class="w-full px-4 py-3 rounded-lg border" /></div>
         <div class="mb-4"><label class="block text-lg font-semibold mb-2">Participants</label><div class="grid grid-cols-2 gap-2" id="edit-participants-container"></div></div>
+        <div class="mb-6">
+            <label class="block text-lg font-semibold mb-2">Plus-Ones (optional)</label>
+            <div id="edit-plus-ones-container"></div>
+            <button type="button" onclick="addEditPlusOne()" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold py-2 px-4 rounded text-sm mt-2">+ Add Guest</button>
+        </div>
         <div class="flex justify-end gap-4"><button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded">Update Trip</button><button type="button" onclick="this.closest('dialog').close(); document.body.style.overflow = '';" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-8 rounded">Cancel</button></div>
     </form>
 </dialog>
@@ -182,7 +204,7 @@
         @csrf
         <div class="flex justify-between items-center mb-6"><h2 class="text-3xl font-extrabold">Add Checkpoint</h2><button type="button" onclick="this.closest('dialog').close()" class="text-gray-400 hover:text-gray-700 text-3xl">&times;</button></div>
         <div class="mb-4"><label class="block text-lg font-semibold mb-2">Permanent</label><select name="checkpoint_id" class="w-full px-4 py-3 rounded-lg border"><option value="">Choose…</option>@foreach($checkpoints as $cp)<option value="{{ $cp->id }}">{{ $cp->location }}</option>@endforeach</select></div>
-        <div class="mb-6"><p class="text-center font-bold mb-4">— OR —</p><label class="block text-lg font-semibold mb-2">Temporary</label><input type="text" name="temp_name" placeholder="Name" class="w-full px-4 py-3 rounded-lg border mb-2"/><input type="text" name="temp_address" placeholder="Address" class="w-full px-4 py-3 rounded-lg border mb-2"/><div class="flex gap-2"><input type="text" name="temp_lat" placeholder="Latitude" class="flex-1 px-4 py-3 rounded-lg border"/><input type="text" name="temp_lng" placeholder="Longitude" class="flex-1 px-4 py-3 rounded-lg border"/></div></div>
+        <div class="mb-6"><p class="text-center font-bold mb-4">— OR —</p><label class="block text-lg font-semibold mb-2">Temporary</label><input type="text" name="temp_name" placeholder="Name" class="w-full px-4 py-3 rounded-lg border mb-2"/><div class="mb-2 flex gap-2"><input type="text" id="addCheckpointAddress" name="temp_address" placeholder="Address" class="flex-1 px-4 py-3 rounded-lg border"/><button type="button" onclick="geocodeAddCheckpoint()" class="bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold py-2 px-3 rounded text-sm">Find</button></div><div class="flex gap-2"><input type="text" id="addCheckpointLat" name="temp_lat" placeholder="Latitude" class="flex-1 px-4 py-3 rounded-lg border" readonly/><input type="text" id="addCheckpointLng" name="temp_lng" placeholder="Longitude" class="flex-1 px-4 py-3 rounded-lg border" readonly/></div></div>
         <div class="flex justify-end gap-4"><button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded">Add</button><button type="button" onclick="this.closest('dialog').close(); document.body.style.overflow = '';" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-8 rounded">Cancel</button></div>
     </form>
 </dialog>
@@ -202,7 +224,10 @@
         </div>
         <div class="mb-4">
             <label class="block text-lg font-semibold mb-1">Address</label>
-            <input type="text" name="address" id="edit-temp-address" class="w-full px-4 py-3 rounded-lg border" />
+            <div class="flex gap-2">
+                <input type="text" name="address" id="edit-temp-address" class="flex-1 px-4 py-3 rounded-lg border" />
+                <button type="button" onclick="geocodeCheckpointField('edit-temp-address', 'edit-temp-lat', 'edit-temp-lng')" class="bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold py-2 px-4 rounded text-sm">Find</button>
+            </div>
         </div>
         <div class="flex gap-4 mb-4">
             <div class="flex-1">
@@ -255,8 +280,26 @@ function openEditModal(id, name, desc, start, end, cat, buffer, userIds) {
         let checked = userIds.includes(u.id) ? 'checked' : '';
         container.innerHTML += `<label class="flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-gray-200 cursor-pointer"><input type="checkbox" name="user_ids[]" value="${u.id}" ${checked} class="w-4 h-4"><span>${u.name}</span></label>`;
     });
+    document.getElementById('edit-plus-ones-container').innerHTML = '';
     modal.showModal();
     document.body.style.overflow = 'hidden';
+}
+
+function addEditPlusOne() {
+    const container = document.getElementById('edit-plus-ones-container');
+    const index = container.querySelectorAll('.edit-plus-one-entry').length;
+    const div = document.createElement('div');
+    div.className = 'edit-plus-one-entry bg-gray-50 p-4 rounded-lg mb-2 border border-dashed border-gray-300';
+    div.innerHTML = `
+        <div class="flex justify-between items-center mb-3">
+            <span class="font-semibold">Guest ${index + 1}</span>
+            <button type="button" onclick="this.closest('.edit-plus-one-entry').remove()" class="text-red-600 hover:text-red-800 font-bold">Remove</button>
+        </div>
+        <input type="text" name="plus_one_names[]" placeholder="Name (required)" class="w-full px-4 py-2 rounded-lg border border-gray-300 mb-2" required />
+        <input type="email" name="plus_one_emails[]" placeholder="Email" class="w-full px-4 py-2 rounded-lg border border-gray-300 mb-2" />
+        <input type="tel" name="plus_one_phones[]" placeholder="Phone" class="w-full px-4 py-2 rounded-lg border border-gray-300" />
+    `;
+    container.appendChild(div);
 }
 
 function openAddCheckpointModal(tripId) {
@@ -280,6 +323,21 @@ function addTempCheckpointField() {
             <input type="text" name="temp_checkpoint_lat[]" placeholder="Latitude (optional)" class="flex-1 px-4 py-2 rounded-lg border border-gray-300" />
             <input type="text" name="temp_checkpoint_lng[]" placeholder="Longitude (optional)" class="flex-1 px-4 py-2 rounded-lg border border-gray-300" />
         </div>
+    `;
+    container.appendChild(newEntry);
+}
+
+function addPlusOneField() {
+    const container = document.getElementById('plusOnesContainer');
+    const newEntry = document.createElement('div');
+    newEntry.className = 'bg-gray-50 p-4 rounded-lg mb-2 border border-gray-300';
+    newEntry.innerHTML = `
+        <div class="flex gap-3 mb-2">
+            <input type="text" name="plus_one_names[]" placeholder="Guest name" class="flex-1 px-4 py-2 rounded-lg border border-gray-300 font-semibold" required />
+            <button type="button" onclick="this.closest('div').remove()" class="bg-red-100 hover:bg-red-200 text-red-800 font-bold py-2 px-3 rounded text-sm">Remove</button>
+        </div>
+        <input type="email" name="plus_one_emails[]" placeholder="Email (optional)" class="w-full px-4 py-2 rounded-lg border border-gray-300 mb-2" />
+        <input type="tel" name="plus_one_phones[]" placeholder="Phone (optional)" class="w-full px-4 py-2 rounded-lg border border-gray-300" />
     `;
     container.appendChild(newEntry);
 }
@@ -354,8 +412,11 @@ function reorderCheckpoint(tripId, cpId, dir) {
 }
 
 document.getElementById('trip-filter').addEventListener('change', function(){
-    let f = this.value;
-    document.querySelectorAll('.trip-card').forEach(c=>c.style.display = (f==='all' || c.dataset.status===f) ? '' : 'none');
+    const status = this.value;
+    document.querySelectorAll('.trip-card').forEach(card => {
+        const cardStatus = card.dataset.status;
+        card.style.display = (status === 'all' || cardStatus === status) ? '' : 'none';
+    });
 });
 
 // Maps
@@ -397,6 +458,41 @@ function viewCheckpointImage(imagePath) {
     document.getElementById('viewImageImg').src = imagePath;
     modal.showModal();
     document.body.style.overflow = 'hidden';
+}
+
+async function geocodeCheckpointField(addressFieldId, latFieldId, lngFieldId) {
+    const addressInput = document.getElementById(addressFieldId);
+    const latInput = document.getElementById(latFieldId);
+    const lngInput = document.getElementById(lngFieldId);
+    
+    const address = addressInput.value.trim();
+    if (!address) {
+        alert('Please enter an address first');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/geocode-address', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+            },
+            body: JSON.stringify({ address })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            latInput.value = data.data.latitude;
+            lngInput.value = data.data.longitude;
+            alert('Location found!');
+        } else {
+            alert(data.message || 'Could not find address. Try a more specific location.');
+        }
+    } catch (error) {
+        console.error('Geocoding error:', error);
+        alert('Error searching for location. Please try again.');
+    }
 }
 
 </script>
