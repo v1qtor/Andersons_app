@@ -154,6 +154,32 @@ window.desktopNotificationBell = function() {
             }
         },
 
+        togglePanel() {
+            this.isPanelOpen = !this.isPanelOpen;
+            if (this.isPanelOpen) {
+                this.loadNotifications();
+            }
+        },
+
+        addNotification(notification) {
+            this.notifications.unshift(notification);
+            this.unreadCount = this.notifications.filter(n => !n.is_read).length;
+        },
+
+        deleteNotification(id) {
+            this.notifications = this.notifications.filter(n => n.id !== id);
+            this.unreadCount = this.notifications.filter(n => !n.is_read).length;
+
+            fetch(`/notifications/${id}`, {
+                method: 'DELETE',
+                credentials: 'same-origin',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            }).catch(error => console.error('Error deleting notification:', error));
+        },
+
         formatTime(dateString) {
             const date = new Date(dateString);
             const now = new Date();
