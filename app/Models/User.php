@@ -87,12 +87,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Admin and The Andersons act as the household's administrators
+     * (full access across invoices, trips, etc.), distinct from Family
+     * Member/Staff/Chef who have narrower, feature-specific permissions.
+     */
+    public function isHouseholdAdmin(): bool
+    {
+        return in_array($this->role?->name, ['Admin', 'The Andersons'], true);
+    }
+
+    /**
      * Household members (Admin, The Andersons, Family Member) can plan and manage trips.
      * Staff/Chef can still view trips and check in at checkpoints if invited.
      */
     public function canManageTrips(): bool
     {
-        return in_array($this->role?->name, ['Admin', 'The Andersons', 'Family Member'], true);
+        return $this->isHouseholdAdmin() || $this->role?->name === 'Family Member';
     }
 
     public function unavailabilityPeriods(): HasMany

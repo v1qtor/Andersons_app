@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Illuminate\Auth\Access\AuthorizationException;
 
 #[Layout('components.layouts.app')]
 class Invoices extends Component
@@ -25,12 +24,7 @@ class Invoices extends Component
 
     public function mount()
     {
-        $user = Auth::user();
-        $allowedRoles = ['Staff', 'Chef', 'Admin', 'The Andersons'];
-        
-        if (!$user || !$user->role || !in_array($user->role->name, $allowedRoles)) {
-            abort(403, __('Unauthorized. Staff access required.'));
-        }
+        $this->authorize('viewAny', Receipt::class);
     }
 
     public function updated_filterStatus()
@@ -48,10 +42,13 @@ class Invoices extends Component
         $this->resetPage();
     }
 
+    // Not an authorization check itself — used to pick which view mode to
+    // render (a management view vs. a personal one). Actual permission
+    // checks for viewing/editing/deleting a specific invoice go through
+    // ReceiptPolicy (see viewInvoice, deleteInvoice, updateInvoiceStatus).
     public function isAdmin()
     {
-        $user = Auth::user();
-        return $user && $user->role && in_array($user->role->name, ['Admin', 'The Andersons']);
+        return (bool) Auth::user()?->isHouseholdAdmin();
     }
 
     public function getInvoices()
@@ -83,12 +80,7 @@ class Invoices extends Component
 
     public function viewInvoice(Receipt $invoice)
     {
-        $user = Auth::user();
-        $isAdmin = $this->isAdmin();
-
-        if (!$isAdmin && $invoice->user_id !== $user->id) {
-            abort(403);
-        }
+        $this->authorize('view', $invoice);
         $this->viewInvoiceId = $invoice->id;
     }
 
@@ -109,15 +101,11 @@ class Invoices extends Component
             abort(404, 'Invoice not found');
         }
 
-        $user = Auth::user();
-        $isAdmin = $this->isAdmin();
+        $this->authorize('view', $invoice);
 
-        if (!$isAdmin && $invoice->user_id !== $user->id) {
-            abort(403);
-        }
-
-        // Only prevent deletion of paid invoices for non-admin users
-        if (!$isAdmin && $invoice->is_paid) {
+        // Owners can see their paid invoices but can no longer delete them
+        // once paid — a softer, friendlier stop than a hard 403 page.
+        if (Auth::user()->cannot('delete', $invoice)) {
             session()->flash('error', 'Cannot delete a paid invoice.');
             $this->deleteInvoiceId = null;
             return;
@@ -161,9 +149,7 @@ class Invoices extends Component
             abort(404, 'Invoice not found');
         }
 
-        if (!$this->isAdmin()) {
-            abort(403);
-        }
+        $this->authorize('markPaid', $invoice);
 
         $invoice->update(['is_paid' => true, 'paid_date' => now()]);
 

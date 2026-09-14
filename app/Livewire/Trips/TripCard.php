@@ -48,11 +48,6 @@ class TripCard extends Component
 
     public ?string $viewingImageUrl = null;
 
-    public function isManager(): bool
-    {
-        return auth()->user()->canManageTrips();
-    }
-
     private function loadTrip(): Trip
     {
         return Trip::with(['status', 'tripCategory', 'users', 'checkpoints', 'checkpointImages', 'attachedFiles', 'plusOnes'])
@@ -61,7 +56,7 @@ class TripCard extends Component
 
     public function confirmCancel(): void
     {
-        abort_unless($this->isManager(), 403);
+        $this->authorize('cancel', $this->loadTrip());
         $this->confirmingCancel = true;
     }
 
@@ -72,11 +67,12 @@ class TripCard extends Component
 
     public function cancel(): void
     {
-        abort_unless($this->isManager(), 403);
+        $trip = $this->loadTrip();
+        $this->authorize('cancel', $trip);
 
         $cancelled = Status::where('name', 'cancelled')->where('type', 'trip')->first();
         if ($cancelled) {
-            $this->loadTrip()->update(['status_id' => $cancelled->id]);
+            $trip->update(['status_id' => $cancelled->id]);
         }
 
         $this->confirmingCancel = false;
@@ -86,7 +82,7 @@ class TripCard extends Component
 
     public function confirmDelete(): void
     {
-        abort_unless($this->isManager(), 403);
+        $this->authorize('delete', $this->loadTrip());
         $this->confirmingDelete = true;
     }
 
@@ -97,9 +93,8 @@ class TripCard extends Component
 
     public function delete(): void
     {
-        abort_unless($this->isManager(), 403);
-
         $trip = $this->loadTrip();
+        $this->authorize('delete', $trip);
         foreach ($trip->checkpoints as $checkpoint) {
             if ($checkpoint->pivot->is_temporary) {
                 $trip->checkpoints()->detach($checkpoint->id);
@@ -120,7 +115,7 @@ class TripCard extends Component
 
     public function openAddCheckpoint(): void
     {
-        abort_unless($this->isManager(), 403);
+        $this->authorize('update', $this->loadTrip());
         $this->reset(['newCheckpointId', 'newTempName', 'newTempAddress', 'newTempLat', 'newTempLng']);
         $this->showAddCheckpoint = true;
     }
@@ -149,9 +144,9 @@ class TripCard extends Component
 
     public function addCheckpoint(): void
     {
-        abort_unless($this->isManager(), 403);
-
         $trip = $this->loadTrip();
+        $this->authorize('update', $trip);
+
         $max = (int) $trip->checkpoints()->max('order');
 
         if ($this->newCheckpointId) {
@@ -183,9 +178,9 @@ class TripCard extends Component
 
     public function removeCheckpoint(int $checkpointId): void
     {
-        abort_unless($this->isManager(), 403);
-
         $trip = $this->loadTrip();
+        $this->authorize('update', $trip);
+
         $checkpoint = $trip->checkpoints()->find($checkpointId);
         if (! $checkpoint) {
             return;
@@ -213,9 +208,9 @@ class TripCard extends Component
 
     private function swapOrder(int $checkpointId, int $direction): void
     {
-        abort_unless($this->isManager(), 403);
-
         $trip = $this->loadTrip();
+        $this->authorize('update', $trip);
+
         $ordered = $trip->checkpoints()->orderByPivot('order')->get();
         $index = $ordered->search(fn ($c) => $c->id === $checkpointId);
         $swapWith = $index + $direction;
@@ -303,7 +298,7 @@ class TripCard extends Component
 
     public function uploadDocument(): void
     {
-        abort_unless($this->isManager(), 403);
+        $this->authorize('update', $this->loadTrip());
 
         $this->validate(['newDocument' => 'required|file|max:10240']);
 
@@ -321,9 +316,9 @@ class TripCard extends Component
 
     public function removeDocument(int $fileId): void
     {
-        abort_unless($this->isManager(), 403);
-
         $file = AttachedFile::findOrFail($fileId);
+        $this->authorize('update', $file->trip);
+
         if (Storage::disk('public')->exists($file->file_path)) {
             Storage::disk('public')->delete($file->file_path);
         }
@@ -332,9 +327,11 @@ class TripCard extends Component
 
     public function render()
     {
+        $trip = $this->loadTrip();
+
         return view('livewire.trips.card', [
-            'trip' => $this->loadTrip(),
-            'isManager' => $this->isManager(),
+            'trip' => $trip,
+            'isManager' => auth()->user()->can('update', $trip),
             'availableCheckpoints' => Checkpoint::whereNotNull('folder_id')
                 ->whereDoesntHave('trips', fn ($q) => $q->where('trips.id', $this->tripId))
                 ->orderBy('location')

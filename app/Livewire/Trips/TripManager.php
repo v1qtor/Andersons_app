@@ -69,7 +69,7 @@ class TripManager extends Component
         return view('livewire.trips.manager', [
             'trips' => $this->getTrips(),
             'statusOptions' => Status::where('type', 'trip')->orderBy('name')->pluck('name'),
-            'canManageTrips' => auth()->user()->canManageTrips(),
+            'canManageTrips' => auth()->user()->can('create', Trip::class),
         ]);
     }
 }

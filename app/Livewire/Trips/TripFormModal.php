@@ -37,8 +37,6 @@ class TripFormModal extends Component
     #[On('open-trip-form')]
     public function open(?int $tripId = null): void
     {
-        abort_unless(auth()->user()->canManageTrips(), 403);
-
         $this->resetValidation();
         $this->tripId = $tripId;
         $this->tempCheckpoints = [];
@@ -46,6 +44,7 @@ class TripFormModal extends Component
 
         if ($tripId) {
             $trip = Trip::with(['users', 'checkpoints' => fn ($q) => $q->wherePivot('is_temporary', false)])->findOrFail($tripId);
+            $this->authorize('update', $trip);
 
             $this->name = $trip->name;
             $this->description = $trip->description ?? '';
@@ -57,6 +56,7 @@ class TripFormModal extends Component
             $this->userIds = $trip->users->pluck('id')->map(fn ($id) => (string) $id)->toArray();
             $this->checkpointIds = $trip->checkpoints->pluck('id')->map(fn ($id) => (string) $id)->toArray();
         } else {
+            $this->authorize('create', Trip::class);
             $this->reset(['name', 'description', 'notes', 'start_date', 'end_date', 'trip_category_id', 'buffer_alert', 'userIds', 'checkpointIds']);
         }
 
@@ -135,7 +135,7 @@ class TripFormModal extends Component
 
     public function save(): void
     {
-        abort_unless(auth()->user()->canManageTrips(), 403);
+        $this->authorize($this->tripId ? 'update' : 'create', $this->tripId ? Trip::findOrFail($this->tripId) : Trip::class);
 
         $validated = $this->validate();
 

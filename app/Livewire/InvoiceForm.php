@@ -28,12 +28,7 @@ class InvoiceForm extends Component
 
     public function mount(?int $id = null)
     {
-        // Check if user has access to invoices feature
-        $user = Auth::user();
-        $allowedRoles = ['Staff', 'Chef', 'Admin', 'The Andersons'];
-        if (!$user || !$user->role || !in_array($user->role->name, $allowedRoles)) {
-            abort(403, __('Unauthorized. Staff access required.'));
-        }
+        $this->authorize('viewAny', Receipt::class);
 
         if ($id) {
             $invoice = Receipt::find($id);
@@ -42,11 +37,10 @@ class InvoiceForm extends Component
             }
             $this->invoice = $invoice;
 
-            // Allow edit if: user is the owner OR user is an admin
-            $isAdmin = $user->role && in_array($user->role->name, ['Admin', 'The Andersons']);
-            if ($invoice->user_id !== Auth::id() && !$isAdmin) {
-                abort(403);
-            }
+            // Loading the form only requires being able to see this invoice
+            // (an owner can view their own paid invoice); actually saving
+            // changes to it is a separate, narrower check in saveInvoice().
+            $this->authorize('view', $invoice);
 
             $this->billDate = $invoice->bill_date->format('Y-m-d');
             // Check if this is a custom category by looking for substitute_category
@@ -115,13 +109,12 @@ class InvoiceForm extends Component
 
         if ($this->invoice) {
             // Update existing invoice
-            // Admins can modify any invoice, but regular users cannot modify paid invoices
             $user = Auth::user();
-            $isAdmin = $user->role && in_array($user->role->name, ['Admin', 'The Andersons']);
-            if ($this->invoice->is_paid && !$isAdmin) {
+            if ($user->cannot('update', $this->invoice)) {
                 session()->flash('error', 'Cannot modify a paid invoice.');
                 return;
             }
+            $isAdmin = $user->isHouseholdAdmin();
 
             $this->invoice->update([
                 'category_id' => $categoryId,
