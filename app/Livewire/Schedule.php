@@ -13,4 +13,3 @@ class Schedule extends Component
         return view('livewire.schedule');
     }
 }
-

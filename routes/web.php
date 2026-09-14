@@ -1,20 +1,20 @@
 <?php
 
 use App\Livewire\Admin\AdminPanel;
+use App\Livewire\Admin\StaffAvailabilityCalendar;
 use App\Livewire\Admin\UserCreate;
 use App\Livewire\Admin\UserEdit;
-use App\Livewire\Admin\UserIndex;
-use App\Livewire\Admin\StaffAvailabilityCalendar;
+use App\Livewire\Checkpoints\CheckpointManager;
+use App\Livewire\Dashboard;
 use App\Livewire\InvoiceForm;
 use App\Livewire\Invoices;
 use App\Livewire\Meals\MealPlanning;
 use App\Livewire\Meals\MealSchedule;
 use App\Livewire\Schedule;
 use App\Livewire\Settings;
+use App\Livewire\Trips\TripManager;
 use App\Livewire\Unavailability\UnavailabilityCalendar;
-use App\Livewire\Dashboard;
 use Illuminate\Support\Facades\Route;
-use Laravel\Fortify\Features;
 
 // Load authentication routes
 require __DIR__.'/auth.php';
@@ -58,7 +58,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('admin/users/{user}/edit', UserEdit::class)->name('admin.users.edit');
         Route::get('admin/meals', MealPlanning::class)->name('admin.meals.index');
         // admin-staff-unavailability management
-        Route::get('admin/staff-unavailability', StaffAvailabilityCalendar::class)->name('admin.staff-unavailability'); 
+        Route::get('admin/staff-unavailability', StaffAvailabilityCalendar::class)->name('admin.staff-unavailability');
     });
 
     // Chef Management
@@ -74,11 +74,11 @@ Route::middleware(['auth'])->group(function () {
     // Trips: a Livewire component (App\Livewire\Trips\TripManager, TripFormModal,
     // TripCard) rather than a controller — all mutations (create/edit/delete/
     // cancel/checkpoints/documents) are handled as component methods.
-    Route::get('trips', \App\Livewire\Trips\TripManager::class)->name('trips.index');
+    Route::get('trips', TripManager::class)->name('trips.index');
 });
 
 Route::middleware(['auth'])->group(function () {
     // Checkpoints library: a Livewire component (App\Livewire\Checkpoints\CheckpointManager)
     // rather than a controller — create/edit/delete are component methods.
-    Route::get('checkpoints', \App\Livewire\Checkpoints\CheckpointManager::class)->name('checkpoints.index');
+    Route::get('checkpoints', CheckpointManager::class)->name('checkpoints.index');
 });

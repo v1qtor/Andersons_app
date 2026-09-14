@@ -86,7 +86,7 @@ class DatabaseSeeder extends Seeder
                 // Only confirmed subscribers can bring guests; give some of them 1–2.
                 if ($confirmed && fake()->boolean(30)) {
                     MealGuest::factory()->count(rand(1, 2))->create([
-                        'planned_meal_id'    => $plannedMeal->id,
+                        'planned_meal_id' => $plannedMeal->id,
                         'invited_by_user_id' => $user->id,
                     ]);
                 }

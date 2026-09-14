@@ -6,7 +6,7 @@ use App\Models\TaskCategory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\TaskCategory>
+ * @extends Factory<TaskCategory>
  */
 class TaskCategoryFactory extends Factory
 {

@@ -32,16 +32,23 @@ class TripCard extends Component
     public int $tripId;
 
     public bool $confirmingCancel = false;
+
     public bool $confirmingDelete = false;
 
     public bool $showAddCheckpoint = false;
+
     public ?int $newCheckpointId = null;
+
     public string $newTempName = '';
+
     public string $newTempAddress = '';
+
     public ?float $newTempLat = null;
+
     public ?float $newTempLng = null;
 
     public ?int $uploadingImagesForCheckpointId = null;
+
     public array $newImages = [];
 
     public $newDocument = null;
@@ -133,6 +140,7 @@ class TripCard extends Component
             if ($address === '') {
                 $this->newTempLat = null;
                 $this->newTempLng = null;
+
                 return;
             }
 

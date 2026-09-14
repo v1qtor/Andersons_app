@@ -6,7 +6,7 @@ use App\Models\Status;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Status>
+ * @extends Factory<Status>
  */
 class StatusFactory extends Factory
 {

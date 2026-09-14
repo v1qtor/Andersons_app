@@ -24,7 +24,7 @@ class BroadcastAuthController extends Controller
             if (preg_match('/^private-user\.(\d+)$/', $channel, $matches)) {
                 $userId = (int) $matches[1];
                 $authenticated = (int) $user->id === $userId;
-                
+
                 \Log::info('🔐 Private user channel auth', [
                     'channel' => $channel,
                     'user_id' => $user->id,

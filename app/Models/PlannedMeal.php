@@ -22,7 +22,7 @@ class PlannedMeal extends Model
     protected function casts(): array
     {
         return [
-            'date_time'   => 'datetime',
+            'date_time' => 'datetime',
             'is_prepared' => 'boolean',
         ];
     }

@@ -6,7 +6,7 @@ use App\Models\RepeatabilityType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\RepeatabilityType>
+ * @extends Factory<RepeatabilityType>
  */
 class RepeatabilityTypeFactory extends Factory
 {

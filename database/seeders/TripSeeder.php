@@ -38,23 +38,23 @@ class TripSeeder extends Seeder
         ];
 
         foreach ($trips as $tripData) {
-            $startDate  = $now->copy()->addWeeks($tripData['weeks'])->startOfDay()->setTime(rand(7, 10), [0, 30][array_rand([0, 30])]);
-            $endDate    = $startDate->copy()->addDays($tripData['days'])->setTime(rand(16, 19), 0);
+            $startDate = $now->copy()->addWeeks($tripData['weeks'])->startOfDay()->setTime(rand(7, 10), [0, 30][array_rand([0, 30])]);
+            $endDate = $startDate->copy()->addDays($tripData['days'])->setTime(rand(16, 19), 0);
             $bufferDays = rand(3, 7);
             $bufferAlert = $startDate->copy()->subDays($bufferDays);
 
             $category = $tripCategories->firstWhere('name', $tripData['category']) ?? $tripCategories->random();
-            $status   = Trip::resolveStatusFor($startDate, $endDate);
+            $status = Trip::resolveStatusFor($startDate, $endDate);
 
             Trip::create([
-                'name'             => $tripData['name'],
-                'description'      => $tripData['description'],
-                'start_date'       => $startDate,
-                'end_date'         => $endDate,
+                'name' => $tripData['name'],
+                'description' => $tripData['description'],
+                'start_date' => $startDate,
+                'end_date' => $endDate,
                 'trip_category_id' => $category->id,
-                'buffer_alert'     => $bufferAlert,
-                'status_id'        => $status->id,
-                'notes'            => $tripData['notes'],
+                'buffer_alert' => $bufferAlert,
+                'status_id' => $status->id,
+                'notes' => $tripData['notes'],
             ]);
         }
     }

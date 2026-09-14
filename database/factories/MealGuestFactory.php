@@ -8,7 +8,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\MealGuest>
+ * @extends Factory<MealGuest>
  */
 class MealGuestFactory extends Factory
 {
@@ -17,10 +17,10 @@ class MealGuestFactory extends Factory
     public function definition(): array
     {
         return [
-            'planned_meal_id'    => PlannedMeal::inRandomOrder()->first()?->id ?? PlannedMeal::factory(),
+            'planned_meal_id' => PlannedMeal::inRandomOrder()->first()?->id ?? PlannedMeal::factory(),
             'invited_by_user_id' => User::inRandomOrder()->first()?->id ?? User::factory(),
-            'name'               => fake()->name(),
-            'note'               => fake()->optional(0.5)->sentence(),
+            'name' => fake()->name(),
+            'note' => fake()->optional(0.5)->sentence(),
         ];
     }
 }

@@ -9,8 +9,8 @@ use App\Policies\TripPolicy;
 | the user's role), so an unsaved instance is enough.
 */
 beforeEach(function () {
-    $this->policy = new TripPolicy();
-    $this->trip = new Trip();
+    $this->policy = new TripPolicy;
+    $this->trip = new Trip;
 });
 
 test('household admins and family members can create, update, delete and cancel trips', function (string $role) {

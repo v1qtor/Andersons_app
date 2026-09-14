@@ -2,14 +2,13 @@
 
 namespace Database\Factories;
 
-use App\Models\RecurringTask;
 use App\Models\Task;
 use App\Models\TaskCategory;
 use App\Models\TaskPriority;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Task>
+ * @extends Factory<Task>
  */
 class TaskFactory extends Factory
 {

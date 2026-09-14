@@ -15,18 +15,27 @@ use Livewire\Component;
 class Settings extends Component
 {
     public string $name = '';
+
     public string $email = '';
+
     public string $phone_number = '';
+
     public string $address = '';
+
     public string $iban = '';
+
     public bool $showIban = false;
+
     public string $birthdate = '';
 
     public string $newAllergy = '';
+
     public string $newPreference = '';
 
     public string $currentPassword = '';
+
     public string $newPassword = '';
+
     public string $newPasswordConfirmation = '';
 
     public array $notifications = [
@@ -53,7 +62,7 @@ class Settings extends Component
 
         // Load notification settings from database
         $notificationSettings = $user->notificationSettings()->get();
-        
+
         // Initialize with defaults first
         $this->notifications = [
             'trips' => true,
@@ -62,7 +71,7 @@ class Settings extends Component
             'receiptApprovals' => true,
             'mealNotifications' => true,
         ];
-        
+
         // Override with database values if they exist
         foreach ($notificationSettings as $setting) {
             $typeId = $setting->pivot->notification_type_id;
@@ -96,7 +105,7 @@ class Settings extends Component
     {
         $this->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . Auth::id(),
+            'email' => 'required|email|max:255|unique:users,email,'.Auth::id(),
             'phone_number' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
             'iban' => 'nullable|string|max:50',
@@ -105,12 +114,12 @@ class Settings extends Component
 
         $user = Auth::user();
         $user->update([
-            'name'        => $this->name,
-            'email'       => $this->email,
-            'phone_number'=> $this->phone_number,
-            'address'     => $this->address,
-            'iban'        => $this->iban,
-            'birthdate'   => $this->birthdate ?: null,
+            'name' => $this->name,
+            'email' => $this->email,
+            'phone_number' => $this->phone_number,
+            'address' => $this->address,
+            'iban' => $this->iban,
+            'birthdate' => $this->birthdate ?: null,
         ]);
 
         // Sync users.birthdate → birthdates table (is_user = true)
@@ -132,7 +141,7 @@ class Settings extends Component
      */
     public function toggleShowIban(): void
     {
-        $this->showIban = !$this->showIban;
+        $this->showIban = ! $this->showIban;
     }
 
     /**
@@ -140,7 +149,7 @@ class Settings extends Component
      */
     public function toggleNotification(string $category): void
     {
-        $this->notifications[$category] = !$this->notifications[$category];
+        $this->notifications[$category] = ! $this->notifications[$category];
 
         // Map notification settings to the database
         $user = Auth::user();
@@ -159,7 +168,7 @@ class Settings extends Component
             $settingValue = $this->notifications[$category] ? 'true' : 'false';
             $user->notificationSettings()
                 ->syncWithoutDetaching([
-                    $notificationTypeId => ['value' => $settingValue]
+                    $notificationTypeId => ['value' => $settingValue],
                 ]);
         }
     }
@@ -169,12 +178,13 @@ class Settings extends Component
      */
     public function updatePassword(): void
     {
-        $key = 'change-password:' . Auth::id();
+        $key = 'change-password:'.Auth::id();
 
         if (RateLimiter::tooManyAttempts($key, 1)) {
             $seconds = RateLimiter::availableIn($key);
             $this->dispatch('rate-limited', seconds: $seconds);
             $this->addError('currentPassword', "Too many attempts. Please wait {$seconds} second(s).");
+
             return;
         }
 
@@ -190,8 +200,9 @@ class Settings extends Component
 
         $user = Auth::user();
 
-        if (!Hash::check($this->currentPassword, $user->password)) {
+        if (! Hash::check($this->currentPassword, $user->password)) {
             $this->addError('currentPassword', 'The current password is incorrect.');
+
             return;
         }
 
@@ -213,10 +224,10 @@ class Settings extends Component
         $allergy = Allergy::firstOrCreate(['name' => trim($this->newAllergy)]);
 
         if ($user->allergies()->where('allergies.id', $allergy->id)->exists()) {
-            $this->dispatch('toast', message: "'" . $allergy->name . "' is already in your allergies list.", type: 'error');
+            $this->dispatch('toast', message: "'".$allergy->name."' is already in your allergies list.", type: 'error');
         } else {
             $user->allergies()->attach($allergy->id);
-            $this->dispatch('toast', message: "'" . $allergy->name . "' has been added to your allergies.", type: 'success');
+            $this->dispatch('toast', message: "'".$allergy->name."' has been added to your allergies.", type: 'success');
         }
 
         $this->newAllergy = '';
@@ -224,9 +235,9 @@ class Settings extends Component
 
     public function removeAllergy(int $allergyId): void
     {
-        $allergy = \App\Models\Allergy::find($allergyId);
+        $allergy = Allergy::find($allergyId);
         Auth::user()->allergies()->detach($allergyId);
-        $this->dispatch('toast', message: "'" . ($allergy?->name ?? 'Allergy') . "' has been removed from your allergies.", type: 'error');
+        $this->dispatch('toast', message: "'".($allergy?->name ?? 'Allergy')."' has been removed from your allergies.", type: 'error');
     }
 
     public function addPreference(): void
@@ -237,10 +248,10 @@ class Settings extends Component
         $name = trim($this->newPreference);
 
         if ($user->preferences()->where('name', $name)->exists()) {
-            $this->dispatch('toast', message: "'" . $name . "' is already in your food preferences.", type: 'error');
+            $this->dispatch('toast', message: "'".$name."' is already in your food preferences.", type: 'error');
         } else {
             $user->preferences()->create(['name' => $name]);
-            $this->dispatch('toast', message: "'" . $name . "' has been added to your food preferences.", type: 'success');
+            $this->dispatch('toast', message: "'".$name."' has been added to your food preferences.", type: 'success');
         }
 
         $this->newPreference = '';
@@ -250,7 +261,7 @@ class Settings extends Component
     {
         $preference = Preference::find($preferenceId);
         Auth::user()->preferences()->where('id', $preferenceId)->delete();
-        $this->dispatch('toast', message: "'" . ($preference?->name ?? 'Preference') . "' has been removed from your food preferences.", type: 'error');
+        $this->dispatch('toast', message: "'".($preference?->name ?? 'Preference')."' has been removed from your food preferences.", type: 'error');
     }
 
     public function render()

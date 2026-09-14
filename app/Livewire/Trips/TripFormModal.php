@@ -19,19 +19,29 @@ use Livewire\Component;
 class TripFormModal extends Component
 {
     public bool $showModal = false;
+
     public ?int $tripId = null;
 
     public string $name = '';
+
     public string $description = '';
+
     public string $notes = '';
+
     public string $start_date = '';
+
     public string $end_date = '';
+
     public ?int $trip_category_id = null;
+
     public string $buffer_alert = '';
 
     public array $userIds = [];
+
     public array $checkpointIds = [];
+
     public array $tempCheckpoints = [];
+
     public array $plusOnes = [];
 
     #[On('open-trip-form')]
@@ -102,6 +112,7 @@ class TripFormModal extends Component
             if ($address === '') {
                 $this->tempCheckpoints[$index]['latitude'] = null;
                 $this->tempCheckpoints[$index]['longitude'] = null;
+
                 return;
             }
 
@@ -184,7 +195,7 @@ class TripFormModal extends Component
                 'latitude' => $temp['latitude'] ?? null,
                 'longitude' => $temp['longitude'] ?? null,
                 'coordinates' => ($temp['latitude'] ?? null) && ($temp['longitude'] ?? null)
-                    ? $temp['latitude'] . ',' . $temp['longitude']
+                    ? $temp['latitude'].','.$temp['longitude']
                     : null,
             ]);
 

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('image_path');
             $table->unsignedBigInteger('uploaded_by')->nullable();
             $table->timestamps();
-            
+
             $table->foreign('trip_id')->references('id')->on('trips')->onDelete('cascade');
             $table->foreign('checkpoint_id')->references('id')->on('checkpoints')->onDelete('cascade');
             $table->foreign('uploaded_by')->references('id')->on('users')->onDelete('set null');

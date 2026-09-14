@@ -10,7 +10,6 @@ use App\Models\User;
 use App\Models\UserNotification;
 use Database\Seeders\NotificationTypeSeeder;
 use Database\Seeders\RoleSeeder;
-use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Event;
 use Livewire\Livewire;
 

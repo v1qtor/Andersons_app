@@ -13,6 +13,7 @@ class IsUnavailabilityUser
         if (! $request->user() || ! $request->user()->role || ! in_array($request->user()->role->name, ['Staff', 'Chef', 'Admin'])) {
             abort(403, __('Unauthorized.'));
         }
+
         return $next($request);
     }
 }

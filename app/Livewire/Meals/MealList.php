@@ -120,11 +120,11 @@ class MealList extends Component
 
         return $this->capabilities = [
             // Can delete meals, see all planned meals, and see the full attendee list + dietary info
-            'canManage'          => in_array($role, ['Admin', 'Chef']),
+            'canManage' => in_array($role, ['Admin', 'Chef']),
             // Can mark/unmark a meal as prepared (Chef only)
-            'canTogglePrepared'  => $role === 'Chef',
+            'canTogglePrepared' => $role === 'Chef',
             // Can confirm their own participation (everyone except Chef)
-            'canParticipate'     => $role !== 'Chef',
+            'canParticipate' => $role !== 'Chef',
         ];
     }
 
@@ -145,24 +145,24 @@ class MealList extends Component
             'subscribers.preferences',
             'guests.invitedBy',
         ])
-        ->when(! $capabilities['canManage'], function ($query) {
-            // Non-managers only see meals they were invited to.
-            $query->whereHas('subscribers', fn ($q) => $q->where('user_id', auth()->id()));
-        })
-        ->orderBy('date_time', 'desc')
-        ->paginate(5, ['*'], 'mealsPage');
+            ->when(! $capabilities['canManage'], function ($query) {
+                // Non-managers only see meals they were invited to.
+                $query->whereHas('subscribers', fn ($q) => $q->where('user_id', auth()->id()));
+            })
+            ->orderBy('date_time', 'desc')
+            ->paginate(5, ['*'], 'mealsPage');
 
         // For each meal, prepare the lists the view needs to display:
         // who is still just invited, who has accepted, guest notes,
         // combined dietary info, and the current user's own invitation.
         $authId = auth()->id();
         $meals->getCollection()->each(function ($meal) use ($authId) {
-            $meal->invitedSubscribers     = $meal->subscribers->where('pivot.confirmed', false)->values();
-            $meal->acceptedSubscribers    = $meal->subscribers->where('pivot.confirmed', true)->values();
-            $meal->guestsWithNotes        = $meal->guests->filter(fn ($g) => filled($g->note))->values();
-            $meal->subscriberAllergies    = $meal->subscribers->flatMap(fn ($s) => $s->allergies->pluck('name'))->unique()->values();
-            $meal->subscriberPreferences  = $meal->subscribers->flatMap(fn ($s) => $s->preferences->pluck('name'))->unique()->values();
-            $meal->mySubscription         = $meal->subscribers->firstWhere('id', $authId);
+            $meal->invitedSubscribers = $meal->subscribers->where('pivot.confirmed', false)->values();
+            $meal->acceptedSubscribers = $meal->subscribers->where('pivot.confirmed', true)->values();
+            $meal->guestsWithNotes = $meal->guests->filter(fn ($g) => filled($g->note))->values();
+            $meal->subscriberAllergies = $meal->subscribers->flatMap(fn ($s) => $s->allergies->pluck('name'))->unique()->values();
+            $meal->subscriberPreferences = $meal->subscribers->flatMap(fn ($s) => $s->preferences->pluck('name'))->unique()->values();
+            $meal->mySubscription = $meal->subscribers->firstWhere('id', $authId);
         });
 
         // Household members (excluding the Chef) who actually have
@@ -179,7 +179,7 @@ class MealList extends Component
         // Pass the meal list, the dietary banner data, and the
         // capability flags to the view.
         return view('livewire.meals.meal-list', [
-            'meals'        => $meals,
+            'meals' => $meals,
             'dietaryUsers' => $users,
             ...$capabilities,
         ]);

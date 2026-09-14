@@ -1,5 +1,12 @@
 <?php
 
+use App\Models\Role;
+use App\Models\Trip;
+use App\Models\TripCategory;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
 /*
 |--------------------------------------------------------------------------
 | Test Case
@@ -11,13 +18,13 @@
 |
 */
 
-pest()->extend(Tests\TestCase::class)
-    ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
+pest()->extend(TestCase::class)
+    ->use(RefreshDatabase::class)
     ->in('Feature');
 
 // Unit tests (e.g. Policies) work with in-memory model instances only —
 // no database needed, so RefreshDatabase is skipped for speed.
-pest()->extend(Tests\TestCase::class)->in('Unit');
+pest()->extend(TestCase::class)->in('Unit');
 
 /*
 |--------------------------------------------------------------------------
@@ -54,12 +61,12 @@ function something()
  * Build an in-memory (unsaved) User with the given role name attached,
  * for Policy unit tests that only need to check role-based logic.
  */
-function userWithRole(?string $roleName): \App\Models\User
+function userWithRole(?string $roleName): User
 {
-    $user = new \App\Models\User();
+    $user = new User;
 
     if ($roleName !== null) {
-        $user->setRelation('role', (new \App\Models\Role())->forceFill(['name' => $roleName]));
+        $user->setRelation('role', (new Role)->forceFill(['name' => $roleName]));
     }
 
     return $user;
@@ -69,16 +76,16 @@ function userWithRole(?string $roleName): \App\Models\User
  * Create a Trip for tests, defaulting to dates that resolve to "upcoming"
  * (matching Trip::resolveStatusFor's own logic) unless overridden.
  */
-function makeTrip(array $overrides = []): \App\Models\Trip
+function makeTrip(array $overrides = []): Trip
 {
     $start = $overrides['start_date'] ?? now()->addWeek();
     $end = $overrides['end_date'] ?? now()->addWeek()->addDays(2);
 
-    return \App\Models\Trip::create(array_merge([
+    return Trip::create(array_merge([
         'name' => 'Test Trip',
         'start_date' => $start,
         'end_date' => $end,
-        'trip_category_id' => \App\Models\TripCategory::first()->id,
-        'status_id' => \App\Models\Trip::resolveStatusFor($start, $end)?->id,
+        'trip_category_id' => TripCategory::first()->id,
+        'status_id' => Trip::resolveStatusFor($start, $end)?->id,
     ], $overrides));
 }

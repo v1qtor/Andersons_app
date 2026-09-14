@@ -131,14 +131,14 @@ class TaskSeeder extends Seeder
                 $isPast = $taskStart->lt($now);
 
                 $task = Task::create([
-                    'title'            => $template['title'],
-                    'description'      => $template['description'],
-                    'start_date'       => $taskStart,
-                    'end_date'         => $taskEnd,
-                    'date'             => $taskDate->copy()->startOfDay(),
+                    'title' => $template['title'],
+                    'description' => $template['description'],
+                    'start_date' => $taskStart,
+                    'end_date' => $taskEnd,
+                    'date' => $taskDate->copy()->startOfDay(),
                     'task_category_id' => $category->id,
                     'task_priority_id' => $priorities->random()->id,
-                    'is_complete'      => $isPast ? (rand(1, 100) <= 85) : false,
+                    'is_complete' => $isPast ? (rand(1, 100) <= 85) : false,
                     'recurring_task_id' => null,
                 ]);
 
@@ -157,7 +157,7 @@ class TaskSeeder extends Seeder
                     if ($assigned >= $numAssign) {
                         break;
                     }
-                    if (!in_array($user->id, $taskAssignments[$idx])) {
+                    if (! in_array($user->id, $taskAssignments[$idx])) {
                         $isOwner = empty($taskAssignments[$idx]);
                         $weekTasks[$idx]->users()->attach($user->id, [
                             'is_owner' => $isOwner,

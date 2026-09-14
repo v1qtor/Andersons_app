@@ -15,9 +15,13 @@ class Unavailability extends Component
 {
     // ─── Form fields ──────────────────────────────────────────
     public string $startDate = '';
+
     public string $startTime = '';
+
     public string $endDate = '';
+
     public string $endTime = '';
+
     public string $description = '';
 
     public bool $showForm = false;
@@ -27,10 +31,12 @@ class Unavailability extends Component
 
     // ─── Delete ───────────────────────────────────────────────
     public ?int $deletingId = null;
+
     public bool $showDeleteModal = false;
 
     // ─── Filter ───────────────────────────────────────────────
     public ?int $filterUserId = null;   // null = everyone
+
     public bool $myOnly = false;        // "My Unavailabilities" shortcut
 
     private function isAdmin(): bool
@@ -82,8 +88,8 @@ class Unavailability extends Component
         $this->editingId = $id;
         $this->startDate = $period->start_date->format('Y-m-d');
         $this->startTime = $period->start_date->format('H:i');
-        $this->endDate   = $period->end_date->format('Y-m-d');
-        $this->endTime   = $period->end_date->format('H:i');
+        $this->endDate = $period->end_date->format('Y-m-d');
+        $this->endTime = $period->end_date->format('H:i');
         $this->description = $period->description ?? '';
         $this->resetValidation();
         $this->showForm = true;
@@ -104,10 +110,10 @@ class Unavailability extends Component
         $isAdmin = $this->isAdmin();
 
         $rules = [
-            'startDate'   => 'required|date',
-            'startTime'   => 'required|date_format:H:i',
-            'endDate'     => 'required|date|after_or_equal:startDate',
-            'endTime'     => 'required|date_format:H:i',
+            'startDate' => 'required|date',
+            'startTime' => 'required|date_format:H:i',
+            'endDate' => 'required|date|after_or_equal:startDate',
+            'endTime' => 'required|date_format:H:i',
             'description' => 'nullable|string|max:500',
         ];
 
@@ -118,11 +124,12 @@ class Unavailability extends Component
 
         $this->validate($rules);
 
-        $start = Carbon::parse($this->startDate . ' ' . $this->startTime);
-        $end   = Carbon::parse($this->endDate   . ' ' . $this->endTime);
+        $start = Carbon::parse($this->startDate.' '.$this->startTime);
+        $end = Carbon::parse($this->endDate.' '.$this->endTime);
 
         if ($end->lte($start)) {
             $this->addError('endTime', 'End date/time must be after start date/time.');
+
             return;
         }
 
@@ -134,18 +141,18 @@ class Unavailability extends Component
         // Task conflict check (skip for admins editing others' records)
         if ($ownerId === Auth::id() || ! $isAdmin) {
             $conflictQuery = Task::whereHas('users', function ($q) use ($ownerId) {
-                    $q->where('users.id', $ownerId);
-                })
+                $q->where('users.id', $ownerId);
+            })
                 ->where('is_complete', false)
                 ->where(function ($q) use ($start, $end) {
                     $q->where('start_date', '<', $end)
-                      ->where(function ($q2) use ($start) {
-                          $q2->where('end_date', '>', $start)
-                             ->orWhere(function ($q3) use ($start) {
-                                 $q3->whereNull('end_date')
-                                    ->whereRaw("datetime(start_date, '+1 hour') > ?", [$start->toDateTimeString()]);
-                             });
-                      });
+                        ->where(function ($q2) use ($start) {
+                            $q2->where('end_date', '>', $start)
+                                ->orWhere(function ($q3) use ($start) {
+                                    $q3->whereNull('end_date')
+                                        ->whereRaw("datetime(start_date, '+1 hour') > ?", [$start->toDateTimeString()]);
+                                });
+                        });
                 });
 
             // Exclude the period being edited from conflict check
@@ -156,7 +163,8 @@ class Unavailability extends Component
             $conflict = $conflictQuery->first();
 
             if ($conflict) {
-                $this->addError('startDate', 'Conflict: task "' . $conflict->title . '" on ' . Carbon::parse($conflict->start_date)->format('d M Y, H:i'));
+                $this->addError('startDate', 'Conflict: task "'.$conflict->title.'" on '.Carbon::parse($conflict->start_date)->format('d M Y, H:i'));
+
                 return;
             }
         }
@@ -169,17 +177,17 @@ class Unavailability extends Component
             }
 
             $period->update([
-                'start_date'  => $start,
-                'end_date'    => $end,
+                'start_date' => $start,
+                'end_date' => $end,
                 'description' => $this->description ?: null,
             ]);
 
             $this->dispatch('toast', message: 'Unavailability period updated.', type: 'success');
         } else {
             UnavailabilityPeriod::create([
-                'user_id'     => Auth::id(),
-                'start_date'  => $start,
-                'end_date'    => $end,
+                'user_id' => Auth::id(),
+                'start_date' => $start,
+                'end_date' => $end,
                 'description' => $this->description ?: null,
             ]);
 
@@ -206,6 +214,7 @@ class Unavailability extends Component
             }
             if ($period->start_date->isPast()) {
                 $this->dispatch('toast', message: 'You can only delete future unavailability periods.', type: 'error');
+
                 return;
             }
         }
@@ -272,12 +281,12 @@ class Unavailability extends Component
         $periods = $query->get();
 
         $upcoming = $periods->filter(fn ($p) => $p->end_date->isFuture() || $p->start_date->isFuture());
-        $past     = $periods->filter(fn ($p) => $p->end_date->isPast());
+        $past = $periods->filter(fn ($p) => $p->end_date->isPast());
 
         return view('livewire.unavailability', [
-            'upcoming'    => $upcoming,
-            'past'        => $past,
-            'isAdmin'     => $isAdmin,
+            'upcoming' => $upcoming,
+            'past' => $past,
+            'isAdmin' => $isAdmin,
             'filterUsers' => $filterUsers,
         ]);
     }

@@ -10,7 +10,7 @@ class GeocodingService
     /**
      * Geocode an address to coordinates using Nominatim API (OpenStreetMap)
      *
-     * @param string $address The address to geocode
+     * @param  string  $address  The address to geocode
      * @return array|null Array with 'latitude', 'longitude', 'address' or null if not found
      */
     public static function geocodeAddress(string $address): ?array
@@ -24,6 +24,7 @@ class GeocodingService
 
             if ($response->successful() && $response->json()) {
                 $result = $response->json()[0];
+
                 return [
                     'latitude' => (float) $result['lat'],
                     'longitude' => (float) $result['lon'],
@@ -31,7 +32,7 @@ class GeocodingService
                 ];
             }
         } catch (\Exception $e) {
-            Log::error('Geocoding error: ' . $e->getMessage());
+            Log::error('Geocoding error: '.$e->getMessage());
         }
 
         return null;
@@ -40,8 +41,6 @@ class GeocodingService
     /**
      * Reverse geocode coordinates to an address using Nominatim API
      *
-     * @param float $latitude
-     * @param float $longitude
      * @return string|null The address or null if not found
      */
     public static function reverseGeocode(float $latitude, float $longitude): ?string
@@ -57,7 +56,7 @@ class GeocodingService
                 return $response->json()['address']['formatted'] ?? $response->json()['display_name'] ?? null;
             }
         } catch (\Exception $e) {
-            Log::error('Reverse geocoding error: ' . $e->getMessage());
+            Log::error('Reverse geocoding error: '.$e->getMessage());
         }
 
         return null;

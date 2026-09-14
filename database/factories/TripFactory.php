@@ -2,14 +2,13 @@
 
 namespace Database\Factories;
 
-use App\Models\AttachedFile;
 use App\Models\Status;
 use App\Models\Trip;
 use App\Models\TripCategory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Trip>
+ * @extends Factory<Trip>
  */
 class TripFactory extends Factory
 {

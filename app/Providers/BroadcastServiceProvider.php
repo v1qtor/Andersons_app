@@ -38,6 +38,7 @@ class BroadcastServiceProvider extends ServiceProvider
                 'user_id' => $user?->id,
                 'authenticated' => true,
             ]);
+
             return true;
         });
     }

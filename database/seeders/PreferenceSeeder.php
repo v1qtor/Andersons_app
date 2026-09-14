@@ -26,7 +26,7 @@ class PreferenceSeeder extends Seeder
             foreach ($selected as $name) {
                 Preference::create([
                     'user_id' => $user->id,
-                    'name'    => $name,
+                    'name' => $name,
                 ]);
             }
         });

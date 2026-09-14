@@ -3,7 +3,6 @@
 namespace App\Livewire\Schedule;
 
 use App\Models\CollaborationRequest;
-use App\Models\Task;
 use Illuminate\Support\Facades\Auth;
 
 trait CollaborationSchedule

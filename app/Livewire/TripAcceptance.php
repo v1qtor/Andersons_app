@@ -8,9 +8,13 @@ use Livewire\Component;
 class TripAcceptance extends Component
 {
     public $trip;
+
     public $showModal = false;
+
     public $plusOnes = [];
+
     public $plusOneCount = 0;
+
     public $acceptTrip = false;
 
     public function mount($trip)
@@ -22,15 +26,15 @@ class TripAcceptance extends Component
     public function acceptTripWithPlusOnes()
     {
         $user = auth()->user();
-        
+
         // Attach user to trip if not already attached
-        if (!$user->trips()->where('trip_id', $this->trip->id)->exists()) {
+        if (! $user->trips()->where('trip_id', $this->trip->id)->exists()) {
             $user->trips()->attach($this->trip->id, ['is_organizer' => false]);
         }
 
         // Add plus-ones
         foreach (array_filter($this->plusOnes) as $plusOne) {
-            if (!empty($plusOne['name'])) {
+            if (! empty($plusOne['name'])) {
                 PlusOne::create([
                     'trip_id' => $this->trip->id,
                     'added_by' => $user->id,
@@ -49,11 +53,11 @@ class TripAcceptance extends Component
     public function rejectTrip()
     {
         $user = auth()->user();
-        
+
         // Detach user from trip
         if ($user->trips()->where('trip_id', $this->trip->id)->exists()) {
             $user->trips()->detach($this->trip->id);
-            
+
             // Also delete any plus-ones they added
             PlusOne::where('trip_id', $this->trip->id)
                 ->where('added_by', $user->id)

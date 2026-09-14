@@ -3,20 +3,25 @@
 namespace App\Livewire\Unavailability;
 
 use App\Models\UnavailabilityPeriod;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
-use Carbon\Carbon;
 
 // This component has been removed and is no longer in use.
 class UnavailabilityCalendar extends Component
 {
     public $showModal = false;
+
     public $editingId = null;
 
     public $startDate = '';
+
     public $startTime = '00:00';
+
     public $endDate = '';
+
     public $endTime = '23:59';
+
     public $description = '';
 
     public function getPeriodsProperty()
@@ -31,7 +36,7 @@ class UnavailabilityCalendar extends Component
     {
         $this->reset(['editingId', 'startDate', 'startTime', 'endDate', 'endTime', 'description']);
         $this->startTime = '00:00';
-        $this->endTime   = '23:59';
+        $this->endTime = '23:59';
         $this->showModal = true;
     }
 
@@ -45,40 +50,43 @@ class UnavailabilityCalendar extends Component
 
         if ($period->end_date->isPast()) {
             $this->dispatch('toast', title: 'Read-only Period', message: 'Past unavailability periods cannot be edited.', type: 'error');
+
             return;
         }
 
-        $this->editingId   = $period->id;
-        $this->startDate   = $period->start_date->format('Y-m-d');
-        $this->startTime   = $period->start_date->format('H:i');
-        $this->endDate     = $period->end_date->format('Y-m-d');
-        $this->endTime     = $period->end_date->format('H:i');
+        $this->editingId = $period->id;
+        $this->startDate = $period->start_date->format('Y-m-d');
+        $this->startTime = $period->start_date->format('H:i');
+        $this->endDate = $period->end_date->format('Y-m-d');
+        $this->endTime = $period->end_date->format('H:i');
         $this->description = $period->description ?? '';
-        $this->showModal   = true;
+        $this->showModal = true;
     }
 
     public function save()
     {
         $this->validate([
-            'startDate'   => 'required|date',
-            'startTime'   => 'required',
-            'endDate'     => 'required|date|after_or_equal:startDate',
-            'endTime'     => 'required',
+            'startDate' => 'required|date',
+            'startTime' => 'required',
+            'endDate' => 'required|date|after_or_equal:startDate',
+            'endTime' => 'required',
             'description' => 'nullable|string|max:255',
         ]);
 
-        $startDateTime = $this->startDate . ' ' . $this->startTime . ':00';
-        $endDateTime   = $this->endDate . ' ' . $this->endTime . ':00';
+        $startDateTime = $this->startDate.' '.$this->startTime.':00';
+        $endDateTime = $this->endDate.' '.$this->endTime.':00';
         $start = Carbon::parse($startDateTime);
         $end = Carbon::parse($endDateTime);
 
         if ($start->lt(now())) {
             $this->addError('startTime', 'Start date and time cannot be in the past.');
+
             return;
         }
 
         if ($end->lte($start)) {
             $this->addError('endTime', 'End date and time must be after the start date and time.');
+
             return;
         }
 
@@ -93,6 +101,7 @@ class UnavailabilityCalendar extends Component
 
         if ($duplicateQuery->exists()) {
             $this->addError('duplicate', 'this period already exist. Select a new one or change the already available one.');
+
             return;
         }
 
@@ -104,20 +113,21 @@ class UnavailabilityCalendar extends Component
 
             if ($period->end_date->isPast()) {
                 $this->dispatch('toast', title: 'Read-only Period', message: 'Past unavailability periods cannot be updated.', type: 'error');
+
                 return;
             }
 
             $period->update([
-                'start_date'  => $start,
-                'end_date'    => $end,
+                'start_date' => $start,
+                'end_date' => $end,
                 'description' => $this->description,
             ]);
             $this->dispatch('toast', title: 'Period Updated', message: 'Your unavailability period has been updated.', type: 'success');
         } else {
             UnavailabilityPeriod::create([
-                'user_id'     => Auth::id(),
-                'start_date'  => $start,
-                'end_date'    => $end,
+                'user_id' => Auth::id(),
+                'start_date' => $start,
+                'end_date' => $end,
                 'description' => $this->description,
             ]);
             $this->dispatch('toast', title: 'Period Added', message: 'Your unavailability period has been added.', type: 'success');
@@ -136,6 +146,7 @@ class UnavailabilityCalendar extends Component
 
         if ($period->end_date->isPast()) {
             $this->dispatch('toast', title: 'Read-only Period', message: 'Past unavailability periods cannot be deleted.', type: 'error');
+
             return;
         }
 
@@ -145,7 +156,7 @@ class UnavailabilityCalendar extends Component
 
     public function render()
     {
-       return view('livewire.unavailability.unavailability-calendar')
-       ->layout('components.layouts.app', ['title' => 'My Unavailability']);
+        return view('livewire.unavailability.unavailability-calendar')
+            ->layout('components.layouts.app', ['title' => 'My Unavailability']);
     }
 }

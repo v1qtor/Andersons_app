@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\Category;
 use App\Models\Receipt;
 use App\Models\User;
-use App\Models\Category;
 use Illuminate\Database\Seeder;
 
 class TestInvoicesSeeder extends Seeder
@@ -16,13 +16,13 @@ class TestInvoicesSeeder extends Seeder
             $query->where('name', 'Chef');
         })->first();
 
-        if (!$chef) {
+        if (! $chef) {
             return;
         }
 
-        $mealsCategory     = Category::firstOrCreate(['name' => 'Food & Catering']);
+        $mealsCategory = Category::firstOrCreate(['name' => 'Food & Catering']);
         $equipmentCategory = Category::firstOrCreate(['name' => 'Materials']);
-        $officeCategory    = Category::firstOrCreate(['name' => 'Cleaning Supplies']);
+        $officeCategory = Category::firstOrCreate(['name' => 'Cleaning Supplies']);
 
         // Create pending invoices
         Receipt::create([

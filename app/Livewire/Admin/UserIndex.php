@@ -2,13 +2,13 @@
 
 namespace App\Livewire\Admin;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\Role;
 
 /**
  * @deprecated This component has been replaced by AdminPanel.
@@ -23,9 +23,13 @@ class UserIndex extends Component
     public string $search = '';
 
     public bool $showConfirmModal = false;
+
     public string $pendingAction = '';
+
     public int $pendingUserId = 0;
+
     public string $confirmPassword = '';
+
     public string $passwordError = '';
 
     public function updatingSearch(): void
@@ -46,13 +50,14 @@ class UserIndex extends Component
     {
         if (! Hash::check($this->confirmPassword, Auth::user()->password)) {
             $this->passwordError = __('Incorrect password.');
+
             return;
         }
 
         match ($this->pendingAction) {
             'delete' => $this->deleteUser($this->pendingUserId),
             'toggle' => $this->toggleActive($this->pendingUserId),
-            'edit'   => $this->redirectToEdit($this->pendingUserId),
+            'edit' => $this->redirectToEdit($this->pendingUserId),
         };
 
         $this->cancelAction();
@@ -81,6 +86,7 @@ class UserIndex extends Component
             $adminCount = User::where('role_id', $adminRole->id)->count();
             if ($adminCount <= 1) {
                 session()->flash('error', __('Cannot delete the last admin user.'));
+
                 return;
             }
         }
@@ -100,6 +106,7 @@ class UserIndex extends Component
                 $activeAdminCount = User::where('role_id', $adminRole->id)->where('is_active', true)->count();
                 if ($activeAdminCount <= 1) {
                     session()->flash('error', __('Cannot deactivate the last active admin user.'));
+
                     return;
                 }
             }
@@ -115,8 +122,8 @@ class UserIndex extends Component
     {
         $users = User::with(['role'])
             ->when($this->search, function ($query) {
-                $query->where('name', 'like', '%' . $this->search . '%')
-                    ->orWhere('email', 'like', '%' . $this->search . '%');
+                $query->where('name', 'like', '%'.$this->search.'%')
+                    ->orWhere('email', 'like', '%'.$this->search.'%');
             })
             ->orderBy('name')
             ->paginate(10);
@@ -126,4 +133,3 @@ class UserIndex extends Component
         ]);
     }
 }
-

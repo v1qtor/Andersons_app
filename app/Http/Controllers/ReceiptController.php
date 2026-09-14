@@ -9,10 +9,10 @@ class ReceiptController extends Controller
 {
     public function show($path): StreamedResponse
     {
-        $fullPath = 'receipts/' . $path;
-        
+        $fullPath = 'receipts/'.$path;
+
         // Check if file exists in public storage
-        if (!Storage::disk('public')->exists($fullPath)) {
+        if (! Storage::disk('public')->exists($fullPath)) {
             abort(404, 'Receipt file not found');
         }
 
@@ -27,7 +27,7 @@ class ReceiptController extends Controller
             200,
             [
                 'Content-Type' => $mimeType,
-                'Content-Disposition' => 'inline; filename="' . basename($path) . '"',
+                'Content-Disposition' => 'inline; filename="'.basename($path).'"',
                 'Cache-Control' => 'public, max-age=3600',
             ]
         );

@@ -17,7 +17,7 @@ class Birthdate extends Model
 
     protected $casts = [
         'birthdate' => 'date',
-        'is_user'   => 'boolean',
+        'is_user' => 'boolean',
     ];
 
     public function user(): BelongsTo

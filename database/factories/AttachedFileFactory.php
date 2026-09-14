@@ -3,10 +3,11 @@
 namespace Database\Factories;
 
 use App\Models\AttachedFile;
+use App\Models\Trip;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\AttachedFile>
+ * @extends Factory<AttachedFile>
  */
 class AttachedFileFactory extends Factory
 {
@@ -15,9 +16,9 @@ class AttachedFileFactory extends Factory
     public function definition(): array
     {
         return [
-            'name'=> fake()->word(),
-            'file_path' => 'attachments/' . fake()->uuid() . '.' . fake()->fileExtension(),
-            'trip_id' => \App\Models\Trip::factory(),
+            'name' => fake()->word(),
+            'file_path' => 'attachments/'.fake()->uuid().'.'.fake()->fileExtension(),
+            'trip_id' => Trip::factory(),
         ];
     }
 }

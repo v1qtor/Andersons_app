@@ -3,15 +3,16 @@
 namespace App\Livewire\Admin;
 
 use App\Models\Birthdate;
-use App\Models\User;
-use App\Models\Role;
 use App\Models\Category;
-use App\Models\TaskCategory;
 use App\Models\Location;
+use App\Models\Role;
+use App\Models\TaskCategory;
 use App\Models\TaskPriority;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Validator;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -23,34 +24,48 @@ class AdminPanel extends Component
 
     // Tab management
     public string $activeTab = 'users';
-    
+
     // Search (per tab)
     public array $search = [];
-    
+
     // Inline editing state
     public ?int $editingId = null;
+
     public string $editingValue = '';
+
     public bool $creatingNew = false;
+
     public string $newEntityName = '';
-    
+
     // Color editing state
     public string $editingColor = '';
+
     public ?int $editingColorRoleId = null;
-    
+
     // Password confirmation modal state
     public bool $showConfirmModal = false;
+
     public string $pendingAction = '';
+
     public int $pendingUserId = 0;
+
     public int $pendingEntityId = 0;
+
     public string $confirmPassword = '';
+
     public string $passwordError = '';
 
     // Birthdate management
     public bool $showBirthdateModal = false;
+
     public ?int $editingBirthdateId = null;
+
     public string $bdName = '';
+
     public string $bdDate = '';
+
     public ?int $bdUserId = null;
+
     public string $bdNotes = '';
 
     // Tab management
@@ -108,6 +123,7 @@ class AdminPanel extends Component
             $adminCount = User::where('role_id', $adminRole->id)->count();
             if ($adminCount <= 1) {
                 $this->dispatch('toast', message: __('Cannot delete the last admin user.'), type: 'error');
+
                 return;
             }
         }
@@ -127,6 +143,7 @@ class AdminPanel extends Component
                 $activeAdminCount = User::where('role_id', $adminRole->id)->where('is_active', true)->count();
                 if ($activeAdminCount <= 1) {
                     $this->dispatch('toast', message: __('Cannot deactivate the last active admin user.'), type: 'error');
+
                     return;
                 }
             }
@@ -156,11 +173,12 @@ class AdminPanel extends Component
         ]);
 
         $modelClass = $this->getEntityModel($entityType);
-        
+
         // Check for duplicate names
         $exists = $modelClass::where('name', $this->newEntityName)->exists();
         if ($exists) {
             $this->dispatch('toast', message: __('Name already exists.'), type: 'error');
+
             return;
         }
 
@@ -169,7 +187,7 @@ class AdminPanel extends Component
         $this->confirmPassword = '';
         $this->passwordError = '';
         $this->showConfirmModal = true;
-        
+
         // Store entity type in session
         session()->put('pending_entity_type', $entityType);
     }
@@ -198,13 +216,14 @@ class AdminPanel extends Component
         ]);
 
         $modelClass = $this->getEntityModel($entityType);
-        
+
         // Check for duplicate names (excluding current entity)
         $exists = $modelClass::where('name', $this->editingValue)
             ->where('id', '!=', $id)
             ->exists();
         if ($exists) {
             $this->dispatch('toast', message: __('Name already exists.'), type: 'error');
+
             return;
         }
 
@@ -214,7 +233,7 @@ class AdminPanel extends Component
         $this->confirmPassword = '';
         $this->passwordError = '';
         $this->showConfirmModal = true;
-        
+
         // Store entity type in session
         session()->put('pending_entity_type', $entityType);
     }
@@ -230,20 +249,21 @@ class AdminPanel extends Component
     {
         // Validate relationships before showing password modal
         $error = $this->validateRelationships($entityType, $id);
-        
+
         if ($error) {
             // If relationships exist, display error toast message with count
             $this->dispatch('toast', message: __($error), type: 'error');
+
             return;
         }
-        
+
         // If no relationships, show password confirmation modal
         $this->pendingAction = 'delete_entity';
         $this->pendingEntityId = $id;
         $this->confirmPassword = '';
         $this->passwordError = '';
         $this->showConfirmModal = true;
-        
+
         // Store entity type in session for executeDelete
         session()->put('pending_entity_type', $entityType);
     }
@@ -253,6 +273,7 @@ class AdminPanel extends Component
         // Verify password
         if (! Hash::check($this->confirmPassword, Auth::user()->password)) {
             $this->passwordError = __('Incorrect password.');
+
             return;
         }
 
@@ -279,14 +300,15 @@ class AdminPanel extends Component
     private function executeCreateEntity(): void
     {
         $entityType = session()->get('pending_entity_type');
-        
-        if (!$entityType) {
+
+        if (! $entityType) {
             $this->dispatch('toast', message: __('Invalid entity type.'), type: 'error');
+
             return;
         }
-        
+
         $modelClass = $this->getEntityModel($entityType);
-        
+
         // Create new entity record
         $modelClass::create([
             'name' => $this->newEntityName,
@@ -296,17 +318,17 @@ class AdminPanel extends Component
         $entityLabel = str_replace('_', ' ', $entityType);
         // Remove trailing 's' or 'ies' and make singular
         if (str_ends_with($entityLabel, 'ies')) {
-            $entityLabel = substr($entityLabel, 0, -3) . 'y';
+            $entityLabel = substr($entityLabel, 0, -3).'y';
         } else {
             $entityLabel = rtrim($entityLabel, 's');
         }
         $entityLabel = ucfirst($entityLabel); // Capitalize
-        $this->dispatch('toast', message: __($entityLabel . ' created successfully.'), type: 'success');
+        $this->dispatch('toast', message: __($entityLabel.' created successfully.'), type: 'success');
 
         // Reset creation state
         $this->creatingNew = false;
         $this->newEntityName = '';
-        
+
         // Clean up session
         session()->forget('pending_entity_type');
     }
@@ -314,15 +336,16 @@ class AdminPanel extends Component
     private function executeEditEntity(): void
     {
         $entityType = session()->get('pending_entity_type');
-        
-        if (!$entityType) {
+
+        if (! $entityType) {
             $this->dispatch('toast', message: __('Invalid entity type.'), type: 'error');
+
             return;
         }
-        
+
         $modelClass = $this->getEntityModel($entityType);
         $entity = $modelClass::findOrFail($this->pendingEntityId);
-        
+
         // Update entity record
         $entity->update([
             'name' => $this->editingValue,
@@ -332,16 +355,16 @@ class AdminPanel extends Component
         $entityLabel = str_replace('_', ' ', $entityType);
         // Remove trailing 's' or 'ies' and make singular
         if (str_ends_with($entityLabel, 'ies')) {
-            $entityLabel = substr($entityLabel, 0, -3) . 'y';
+            $entityLabel = substr($entityLabel, 0, -3).'y';
         } else {
             $entityLabel = rtrim($entityLabel, 's');
         }
         $entityLabel = ucfirst($entityLabel); // Capitalize
-        $this->dispatch('toast', message: __($entityLabel . ' updated successfully.'), type: 'success');
+        $this->dispatch('toast', message: __($entityLabel.' updated successfully.'), type: 'success');
 
         // Reset editing state
         $this->cancelEditing();
-        
+
         // Clean up session
         session()->forget('pending_entity_type');
     }
@@ -349,34 +372,36 @@ class AdminPanel extends Component
     private function deleteEntity(): void
     {
         $entityType = session()->get('pending_entity_type');
-        
-        if (!$entityType) {
+
+        if (! $entityType) {
             $this->dispatch('toast', message: __('Invalid entity type.'), type: 'error');
+
             return;
         }
-        
+
         $modelClass = $this->getEntityModel($entityType);
         $entity = $modelClass::find($this->pendingEntityId);
-        
-        if (!$entity) {
+
+        if (! $entity) {
             $this->dispatch('toast', message: __('Entity not found.'), type: 'error');
+
             return;
         }
-        
+
         // Delete the entity
         $entity->delete();
-        
+
         // Display success toast message
         $entityLabel = str_replace('_', ' ', $entityType);
         // Remove trailing 's' or 'ies' and make singular
         if (str_ends_with($entityLabel, 'ies')) {
-            $entityLabel = substr($entityLabel, 0, -3) . 'y';
+            $entityLabel = substr($entityLabel, 0, -3).'y';
         } else {
             $entityLabel = rtrim($entityLabel, 's');
         }
         $entityLabel = ucfirst($entityLabel); // Capitalize
-        $this->dispatch('toast', message: __($entityLabel . ' deleted successfully.'), type: 'success');
-        
+        $this->dispatch('toast', message: __($entityLabel.' deleted successfully.'), type: 'success');
+
         // Clean up session
         session()->forget('pending_entity_type');
     }
@@ -385,6 +410,7 @@ class AdminPanel extends Component
     private function getEntityQuery(string $entityType): Builder
     {
         $model = $this->getEntityModel($entityType);
+
         return $model::query();
     }
 
@@ -414,23 +440,23 @@ class AdminPanel extends Component
     {
         $modelClass = $this->getEntityModel($entityType);
         $model = $modelClass::find($id);
-        
-        if (!$model) {
-            return "Entity not found";
+
+        if (! $model) {
+            return 'Entity not found';
         }
-        
+
         $relationshipName = $this->getRelationshipName($entityType);
         $count = $model->$relationshipName()->count();
-        
+
         if ($count > 0) {
             $entityLabel = str_replace('_', ' ', $entityType);
             $entityLabel = rtrim($entityLabel, 's'); // Remove trailing 's' for singular form
-            
-            return "Cannot delete: {$count} " . 
-                   str($relationshipName)->plural() . 
-                   " use this " . $entityLabel;
+
+            return "Cannot delete: {$count} ".
+                   str($relationshipName)->plural().
+                   ' use this '.$entityLabel;
         }
-        
+
         return null;
     }
 
@@ -462,7 +488,7 @@ class AdminPanel extends Component
     private function executeSaveColor(): void
     {
         $role = Role::findOrFail($this->pendingEntityId);
-        
+
         // Update Role record with new color
         $role->update([
             'color' => $this->editingColor,
@@ -507,7 +533,7 @@ class AdminPanel extends Component
 
     public function saveBirthdate(): void
     {
-        $validated = \Illuminate\Support\Facades\Validator::make([
+        $validated = Validator::make([
             'bdName' => $this->bdName,
             'bdDate' => $this->bdDate,
         ], [
@@ -516,10 +542,10 @@ class AdminPanel extends Component
         ])->validate();
 
         $data = [
-            'name'      => $this->bdName,
+            'name' => $this->bdName,
             'birthdate' => $this->bdDate,
-            'user_id'   => $this->bdUserId ?: null,
-            'notes'     => $this->bdNotes ?: null,
+            'user_id' => $this->bdUserId ?: null,
+            'notes' => $this->bdNotes ?: null,
         ];
 
         if ($this->editingBirthdateId) {
@@ -550,50 +576,50 @@ class AdminPanel extends Component
     {
         $users = User::with(['role'])
             ->when($this->search['users'] ?? '', function ($query, $searchTerm) {
-                $query->where('name', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('email', 'like', '%' . $searchTerm . '%');
+                $query->where('name', 'like', '%'.$searchTerm.'%')
+                    ->orWhere('email', 'like', '%'.$searchTerm.'%');
             })
             ->orderBy('name')
             ->paginate(10);
 
         $categories = Category::query()
             ->when($this->search['categories'] ?? '', function ($query, $searchTerm) {
-                $query->where('name', 'like', '%' . $searchTerm . '%');
+                $query->where('name', 'like', '%'.$searchTerm.'%');
             })
             ->orderBy('name')
             ->paginate(10);
 
         $taskCategories = TaskCategory::query()
             ->when($this->search['task_categories'] ?? '', function ($query, $searchTerm) {
-                $query->where('name', 'like', '%' . $searchTerm . '%');
+                $query->where('name', 'like', '%'.$searchTerm.'%');
             })
             ->orderBy('name')
             ->paginate(10);
 
         $locations = Location::query()
             ->when($this->search['locations'] ?? '', function ($query, $searchTerm) {
-                $query->where('name', 'like', '%' . $searchTerm . '%');
+                $query->where('name', 'like', '%'.$searchTerm.'%');
             })
             ->orderBy('name')
             ->paginate(10);
 
         $taskPriorities = TaskPriority::query()
             ->when($this->search['task_priorities'] ?? '', function ($query, $searchTerm) {
-                $query->where('name', 'like', '%' . $searchTerm . '%');
+                $query->where('name', 'like', '%'.$searchTerm.'%');
             })
             ->orderBy('name')
             ->paginate(10);
 
         $roles = Role::query()
             ->when($this->search['role_colors'] ?? '', function ($query, $searchTerm) {
-                $query->where('name', 'like', '%' . $searchTerm . '%');
+                $query->where('name', 'like', '%'.$searchTerm.'%');
             })
             ->orderBy('name')
             ->get();
 
         $birthdates = Birthdate::with('user')
             ->when($this->search['birthdates'] ?? '', function ($query, $searchTerm) {
-                $query->where('name', 'like', '%' . $searchTerm . '%');
+                $query->where('name', 'like', '%'.$searchTerm.'%');
             })
             ->orderBy('birthdate')
             ->get();

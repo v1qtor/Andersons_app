@@ -20,13 +20,21 @@ class CheckpointManager extends Component
     public string $search = '';
 
     public bool $showModal = false;
+
     public ?int $checkpointId = null;
+
     public string $location = '';
+
     public string $description = '';
+
     public string $address = '';
+
     public ?float $latitude = null;
+
     public ?float $longitude = null;
+
     public ?int $folderId = null;
+
     public string $newFolderName = '';
 
     public function openCreate(): void
@@ -65,6 +73,7 @@ class CheckpointManager extends Component
             if ($address === '') {
                 $this->latitude = null;
                 $this->longitude = null;
+
                 return;
             }
 
@@ -125,7 +134,7 @@ class CheckpointManager extends Component
     {
         return Checkpoint::with(['user', 'trips', 'folder'])
             ->when($this->search !== '', function ($query) {
-                $term = '%' . $this->search . '%';
+                $term = '%'.$this->search.'%';
                 $query->where(fn ($q) => $q->where('location', 'like', $term)
                     ->orWhere('description', 'like', $term)
                     ->orWhereHas('folder', fn ($f) => $f->where('name', 'like', $term)));

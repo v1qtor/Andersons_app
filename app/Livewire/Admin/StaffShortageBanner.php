@@ -2,15 +2,17 @@
 
 namespace App\Livewire\Admin;
 
-use Livewire\Component;
 use App\Models\UnavailabilityPeriod;
 use App\Models\User;
 use Carbon\Carbon;
+use Livewire\Component;
 
 class StaffShortageBanner extends Component
 {
     public int $count = 0;
+
     public array $names = [];
+
     public bool $visible = true;
 
     public function mount()
@@ -41,7 +43,7 @@ class StaffShortageBanner extends Component
 
         // Only consider users who have the Staff role
         $staffNames = User::whereIn('id', $userIds)
-            ->whereHas('role', fn($q) => $q->where('name', 'Staff'))
+            ->whereHas('role', fn ($q) => $q->where('name', 'Staff'))
             ->pluck('name')
             ->toArray();
 
@@ -59,6 +61,7 @@ class StaffShortageBanner extends Component
     public function render()
     {
         $this->loadData();
+
         return view('livewire.admin.staff-shortage-banner');
     }
 }

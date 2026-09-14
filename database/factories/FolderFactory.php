@@ -6,7 +6,7 @@ use App\Models\Folder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Folder>
+ * @extends Factory<Folder>
  */
 class FolderFactory extends Factory
 {
@@ -15,7 +15,7 @@ class FolderFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->unique()->word() . ' Folder',
+            'name' => fake()->unique()->word().' Folder',
         ];
     }
 }

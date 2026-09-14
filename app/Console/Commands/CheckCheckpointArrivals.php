@@ -9,6 +9,7 @@ use Illuminate\Support\Carbon;
 class CheckCheckpointArrivals extends Command
 {
     protected $signature = 'checkpoints:check-arrivals';
+
     protected $description = 'Check for checkpoints where one person hasn\'t arrived after 2 hours';
 
     public function handle()
@@ -45,7 +46,7 @@ class CheckCheckpointArrivals extends Command
                     foreach ($unconfirmedUsers as $user) {
                         $user->notifications()->create([
                             'title' => 'Checkpoint Check-in Alert',
-                            'message' => 'Everyone has reached "' . $checkpoint->location . '" except you. Please confirm when you arrive.',
+                            'message' => 'Everyone has reached "'.$checkpoint->location.'" except you. Please confirm when you arrive.',
                             'type' => 'warning',
                             'trip_id' => $trip->id,
                             'action_url' => route('trips.index'),

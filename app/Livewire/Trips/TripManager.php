@@ -20,6 +20,7 @@ class TripManager extends Component
     use WithPagination;
 
     public string $search = '';
+
     public string $statusFilter = 'all';
 
     public function updatingSearch(): void
@@ -57,7 +58,7 @@ class TripManager extends Component
         }
 
         if ($this->search !== '') {
-            $term = '%' . $this->search . '%';
+            $term = '%'.$this->search.'%';
             $query->where(fn ($q) => $q->where('name', 'like', $term)->orWhere('description', 'like', $term));
         }
 

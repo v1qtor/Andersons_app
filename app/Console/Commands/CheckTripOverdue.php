@@ -4,11 +4,11 @@ namespace App\Console\Commands;
 
 use App\Models\Trip;
 use Illuminate\Console\Command;
-use Illuminate\Support\Carbon;
 
 class CheckTripOverdue extends Command
 {
     protected $signature = 'trips:check-overdue';
+
     protected $description = 'Send notifications when a trip is overdue (buffer alert passed)';
 
     public function handle()
@@ -29,8 +29,8 @@ class CheckTripOverdue extends Command
             // Notify all household members
             foreach ($trip->users as $user) {
                 $user->notifications()->create([
-                    'title' => 'Trip Overdue Alert: ' . $trip->name,
-                    'message' => 'The trip "' . $trip->name . '" has not returned by the expected time. Please check if everyone is accounted for.',
+                    'title' => 'Trip Overdue Alert: '.$trip->name,
+                    'message' => 'The trip "'.$trip->name.'" has not returned by the expected time. Please check if everyone is accounted for.',
                     'type' => 'error',
                     'trip_id' => $trip->id,
                     'action_url' => route('trips.index'),

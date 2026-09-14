@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Api\NotificationController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // API notifications route (supports both session and token auth)

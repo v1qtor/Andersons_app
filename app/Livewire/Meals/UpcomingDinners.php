@@ -55,6 +55,7 @@ class UpcomingDinners extends Component
 
         if (! $plannedMeal) {
             $this->dispatch('toast', message: 'Meal plan not found.', type: 'error');
+
             return;
         }
 
@@ -83,6 +84,7 @@ class UpcomingDinners extends Component
 
         if (! $plannedMeal) {
             $this->dispatch('toast', message: 'Meal plan not found.', type: 'error');
+
             return;
         }
 
@@ -106,6 +108,7 @@ class UpcomingDinners extends Component
 
         if (! $plannedMeal) {
             $this->dispatch('toast', message: 'Meal plan not found.', type: 'error');
+
             return;
         }
 
@@ -114,6 +117,7 @@ class UpcomingDinners extends Component
         if ($isSubscribed) {
             $plannedMeal->subscribers()->updateExistingPivot($user->id, ['confirmed' => false]);
             $this->dispatch('toast', message: 'You cancelled your dinner participation.', type: 'success');
+
             return;
         }
 
@@ -131,6 +135,7 @@ class UpcomingDinners extends Component
 
         if (! $plannedMeal) {
             $this->dispatch('toast', message: 'Meal plan not found.', type: 'error');
+
             return;
         }
 
@@ -139,6 +144,7 @@ class UpcomingDinners extends Component
 
         if (! $isJoined) {
             $this->dispatch('toast', message: 'Join the dinner first before adding a guest.', type: 'error');
+
             return;
         }
 
@@ -184,6 +190,7 @@ class UpcomingDinners extends Component
 
         if (! $plannedMeal) {
             $this->dispatch('toast', message: 'Meal plan not found.', type: 'error');
+
             return;
         }
 
@@ -191,6 +198,7 @@ class UpcomingDinners extends Component
 
         if (! $isSubscribed) {
             $this->dispatch('toast', message: 'Join the dinner first before adding a guest.', type: 'error');
+
             return;
         }
 
@@ -221,10 +229,10 @@ class UpcomingDinners extends Component
 
             // New row: create the guest record for the current user.
             $created = MealGuest::create([
-                'planned_meal_id'    => $plannedMeal->id,
+                'planned_meal_id' => $plannedMeal->id,
                 'invited_by_user_id' => $user->id,
-                'name'               => $name,
-                'note'               => $note,
+                'name' => $name,
+                'note' => $note,
             ]);
             $keptIds[] = $created->id;
         }
@@ -255,6 +263,7 @@ class UpcomingDinners extends Component
 
         if ($deleted) {
             $this->dispatch('toast', message: 'Guest removed.', type: 'success');
+
             return;
         }
 
@@ -293,15 +302,15 @@ class UpcomingDinners extends Component
             $dinnerPlans->getCollection()->each(function ($dinner) use ($user) {
                 $sub = $dinner->subscribers->firstWhere('id', $user->id);
                 $dinner->mySubscription = $sub;
-                $dinner->isJoined       = (bool) ($sub?->pivot?->confirmed);
-                $dinner->myGuests       = $dinner->guests->where('invited_by_user_id', $user->id)->values();
-                $dinner->hasGuest       = $dinner->myGuests->isNotEmpty();
+                $dinner->isJoined = (bool) ($sub?->pivot?->confirmed);
+                $dinner->myGuests = $dinner->guests->where('invited_by_user_id', $user->id)->values();
+                $dinner->hasGuest = $dinner->myGuests->isNotEmpty();
             });
         }
 
         return view('livewire.meals.upcoming-dinners', [
             'dinnerPlans' => $dinnerPlans,
-            'isChef'      => $isChef,
+            'isChef' => $isChef,
         ]);
     }
 }

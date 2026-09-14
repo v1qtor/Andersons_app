@@ -3,9 +3,9 @@
 namespace App\Livewire;
 
 use App\Models\PlannedMeal;
-use App\Models\UnavailabilityPeriod;
 use App\Models\Task;
-use App\Models\Trip;
+use App\Models\TaskPriority;
+use App\Models\UnavailabilityPeriod;
 use Illuminate\Support\Carbon;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -15,6 +15,7 @@ class Dashboard extends Component
     use WithPagination;
 
     public $priorityFilter = '';
+
     public $timeFilter = '';
 
     public function dashboardUpcomingAvailability()
@@ -108,8 +109,8 @@ class Dashboard extends Component
             'totalDinnerCount' => $totalDinnerPlans,
             'upcomingUnavailability' => $upcomingAvailability,
             'upcomingUnavailabilityCount' => $upcomingAvailability->count(),
-            'priorities' => \App\Models\TaskPriority::all(),
-            'canManageTasks' => !$isFamilyView,
+            'priorities' => TaskPriority::all(),
+            'canManageTasks' => ! $isFamilyView,
             'isAdmin' => $isAdmin,
         ])->layout('components.layouts.app');
     }

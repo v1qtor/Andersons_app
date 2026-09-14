@@ -2,8 +2,9 @@
 
 namespace App\Livewire;
 
-use App\Models\Receipt;
+use App\Events\NotificationCreated;
 use App\Models\Category;
+use App\Models\Receipt;
 use App\Models\UserNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -18,12 +19,19 @@ class InvoiceForm extends Component
     use WithFileUploads;
 
     public ?Receipt $invoice = null;
+
     public $receiptFile;
+
     public string $billDate = '';
+
     public string $category = '';
+
     public string $customCategory = '';
+
     public string $description = '';
+
     public string $invoiceName = '';
+
     public string $amount = '';
 
     public function mount(?int $id = null)
@@ -32,7 +40,7 @@ class InvoiceForm extends Component
 
         if ($id) {
             $invoice = Receipt::find($id);
-            if (!$invoice) {
+            if (! $invoice) {
                 abort(404, 'Invoice not found');
             }
             $this->invoice = $invoice;
@@ -66,16 +74,17 @@ class InvoiceForm extends Component
     {
         // Convert British format to dot-decimal for storage (e.g., "1,234.56" -> 1234.56)
         $amountValue = str_replace(',', '', $this->amount);
-        
+
         // Validate amount is numeric
-        if (!is_numeric($amountValue) || floatval($amountValue) < 0.01 || floatval($amountValue) > 999999.99) {
+        if (! is_numeric($amountValue) || floatval($amountValue) < 0.01 || floatval($amountValue) > 999999.99) {
             $this->addError('amount', 'The amount must be between 0.01 and 999,999.99');
+
             return;
         }
-        
+
         // When creating, receipt is required. When editing, receipt is optional (can keep existing)
         $receiptValidation = $this->invoice ? 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120' : 'required|file|mimes:pdf,jpg,jpeg,png|max:5120';
-        
+
         $this->validate([
             'receiptFile' => $receiptValidation,
             'billDate' => 'required|date|before_or_equal:today',
@@ -86,9 +95,10 @@ class InvoiceForm extends Component
 
         // Get the "Other" category ID for custom categories
         $otherCategory = Category::where('name', 'Other')->first();
-        
-        if ($this->category === 'other' && !$otherCategory) {
+
+        if ($this->category === 'other' && ! $otherCategory) {
             $this->addError('category', 'Other category not found in system.');
+
             return;
         }
 
@@ -112,6 +122,7 @@ class InvoiceForm extends Component
             $user = Auth::user();
             if ($user->cannot('update', $this->invoice)) {
                 session()->flash('error', 'Cannot modify a paid invoice.');
+
                 return;
             }
             $isAdmin = $user->isHouseholdAdmin();
@@ -131,12 +142,12 @@ class InvoiceForm extends Component
                     'user_id' => $this->invoice->user_id,
                     'from_user_id' => $user->id,
                     'title' => 'Invoice Modified',
-                    'message' => $user->name . ' updated your invoice for £' . number_format($this->invoice->amount, 2),
+                    'message' => $user->name.' updated your invoice for £'.number_format($this->invoice->amount, 2),
                     'type' => 'invoice_changed',
                     'action_url' => '/invoices',
                 ]);
 
-                broadcast(new \App\Events\NotificationCreated($notification));
+                broadcast(new NotificationCreated($notification));
             }
 
             session()->flash('message', 'Invoice updated successfully.');
@@ -182,7 +193,7 @@ class InvoiceForm extends Component
             ->where('notification_type_id', 3) // receiptApprovals = id 3
             ->first();
 
-        if (!$setting) {
+        if (! $setting) {
             return true; // Default to enabled if not set
         }
 

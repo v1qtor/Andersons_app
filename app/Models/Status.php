@@ -11,7 +11,7 @@ class Status extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'type'
+        'name', 'type',
     ];
 
     public function trips(): HasMany

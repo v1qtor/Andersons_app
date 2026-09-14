@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Trips\TripManager;
+use App\Models\Checkpoint;
 use App\Models\Role;
 use App\Models\Status;
 use App\Models\TripCategory;
@@ -40,7 +41,7 @@ test('any authenticated user can view the trips page', function () {
 
 test('a trip and its checkpoints render on the full page', function () {
     $trip = makeTrip(['name' => 'Rendered Trip']);
-    $checkpoint = \App\Models\Checkpoint::factory()->create(['location' => 'Rendered Checkpoint']);
+    $checkpoint = Checkpoint::factory()->create(['location' => 'Rendered Checkpoint']);
     $trip->checkpoints()->attach($checkpoint->id, ['order' => 1]);
 
     $this->actingAs($this->staff)

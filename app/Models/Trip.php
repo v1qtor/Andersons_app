@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -78,8 +79,8 @@ class Trip extends Model
     public static function resolveStatusFor($start, $end): ?Status
     {
         $now = now();
-        $start = \Carbon\Carbon::parse($start);
-        $end = \Carbon\Carbon::parse($end);
+        $start = Carbon::parse($start);
+        $end = Carbon::parse($end);
 
         $name = match (true) {
             $now->lt($start) => 'upcoming',

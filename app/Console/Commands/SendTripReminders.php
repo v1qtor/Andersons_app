@@ -3,13 +3,13 @@
 namespace App\Console\Commands;
 
 use App\Models\Trip;
-use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 
 class SendTripReminders extends Command
 {
     protected $signature = 'trips:send-reminders';
+
     protected $description = 'Send notifications for trips starting tomorrow';
 
     public function handle()
@@ -25,8 +25,8 @@ class SendTripReminders extends Command
             foreach ($trip->users as $user) {
                 // Create notification
                 $user->notifications()->create([
-                    'title' => 'Trip Reminder: ' . $trip->name,
-                    'message' => 'Your trip "' . $trip->name . '" is starting tomorrow!',
+                    'title' => 'Trip Reminder: '.$trip->name,
+                    'message' => 'Your trip "'.$trip->name.'" is starting tomorrow!',
                     'type' => 'info',
                     'trip_id' => $trip->id,
                     'action_url' => route('trips.index'),

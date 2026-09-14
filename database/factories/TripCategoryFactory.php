@@ -6,7 +6,7 @@ use App\Models\TripCategory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\TripCategory>
+ * @extends Factory<TripCategory>
  */
 class TripCategoryFactory extends Factory
 {

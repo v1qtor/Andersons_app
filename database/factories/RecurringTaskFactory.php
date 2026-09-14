@@ -7,7 +7,7 @@ use App\Models\RepeatabilityType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\RecurringTask>
+ * @extends Factory<RecurringTask>
  */
 class RecurringTaskFactory extends Factory
 {

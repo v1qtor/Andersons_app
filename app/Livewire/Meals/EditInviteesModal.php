@@ -28,7 +28,9 @@ class EditInviteesModal extends Component
     // The meal currently being edited and the labels shown in the
     // popup header (filled when the popup opens).
     public ?int $mealId = null;
+
     public string $mealName = '';
+
     public string $mealDateTime = '';
 
     // Ids of users currently selected in the picker.
@@ -52,18 +54,18 @@ class EditInviteesModal extends Component
             return;
         }
 
-        $this->mealId       = $meal->id;
-        $this->mealName     = $meal->meal?->name ?? __('Unnamed Meal');
-        $this->mealDateTime = $meal->date_time->translatedFormat('l, d F Y') . ' ' . __('at') . ' ' . $meal->date_time->format('H:i');
-        $this->invitees     = $meal->subscribers->pluck('id')->map(fn ($id) => (int) $id)->all();
-        $this->showModal    = true;
+        $this->mealId = $meal->id;
+        $this->mealName = $meal->meal?->name ?? __('Unnamed Meal');
+        $this->mealDateTime = $meal->date_time->translatedFormat('l, d F Y').' '.__('at').' '.$meal->date_time->format('H:i');
+        $this->invitees = $meal->subscribers->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $this->showModal = true;
     }
 
     // Validation rules: the picker must contain real user ids.
     public function rules(): array
     {
         return [
-            'invitees'   => ['array'],
+            'invitees' => ['array'],
             'invitees.*' => ['exists:users,id'],
         ];
     }
@@ -90,9 +92,9 @@ class EditInviteesModal extends Component
 
         // Compare the saved attendees with the freshly chosen ones.
         $current = $meal->subscribers()->pluck('users.id')->map(fn ($id) => (int) $id)->all();
-        $staged  = array_map('intval', $this->invitees);
+        $staged = array_map('intval', $this->invitees);
 
-        $toAdd    = array_values(array_diff($staged, $current));
+        $toAdd = array_values(array_diff($staged, $current));
         $toRemove = array_values(array_diff($current, $staged));
 
         // Drop anyone the manager removed from the picker.
@@ -112,12 +114,12 @@ class EditInviteesModal extends Component
                 $invitee = User::find($userId);
                 if ($invitee && $this->userHasMealNotificationsEnabled($invitee)) {
                     $notification = UserNotification::create([
-                        'user_id'      => $userId,
+                        'user_id' => $userId,
                         'from_user_id' => auth()->id(),
-                        'title'        => 'You\'re Invited to a Meal',
-                        'message'      => 'You\'ve been invited to ' . ($meal->meal?->name ?? 'a meal') . ' on ' . $meal->date_time->format('M d, H:i'),
-                        'type'         => 'meal_assignment',
-                        'action_url'   => '/meals',
+                        'title' => 'You\'re Invited to a Meal',
+                        'message' => 'You\'ve been invited to '.($meal->meal?->name ?? 'a meal').' on '.$meal->date_time->format('M d, H:i'),
+                        'type' => 'meal_assignment',
+                        'action_url' => '/meals',
                     ]);
 
                     broadcast(new NotificationCreated($notification));

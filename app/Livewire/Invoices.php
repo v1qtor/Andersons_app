@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Events\NotificationCreated;
 use App\Models\Receipt;
 use App\Models\UserNotification;
 use Illuminate\Support\Facades\Auth;
@@ -15,11 +16,17 @@ class Invoices extends Component
     use WithPagination;
 
     public string $filterStatus = '';
+
     public string $filterDate = '';
+
     public string $searchName = '';
+
     public ?int $viewInvoiceId = null;
+
     public ?int $deleteInvoiceId = null;
+
     public ?int $updateStatusInvoiceId = null;
+
     public ?int $showIbanInvoiceId = null;
 
     public function mount()
@@ -57,7 +64,7 @@ class Invoices extends Component
         $isAdmin = $this->isAdmin();
 
         // Admin/TheAndersons see all invoices, others see only their own
-        $query = $isAdmin 
+        $query = $isAdmin
             ? Receipt::with(['category', 'user'])
             : Receipt::where('user_id', $user->id)->with(['category', 'user']);
 
@@ -71,7 +78,7 @@ class Invoices extends Component
 
         if ($isAdmin && $this->searchName) {
             $query->whereHas('user', function ($q) {
-                $q->where('name', 'like', '%' . $this->searchName . '%');
+                $q->where('name', 'like', '%'.$this->searchName.'%');
             });
         }
 
@@ -97,7 +104,7 @@ class Invoices extends Component
     public function deleteInvoice($invoiceId)
     {
         $invoice = Receipt::find($invoiceId);
-        if (!$invoice) {
+        if (! $invoice) {
             abort(404, 'Invoice not found');
         }
 
@@ -108,6 +115,7 @@ class Invoices extends Component
         if (Auth::user()->cannot('delete', $invoice)) {
             session()->flash('error', 'Cannot delete a paid invoice.');
             $this->deleteInvoiceId = null;
+
             return;
         }
 
@@ -145,7 +153,7 @@ class Invoices extends Component
     public function updateInvoiceStatus($invoiceId)
     {
         $invoice = Receipt::find($invoiceId);
-        if (!$invoice) {
+        if (! $invoice) {
             abort(404, 'Invoice not found');
         }
 
@@ -160,12 +168,12 @@ class Invoices extends Component
                 'user_id' => $invoice->user->id,
                 'from_user_id' => $admin->id,
                 'title' => 'Invoice Approved',
-                'message' => $admin->name . ' approved your invoice for £' . number_format($invoice->amount, 2),
+                'message' => $admin->name.' approved your invoice for £'.number_format($invoice->amount, 2),
                 'type' => 'invoice_paid',
                 'action_url' => '/invoices',
             ]);
 
-            broadcast(new \App\Events\NotificationCreated($notification));
+            broadcast(new NotificationCreated($notification));
         }
 
         session()->flash('message', 'Invoice marked as paid successfully.');
@@ -181,7 +189,7 @@ class Invoices extends Component
             ->where('notification_type_id', 3) // receiptApprovals = id 3
             ->first();
 
-        if (!$setting) {
+        if (! $setting) {
             return true; // Default to enabled if not set
         }
 
@@ -220,7 +228,7 @@ class Invoices extends Component
         $user = Auth::user();
         $isAdmin = $this->isAdmin();
 
-        $query = $isAdmin 
+        $query = $isAdmin
             ? Receipt::query()
             : Receipt::where('user_id', $user->id);
 
@@ -234,7 +242,7 @@ class Invoices extends Component
 
         if ($isAdmin && $this->searchName) {
             $query->whereHas('user', function ($q) {
-                $q->where('name', 'like', '%' . $this->searchName . '%');
+                $q->where('name', 'like', '%'.$this->searchName.'%');
             });
         }
 
@@ -255,21 +263,21 @@ class Invoices extends Component
         $invoices = $this->getInvoices();
         $totals = $this->getInvoiceTotals();
         $viewInvoice = $this->viewInvoiceId ? Receipt::find($this->viewInvoiceId) : null;
-        
+
         // Calculate this month's paid total
         $now = now();
         $isAdmin = $this->isAdmin();
-        
+
         // Use date comparison instead of datetime to avoid timezone issues
         $paidQuery = Receipt::whereYear('paid_date', $now->year)
             ->whereMonth('paid_date', $now->month)
             ->where('is_paid', true);
-        
+
         // Non-admin users only see their own invoices
-        if (!$isAdmin) {
+        if (! $isAdmin) {
             $paidQuery->where('user_id', $user->id);
         }
-        
+
         $thisMonthPaidTotal = $paidQuery->sum('amount');
 
         return view('livewire.invoices', [

@@ -11,9 +11,13 @@ trait PrintSchedule
 {
     // ─── Print Properties ─────────────────────────────────────
     public bool $showPrintModal = false;
+
     public string $printScope = 'allTasks'; // allTasks, myTasks
+
     public string $printPeriod = 'weekly';  // daily, weekly, monthly, custom
+
     public string $printCustomStart = '';
+
     public string $printCustomEnd = '';
 
     // ─── Print Methods ─────────────────────────────────────────
@@ -46,15 +50,15 @@ trait PrintSchedule
         if ($this->printPeriod === 'custom') {
             if (! $this->printCustomStart || ! $this->printCustomEnd) {
                 return [
-                    'tasks'      => collect(),
+                    'tasks' => collect(),
                     'rangeStart' => null,
-                    'rangeEnd'   => null,
-                    'scope'      => $this->printScope,
-                    'period'     => 'custom',
+                    'rangeEnd' => null,
+                    'scope' => $this->printScope,
+                    'period' => 'custom',
                 ];
             }
             $rangeStart = Carbon::parse($this->printCustomStart)->startOfDay();
-            $rangeEnd   = Carbon::parse($this->printCustomEnd)->endOfDay();
+            $rangeEnd = Carbon::parse($this->printCustomEnd)->endOfDay();
         } else {
             [$rangeStart, $rangeEnd] = match ($this->printPeriod) {
                 'daily' => [
@@ -92,11 +96,11 @@ trait PrintSchedule
         $tasks = $query->orderBy('start_date')->get();
 
         return [
-            'tasks'      => $tasks,
+            'tasks' => $tasks,
             'rangeStart' => $rangeStart,
-            'rangeEnd'   => $rangeEnd,
-            'scope'      => $this->printScope,
-            'period'     => $this->printPeriod,
+            'rangeEnd' => $rangeEnd,
+            'scope' => $this->printScope,
+            'period' => $this->printPeriod,
         ];
     }
 }

@@ -12,12 +12,19 @@ use Livewire\Component;
 class UserCreate extends Component
 {
     public string $name = '';
+
     public string $email = '';
+
     public string $password = '';
+
     public string $password_confirmation = '';
+
     public string $iban = '';
+
     public string $phone_number = '';
+
     public ?int $role_id = null;
+
     public string $birthdate = '';
 
     public function rules(): array
@@ -53,4 +60,3 @@ class UserCreate extends Component
         ]);
     }
 }
-

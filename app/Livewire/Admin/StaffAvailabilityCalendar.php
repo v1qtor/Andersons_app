@@ -2,28 +2,35 @@
 
 namespace App\Livewire\Admin;
 
+use App\Events\NotificationCreated;
 use App\Models\UnavailabilityPeriod;
 use App\Models\User;
 use App\Models\UserNotification;
-use App\Events\NotificationCreated;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
-use Carbon\Carbon;
 
 class StaffAvailabilityCalendar extends Component
 {
     public $showModal = false;
+
     public $editingId = null;
 
     public $selectedUserId = '';
+
     public $startDate = '';
+
     public $startTime = '00:00';
+
     public $endDate = '';
+
     public $endTime = '23:59';
+
     public $description = '';
 
     // Filters
     public $filterName = '';
+
     public $filterDate = '';
 
     public function mount()
@@ -32,8 +39,9 @@ class StaffAvailabilityCalendar extends Component
             abort(403);
         }
     }
-    
-    public function staffThreeOrMoreUnavailableSendNotification(){
+
+    public function staffThreeOrMoreUnavailableSendNotification()
+    {
         // if there are 3 or more staff unavailable on the same day, send a notification to the admin.
         $startDate = Carbon::today()->startOfDay();
         $endDate = Carbon::tomorrow()->endOfDay();
@@ -43,28 +51,30 @@ class StaffAvailabilityCalendar extends Component
             $dayStart = $date->copy()->startOfDay();
             $dayEnd = $date->copy()->endOfDay();
 
-            $count = UnavailabilityPeriod::where(function($q) use ($dayStart, $dayEnd) {
+            $count = UnavailabilityPeriod::where(function ($q) use ($dayStart, $dayEnd) {
                 $q->whereBetween('start_date', [$dayStart, $dayEnd])
-                  ->orWhereBetween('end_date', [$dayStart, $dayEnd])
-                  ->orWhere(function($q2) use ($dayStart, $dayEnd) {
-                      $q2->where('start_date', '<', $dayStart)
-                         ->where('end_date', '>', $dayEnd);
-                  });
+                    ->orWhereBetween('end_date', [$dayStart, $dayEnd])
+                    ->orWhere(function ($q2) use ($dayStart, $dayEnd) {
+                        $q2->where('start_date', '<', $dayStart)
+                            ->where('end_date', '>', $dayEnd);
+                    });
             })->distinct('user_id')->count('user_id');
 
             if ($count >= 3) {
-                $admins = User::whereHas('role', fn($q) => $q->where('name', 'Admin'))->get();
+                $admins = User::whereHas('role', fn ($q) => $q->where('name', 'Admin'))->get();
 
                 foreach ($admins as $admin) {
-                    
+
                     $exists = UserNotification::where('user_id', $admin->id)
                         ->where('type', 'staff_shortage')
                         ->whereBetween('created_at', [$dayStart, $dayEnd])
                         ->exists();
 
-                    if ($exists) continue;
+                    if ($exists) {
+                        continue;
+                    }
 
-                    $message = "{$count} staff unavailable on " . $date->format('l j M');
+                    $message = "{$count} staff unavailable on ".$date->format('l j M');
                     $notification = UserNotification::create([
                         'user_id' => $admin->id,
                         'from_user_id' => Auth::id() ?? null,
@@ -74,7 +84,6 @@ class StaffAvailabilityCalendar extends Component
                         'action_url' => route('admin.staff-unavailability'),
                     ]);
 
-                    
                     try {
                         broadcast(new NotificationCreated($notification));
                     } catch (\Throwable $e) {
@@ -89,8 +98,8 @@ class StaffAvailabilityCalendar extends Component
     public function getAllUsersProperty()
     {
         return User::with('unavailabilityPeriods')
-            ->whereHas('role', fn($q) => $q->whereIn('name', [
-                'Admin', 'Staff', 'Chef', 'Family Member', 'The Andersons'
+            ->whereHas('role', fn ($q) => $q->whereIn('name', [
+                'Admin', 'Staff', 'Chef', 'Family Member', 'The Andersons',
             ]))
             ->get();
     }
@@ -99,7 +108,7 @@ class StaffAvailabilityCalendar extends Component
     {
         return $this->allUsers->filter(function ($user) {
             // Filter by name
-            if ($this->filterName && !str_contains(
+            if ($this->filterName && ! str_contains(
                 strtolower($user->name),
                 strtolower($this->filterName)
             )) {
@@ -114,7 +123,9 @@ class StaffAvailabilityCalendar extends Component
                         $period->end_date->copy()->endOfDay()
                     );
                 });
-                if (!$hasMatch) return false;
+                if (! $hasMatch) {
+                    return false;
+                }
             }
 
             // Only show users who have at least one period
@@ -126,7 +137,7 @@ class StaffAvailabilityCalendar extends Component
     {
         $this->reset(['editingId', 'startDate', 'startTime', 'endDate', 'endTime', 'description', 'selectedUserId']);
         $this->startTime = '00:00';
-        $this->endTime   = '23:59';
+        $this->endTime = '23:59';
         $this->showModal = true;
     }
 
@@ -136,42 +147,45 @@ class StaffAvailabilityCalendar extends Component
 
         if ($period->end_date->isPast()) {
             $this->dispatch('toast', title: 'Read-only Period', message: 'Past unavailability periods cannot be edited.', type: 'error');
+
             return;
         }
 
-        $this->editingId      = $period->id;
+        $this->editingId = $period->id;
         $this->selectedUserId = $period->user_id;
-        $this->startDate      = $period->start_date->format('Y-m-d');
-        $this->startTime      = $period->start_date->format('H:i');
-        $this->endDate        = $period->end_date->format('Y-m-d');
-        $this->endTime        = $period->end_date->format('H:i');
-        $this->description    = $period->description ?? '';
-        $this->showModal      = true;
+        $this->startDate = $period->start_date->format('Y-m-d');
+        $this->startTime = $period->start_date->format('H:i');
+        $this->endDate = $period->end_date->format('Y-m-d');
+        $this->endTime = $period->end_date->format('H:i');
+        $this->description = $period->description ?? '';
+        $this->showModal = true;
     }
 
     public function save()
     {
         $this->validate([
             'selectedUserId' => 'required|exists:users,id',
-            'startDate'      => 'required|date',
-            'startTime'      => 'required',
-            'endDate'        => 'required|date|after_or_equal:startDate',
-            'endTime'        => 'required',
-            'description'    => 'nullable|string|max:255',
+            'startDate' => 'required|date',
+            'startTime' => 'required',
+            'endDate' => 'required|date|after_or_equal:startDate',
+            'endTime' => 'required',
+            'description' => 'nullable|string|max:255',
         ]);
 
-        $startDateTime = $this->startDate . ' ' . $this->startTime . ':00';
-        $endDateTime   = $this->endDate . ' ' . $this->endTime . ':00';
+        $startDateTime = $this->startDate.' '.$this->startTime.':00';
+        $endDateTime = $this->endDate.' '.$this->endTime.':00';
         $start = Carbon::parse($startDateTime);
         $end = Carbon::parse($endDateTime);
 
         if ($start->lt(now())) {
             $this->addError('startTime', 'Start date and time cannot be in the past.');
+
             return;
         }
 
         if ($end->lte($start)) {
             $this->addError('endTime', 'End date and time must be after the start date and time.');
+
             return;
         }
 
@@ -186,6 +200,7 @@ class StaffAvailabilityCalendar extends Component
 
         if ($duplicateQuery->exists()) {
             $this->addError('duplicate', 'this period already exist. Select a new one or change the already available one.');
+
             return;
         }
 
@@ -194,21 +209,22 @@ class StaffAvailabilityCalendar extends Component
 
             if ($period->end_date->isPast()) {
                 $this->dispatch('toast', title: 'Read-only Period', message: 'Past unavailability periods cannot be updated.', type: 'error');
+
                 return;
             }
 
             $period->update([
-                'user_id'     => $this->selectedUserId,
-                'start_date'  => $start,
-                'end_date'    => $end,
+                'user_id' => $this->selectedUserId,
+                'start_date' => $start,
+                'end_date' => $end,
                 'description' => $this->description,
             ]);
             $this->dispatch('toast', title: 'Period Updated', message: 'The unavailability period has been updated.', type: 'success');
         } else {
             UnavailabilityPeriod::create([
-                'user_id'     => $this->selectedUserId,
-                'start_date'  => $start,
-                'end_date'    => $end,
+                'user_id' => $this->selectedUserId,
+                'start_date' => $start,
+                'end_date' => $end,
                 'description' => $this->description,
             ]);
             $this->dispatch('toast', title: 'Period Added', message: 'The unavailability period has been added.', type: 'success');
@@ -226,6 +242,7 @@ class StaffAvailabilityCalendar extends Component
 
         if ($period->end_date->isPast()) {
             $this->dispatch('toast', title: 'Read-only Period', message: 'Past unavailability periods cannot be deleted.', type: 'error');
+
             return;
         }
 

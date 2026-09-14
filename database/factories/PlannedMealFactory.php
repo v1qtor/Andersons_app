@@ -7,7 +7,7 @@ use App\Models\PlannedMeal;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\PlannedMeal>
+ * @extends Factory<PlannedMeal>
  */
 class PlannedMealFactory extends Factory
 {

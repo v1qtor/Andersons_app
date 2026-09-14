@@ -2,31 +2,46 @@
 
 namespace App\Livewire\Schedule;
 
+use App\Events\NotificationCreated;
 use App\Models\CollaborationRequest;
 use App\Models\Task;
 use App\Models\UnavailabilityPeriod;
 use App\Models\UserNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 trait CrudSchedule
 {
     // ─── Task Form Properties ─────────────────────────────────
     public bool $showTaskModal = false;
+
     public ?int $editingTaskId = null;
+
     public string $title = '';
+
     public string $description = '';
+
     public string $startDate = '';
+
     public ?string $endDate = '';
+
     public ?int $taskCategoryId = null;
+
     public ?int $taskPriorityId = null;
+
     public bool $isComplete = false;
+
     public ?int $taskOwnerId = null;
+
     public array $assignedUserIds = [];
+
     public array $selectedLocationIds = [];
+
     public array $collaborationUserIds = [];
 
     public bool $showDeleteModal = false;
+
     public ?int $deletingTaskId = null;
 
     // ─── Modal Open/Close ─────────────────────────────────────
@@ -37,8 +52,8 @@ trait CrudSchedule
         $this->taskOwnerId = Auth::id();
         $this->assignedUserIds = [Auth::id()];
         if ($date) {
-            $this->startDate = $date . 'T09:00';
-            $this->endDate   = $date . 'T10:00';
+            $this->startDate = $date.'T09:00';
+            $this->endDate = $date.'T10:00';
         }
         $this->showTaskModal = true;
     }
@@ -51,18 +66,18 @@ trait CrudSchedule
             return;
         }
 
-        $this->editingTaskId        = $task->id;
-        $this->title                = $task->title;
-        $this->description          = $task->description ?? '';
-        $this->startDate            = $task->start_date->format('Y-m-d\TH:i');
-        $this->endDate              = $task->end_date ? $task->end_date->format('Y-m-d\TH:i') : '';
-        $this->taskCategoryId       = $task->task_category_id;
-        $this->taskPriorityId       = $task->task_priority_id;
-        $this->isComplete           = $task->is_complete;
-        $this->taskOwnerId          = $task->users()->wherePivot('is_owner', true)->value('users.id');
-        $this->assignedUserIds      = $task->users->pluck('id')->toArray();
-        $this->selectedLocationIds  = $task->locations->pluck('id')->toArray();
-        $this->showTaskModal        = true;
+        $this->editingTaskId = $task->id;
+        $this->title = $task->title;
+        $this->description = $task->description ?? '';
+        $this->startDate = $task->start_date->format('Y-m-d\TH:i');
+        $this->endDate = $task->end_date ? $task->end_date->format('Y-m-d\TH:i') : '';
+        $this->taskCategoryId = $task->task_category_id;
+        $this->taskPriorityId = $task->task_priority_id;
+        $this->isComplete = $task->is_complete;
+        $this->taskOwnerId = $task->users()->wherePivot('is_owner', true)->value('users.id');
+        $this->assignedUserIds = $task->users->pluck('id')->toArray();
+        $this->selectedLocationIds = $task->locations->pluck('id')->toArray();
+        $this->showTaskModal = true;
     }
 
     // ─── Field Toggles ────────────────────────────────────────
@@ -109,10 +124,10 @@ trait CrudSchedule
         $endDateValue = ($this->endDate !== null && $this->endDate !== '') ? $this->endDate : null;
 
         $validationData = [
-            'title'          => $this->title,
-            'description'    => $this->description !== '' ? $this->description : null,
-            'startDate'      => $this->startDate,
-            'endDate'        => $endDateValue,
+            'title' => $this->title,
+            'description' => $this->description !== '' ? $this->description : null,
+            'startDate' => $this->startDate,
+            'endDate' => $endDateValue,
             'taskCategoryId' => $this->taskCategoryId,
             'taskPriorityId' => $this->taskPriorityId,
         ];
@@ -122,11 +137,11 @@ trait CrudSchedule
             $startDateRule .= '|after_or_equal:now';
         }
 
-        $validated = \Illuminate\Support\Facades\Validator::make($validationData, [
-            'title'          => 'required|string|max:255',
-            'description'    => 'nullable|string|max:1000',
-            'startDate'      => $startDateRule,
-            'endDate'        => 'nullable|date|after:startDate',
+        $validated = Validator::make($validationData, [
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'startDate' => $startDateRule,
+            'endDate' => 'nullable|date|after:startDate',
             'taskCategoryId' => 'required|integer|exists:task_categories,id',
             'taskPriorityId' => 'nullable|integer|exists:task_priorities,id',
         ], [
@@ -134,22 +149,22 @@ trait CrudSchedule
         ], [
             'taskCategoryId' => __('category'),
             'taskPriorityId' => __('priority'),
-            'startDate'      => __('start date'),
-            'endDate'        => __('end date'),
+            'startDate' => __('start date'),
+            'endDate' => __('end date'),
         ])->validate();
 
         $startDt = Carbon::parse($validated['startDate']);
-        $endDt   = $validated['endDate'] ? Carbon::parse($validated['endDate']) : null;
+        $endDt = $validated['endDate'] ? Carbon::parse($validated['endDate']) : null;
 
         $data = [
-            'title'            => $validated['title'],
-            'description'      => $validated['description'],
-            'start_date'       => $startDt,
-            'end_date'         => $endDt,
-            'date'             => $startDt,
+            'title' => $validated['title'],
+            'description' => $validated['description'],
+            'start_date' => $startDt,
+            'end_date' => $endDt,
+            'date' => $startDt,
             'task_category_id' => $validated['taskCategoryId'],
             'task_priority_id' => $validated['taskPriorityId'],
-            'is_complete'      => $this->editingTaskId ? $this->isComplete : false,
+            'is_complete' => $this->editingTaskId ? $this->isComplete : false,
         ];
 
         // Check that none of the users being assigned are unavailable during this period
@@ -167,8 +182,9 @@ trait CrudSchedule
                 ->toArray();
 
             if (! empty($unavailableIds)) {
-                \Illuminate\Support\Facades\Validator::make([], [])->errors();
+                Validator::make([], [])->errors();
                 $this->addError('startDate', __('One or more selected users are unavailable during this period.'));
+
                 return;
             }
         }
@@ -183,9 +199,9 @@ trait CrudSchedule
 
             if ($this->isAdmin()) {
                 $previousUserIds = $task->users()->pluck('users.id')->toArray();
-                $ownerId   = $this->taskOwnerId
+                $ownerId = $this->taskOwnerId
                     ?: $task->users()->wherePivot('is_owner', true)->value('users.id');
-                $syncData  = [];
+                $syncData = [];
                 if ($ownerId) {
                     $syncData[$ownerId] = ['is_owner' => true];
                 }
@@ -213,23 +229,23 @@ trait CrudSchedule
                             'user_id' => $userId,
                             'from_user_id' => Auth::id(),
                             'title' => 'Task Assigned',
-                            'message' => Auth::user()->name . ' assigned you a task: ' . $task->title . ' on ' . $taskDateTime,
+                            'message' => Auth::user()->name.' assigned you a task: '.$task->title.' on '.$taskDateTime,
                             'type' => 'task_assigned',
                             'action_url' => '/schedule',
                         ]);
 
-                        broadcast(new \App\Events\NotificationCreated($notification));
+                        broadcast(new NotificationCreated($notification));
                     }
                 }
             }
         } else {
-            $task    = Task::create($data);
+            $task = Task::create($data);
             $ownerId = ($this->isAdmin() && $this->taskOwnerId)
                 ? $this->taskOwnerId
                 : Auth::id();
 
-            $syncData               = [];
-            $syncData[$ownerId]     = ['is_owner' => true];
+            $syncData = [];
+            $syncData[$ownerId] = ['is_owner' => true];
 
             if ($this->isAdmin()) {
                 foreach ($this->assignedUserIds as $uid) {
@@ -256,12 +272,12 @@ trait CrudSchedule
                         'user_id' => $userId,
                         'from_user_id' => Auth::id(),
                         'title' => 'Task Assigned',
-                        'message' => Auth::user()->name . ' assigned you a task: ' . $task->title . ' on ' . $taskDateTime,
+                        'message' => Auth::user()->name.' assigned you a task: '.$task->title.' on '.$taskDateTime,
                         'type' => 'task_assigned',
                         'action_url' => '/schedule',
                     ]);
 
-                    broadcast(new \App\Events\NotificationCreated($notification));
+                    broadcast(new NotificationCreated($notification));
                 }
             }
         }
@@ -279,10 +295,10 @@ trait CrudSchedule
 
                 if (! $exists) {
                     CollaborationRequest::create([
-                        'task_id'        => $task->id,
-                        'requester_id'   => Auth::id(),
+                        'task_id' => $task->id,
+                        'requester_id' => Auth::id(),
                         'target_user_id' => $targetUserId,
-                        'status'         => 'pending',
+                        'status' => 'pending',
                     ]);
 
                     $taskDateTime = $task->start_date
@@ -293,12 +309,12 @@ trait CrudSchedule
                         'user_id' => $targetUserId,
                         'from_user_id' => Auth::id(),
                         'title' => 'Collaboration Request',
-                        'message' => Auth::user()->name . ' is requesting your collaboration on: ' . $task->title . ' on ' . $taskDateTime,
+                        'message' => Auth::user()->name.' is requesting your collaboration on: '.$task->title.' on '.$taskDateTime,
                         'type' => 'collaboration_request',
                         'action_url' => '/schedule',
                     ]);
 
-                    broadcast(new \App\Events\NotificationCreated($notification));
+                    broadcast(new NotificationCreated($notification));
                 }
             }
         }
@@ -332,14 +348,14 @@ trait CrudSchedule
         $task->delete();
 
         $this->showDeleteModal = false;
-        $this->deletingTaskId  = null;
+        $this->deletingTaskId = null;
     }
 
     // ─── Mark Complete ────────────────────────────────────────
 
     public function markComplete(int $taskId): void
     {
-        $task       = Task::findOrFail($taskId);
+        $task = Task::findOrFail($taskId);
         $isAssigned = $task->users()->where('users.id', Auth::id())->exists();
 
         if (! $isAssigned && ! $this->isAdmin()) {
@@ -353,17 +369,17 @@ trait CrudSchedule
 
     private function resetForm(): void
     {
-        $this->editingTaskId        = null;
-        $this->title                = '';
-        $this->description          = '';
-        $this->startDate            = '';
-        $this->endDate              = '';
-        $this->taskCategoryId       = null;
-        $this->taskPriorityId       = null;
-        $this->isComplete           = false;
-        $this->taskOwnerId          = null;
-        $this->assignedUserIds      = [];
-        $this->selectedLocationIds  = [];
+        $this->editingTaskId = null;
+        $this->title = '';
+        $this->description = '';
+        $this->startDate = '';
+        $this->endDate = '';
+        $this->taskCategoryId = null;
+        $this->taskPriorityId = null;
+        $this->isComplete = false;
+        $this->taskOwnerId = null;
+        $this->assignedUserIds = [];
+        $this->selectedLocationIds = [];
         $this->collaborationUserIds = [];
     }
 }

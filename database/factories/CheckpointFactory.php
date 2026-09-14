@@ -7,7 +7,7 @@ use App\Models\Folder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Checkpoint>
+ * @extends Factory<Checkpoint>
  */
 class CheckpointFactory extends Factory
 {
@@ -18,7 +18,7 @@ class CheckpointFactory extends Factory
         return [
             'location' => fake()->city(),
             'address' => fake()->optional()->address(),
-            'coordinates' => fake()->optional()->latitude() . ',' . fake()->longitude(),
+            'coordinates' => fake()->optional()->latitude().','.fake()->longitude(),
             'folder_id' => Folder::inRandomOrder()->first()?->id ?? Folder::factory(),
         ];
     }

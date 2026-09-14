@@ -17,16 +17,25 @@ class UserEdit extends Component
     public User $user;
 
     public string $name = '';
+
     public string $email = '';
+
     public string $password = '';
+
     public string $password_confirmation = '';
+
     public string $iban = '';
+
     public string $phone_number = '';
+
     public ?int $role_id = null;
+
     public string $birthdate = '';
 
     public bool $showDeleteModal = false;
+
     public string $deletePassword = '';
+
     public string $deletePasswordError = '';
 
     public function mount(User $user): void
@@ -94,6 +103,7 @@ class UserEdit extends Component
     {
         if (! Hash::check($this->deletePassword, Auth::user()->password)) {
             $this->deletePasswordError = __('Incorrect password.');
+
             return;
         }
 
@@ -102,6 +112,7 @@ class UserEdit extends Component
             $adminCount = User::where('role_id', $adminRole->id)->count();
             if ($adminCount <= 1) {
                 $this->deletePasswordError = __('Cannot delete the last admin user.');
+
                 return;
             }
         }
@@ -126,4 +137,3 @@ class UserEdit extends Component
         ]);
     }
 }
-
