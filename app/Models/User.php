@@ -86,6 +86,15 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
+    /**
+     * Household members (Admin, The Andersons, Family Member) can plan and manage trips.
+     * Staff/Chef can still view trips and check in at checkpoints if invited.
+     */
+    public function canManageTrips(): bool
+    {
+        return in_array($this->role?->name, ['Admin', 'The Andersons', 'Family Member'], true);
+    }
+
     public function unavailabilityPeriods(): HasMany
     {
     return $this->hasMany(UnavailabilityPeriod::class);

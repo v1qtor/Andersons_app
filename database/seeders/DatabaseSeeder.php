@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
             NotificationTypeSeeder::class,
             TripCategorySeeder::class,
             StatusSeeder::class,
+            TripStatusSeeder::class,
             AttachedFileSeeder::class,
             FolderSeeder::class,
             NotificationSeeder::class,

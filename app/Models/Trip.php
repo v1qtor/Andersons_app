@@ -15,6 +15,7 @@ class Trip extends Model
     protected $fillable = [
         'name',
         'description',
+        'notes',
         'start_date',
         'end_date',
         'trip_category_id',
@@ -69,5 +70,32 @@ class Trip extends Model
     public function plusOnes(): HasMany
     {
         return $this->hasMany(PlusOne::class);
+    }
+
+    /**
+     * Resolve the correct trip status (upcoming/active/completed) for a given date range.
+     */
+    public static function resolveStatusFor($start, $end): ?Status
+    {
+        $now = now();
+        $start = \Carbon\Carbon::parse($start);
+        $end = \Carbon\Carbon::parse($end);
+
+        $name = match (true) {
+            $now->lt($start) => 'upcoming',
+            $now->lte($end) => 'active',
+            default => 'completed',
+        };
+
+        return Status::where('name', $name)->where('type', 'trip')->first();
+    }
+
+    public function getIsOverdueAttribute(): bool
+    {
+        if (! $this->buffer_alert || now()->lte($this->buffer_alert)) {
+            return false;
+        }
+
+        return ! in_array($this->status?->name, ['completed', 'cancelled'], true);
     }
 }

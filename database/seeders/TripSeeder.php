@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Status;
 use App\Models\Trip;
 use App\Models\TripCategory;
 use Carbon\Carbon;
@@ -13,14 +12,10 @@ class TripSeeder extends Seeder
     public function run(): void
     {
         $tripCategories = TripCategory::all();
-        $statuses = Status::all();
 
-        if ($tripCategories->isEmpty() || $statuses->isEmpty()) {
+        if ($tripCategories->isEmpty()) {
             return;
         }
-
-        $planned   = $statuses->firstWhere('name', 'Planned')     ?? $statuses->random();
-        $completed = $statuses->firstWhere('name', 'Completed')   ?? $statuses->random();
 
         $now = Carbon::now();
 
@@ -49,8 +44,7 @@ class TripSeeder extends Seeder
             $bufferAlert = $startDate->copy()->subDays($bufferDays);
 
             $category = $tripCategories->firstWhere('name', $tripData['category']) ?? $tripCategories->random();
-            $isPast   = $endDate->lt($now);
-            $status   = $isPast ? $completed : $planned;
+            $status   = Trip::resolveStatusFor($startDate, $endDate);
 
             Trip::create([
                 'name'             => $tripData['name'],
