@@ -8,11 +8,16 @@
             <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Trips</h1>
             <p class="text-gray-600 dark:text-gray-400">Plan trips, track checkpoints, and keep an eye on who's away.</p>
         </div>
-        @if ($canManageTrips)
-            <x-flux.button variant="primary" wire:click="$dispatch('open-trip-form')" class="sm:self-start">
-                + Plan Trip
-            </x-flux.button>
-        @endif
+        <div class="flex gap-3 sm:self-start">
+            <a href="{{ route('checkpoints.index') }}" wire:navigate class="px-4 py-2.5 rounded-lg border border-gray-300 dark:border-neutral-600 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-neutral-700">
+                Checkpoints
+            </a>
+            @if ($canManageTrips)
+                <x-flux.button variant="primary" wire:click="$dispatch('open-trip-form')">
+                    + Plan Trip
+                </x-flux.button>
+            @endif
+        </div>
     </div>
 
     <x-ui.section-card>
