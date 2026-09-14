@@ -13,7 +13,6 @@ use App\Livewire\Schedule;
 use App\Livewire\Settings;
 use App\Livewire\Unavailability\UnavailabilityCalendar;
 use App\Livewire\Dashboard;
-use App\Http\Controllers\TripController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -76,23 +75,10 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('trips', [App\Http\Controllers\TripController::class, 'index'])->name('trips.index');
-    Route::post('trips', [App\Http\Controllers\TripController::class, 'store'])->name('trips.store');
-    Route::put('trips/{trip}', [App\Http\Controllers\TripController::class, 'update'])->name('trips.update');
-    Route::delete('trips/{trip}', [App\Http\Controllers\TripController::class, 'destroy'])->name('trips.destroy');
-    Route::post('trips/{trip}/cancel', [App\Http\Controllers\TripController::class, 'cancel'])->name('trips.cancel');
-
-    Route::post('trips/{trip}/checkpoints', [App\Http\Controllers\TripController::class, 'addCheckpoint'])->name('trips.checkpoints.add');
-    Route::delete('trips/{trip}/checkpoints/{checkpoint}', [App\Http\Controllers\TripController::class, 'removeCheckpoint'])->name('trips.checkpoints.remove');
-    Route::post('trips/{trip}/checkpoints/{checkpoint}/arrive', [App\Http\Controllers\TripController::class, 'markCheckpointArrived'])->name('trips.checkpoints.arrive');
-    Route::post('trips/{trip}/checkpoints/{checkpoint}/unarrive', [TripController::class, 'unmarkCheckpointArrived'])->name('trips.checkpoints.unarrive');
-    Route::post('trips/{trip}/checkpoints/{checkpoint}/upload-image', [App\Http\Controllers\TripController::class, 'uploadCheckpointImage'])->name('trips.checkpoints.upload-image');
-    Route::delete('trips/{trip}/checkpoints/{checkpoint}/images/{image}', [App\Http\Controllers\TripController::class, 'removeCheckpointImage'])->name('trips.checkpoints.images.remove');
-    Route::post('trips/{trip}/checkpoints/reorder', [App\Http\Controllers\TripController::class, 'reorderCheckpointsRoute'])->name('trips.checkpoints.reorder');
-    
-
-    Route::post('trips/{trip}/files', [App\Http\Controllers\TripController::class, 'uploadFile'])->name('trips.files.upload');
-    Route::delete('trips/{trip}/files/{file}', [App\Http\Controllers\TripController::class, 'removeFile'])->name('trips.files.remove');
+    // Trips: a Livewire component (App\Livewire\Trips\TripManager, TripFormModal,
+    // TripCard) rather than a controller — all mutations (create/edit/delete/
+    // cancel/checkpoints/documents) are handled as component methods.
+    Route::get('trips', \App\Livewire\Trips\TripManager::class)->name('trips.index');
 });
 
 Route::middleware(['auth'])->group(function () {
