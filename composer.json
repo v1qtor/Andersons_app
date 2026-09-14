@@ -1,8 +1,8 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/livewire-starter-kit",
+    "name": "v1qtor/andersons-app",
     "type": "project",
-    "description": "The official Laravel starter kit for Livewire.",
+    "description": "Andersons — a household management app (scheduling, meals, invoices, trips) built with Laravel and Livewire.",
     "keywords": [
         "laravel",
         "framework"
@@ -16,7 +16,7 @@
         "laravel/tinker": "^2.10.1",
         "livewire/flux": "^2.1.1",
         "livewire/volt": "^1.7.0",
-        "pusher/pusher-php-server": "*"
+        "pusher/pusher-php-server": "^7.2"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

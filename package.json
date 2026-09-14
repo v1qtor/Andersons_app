@@ -4,8 +4,7 @@
     "scripts": {
         "mailpit": "mailpit",
         "dev": "vite",
-        "build": "vite build",
-        "zip": "node zip.cjs"
+        "build": "vite build"
     },
     "dependencies": {
         "@tailwindcss/vite": "^4.1.11",
@@ -23,8 +22,5 @@
         "@rollup/rollup-linux-x64-gnu": "4.9.5",
         "@tailwindcss/oxide-linux-x64-gnu": "^4.0.1",
         "lightningcss-linux-x64-gnu": "^1.29.1"
-    },
-    "devDependencies": {
-        "zip-lib": "^1.1.2"
     }
 }
