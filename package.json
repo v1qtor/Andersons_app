@@ -4,7 +4,10 @@
     "scripts": {
         "mailpit": "mailpit",
         "dev": "vite",
-        "build": "vite build"
+        "build": "vite build",
+        "lint": "eslint resources/js",
+        "format": "prettier --write resources/js",
+        "format:check": "prettier --check resources/js"
     },
     "dependencies": {
         "@tailwindcss/vite": "^4.1.11",
@@ -22,5 +25,9 @@
         "@rollup/rollup-linux-x64-gnu": "4.9.5",
         "@tailwindcss/oxide-linux-x64-gnu": "^4.0.1",
         "lightningcss-linux-x64-gnu": "^1.29.1"
+    },
+    "devDependencies": {
+        "eslint": "^9.15.0",
+        "prettier": "^3.3.3"
     }
 }

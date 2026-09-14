@@ -1,7 +1,7 @@
 import './echo-config';
 
 // Configure toast notifications
-window.showToast = function(title, message, type = 'info') {
+window.showToast = function (title, message, type = 'info') {
     console.log(`🔔 Toast: ${type} - ${title}: ${message}`);
 };
 
@@ -9,7 +9,7 @@ window.showToast = function(title, message, type = 'info') {
 window.processedNotificationIds = new Set();
 
 // Define global notification bell functions for Alpine.js
-window.notificationBell = function() {
+window.notificationBell = function () {
     return {
         isPanelOpen: false,
         notifications: [],
@@ -21,15 +21,15 @@ window.notificationBell = function() {
                     method: 'GET',
                     credentials: 'same-origin',
                     headers: {
-                        'Accept': 'application/json',
+                        Accept: 'application/json',
                         'X-Requested-With': 'XMLHttpRequest',
                         'Content-Type': 'application/json',
-                    }
+                    },
                 });
                 if (response.ok) {
                     const data = await response.json();
                     this.notifications = data.notifications || [];
-                    this.unreadCount = this.notifications.filter(n => !n.is_read).length;
+                    this.unreadCount = this.notifications.filter((n) => !n.is_read).length;
                 }
             } catch (error) {
                 console.error('Error loading notifications:', error);
@@ -45,12 +45,12 @@ window.notificationBell = function() {
 
         addNotification(notification) {
             this.notifications.unshift(notification);
-            this.unreadCount = this.notifications.filter(n => !n.is_read).length;
+            this.unreadCount = this.notifications.filter((n) => !n.is_read).length;
         },
 
         deleteNotification(id) {
-            this.notifications = this.notifications.filter(n => n.id !== id);
-            this.unreadCount = this.notifications.filter(n => !n.is_read).length;
+            this.notifications = this.notifications.filter((n) => n.id !== id);
+            this.unreadCount = this.notifications.filter((n) => !n.is_read).length;
 
             fetch(`/notifications/${id}`, {
                 method: 'DELETE',
@@ -58,8 +58,8 @@ window.notificationBell = function() {
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
                     'X-Requested-With': 'XMLHttpRequest',
-                }
-            }).catch(error => console.error('Error deleting notification:', error));
+                },
+            }).catch((error) => console.error('Error deleting notification:', error));
         },
 
         async clearAll() {
@@ -74,7 +74,7 @@ window.notificationBell = function() {
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
                         'X-Requested-With': 'XMLHttpRequest',
-                    }
+                    },
                 });
             } catch (error) {
                 console.error('Error clearing notifications:', error);
@@ -101,12 +101,12 @@ window.notificationBell = function() {
 
         init() {
             this.loadNotifications();
-        }
+        },
     };
 };
 
 // Define desktop notification bell version
-window.desktopNotificationBell = function() {
+window.desktopNotificationBell = function () {
     return {
         isPanelOpen: false,
         notifications: [],
@@ -118,19 +118,19 @@ window.desktopNotificationBell = function() {
                     method: 'GET',
                     credentials: 'same-origin',
                     headers: {
-                        'Accept': 'application/json',
+                        Accept: 'application/json',
                         'X-Requested-With': 'XMLHttpRequest',
                         'Content-Type': 'application/json',
-                    }
+                    },
                 });
-                
+
                 if (!response.ok) {
                     return;
                 }
-                
+
                 const data = await response.json();
                 this.notifications = data.notifications || [];
-                this.unreadCount = this.notifications.filter(n => !n.is_read).length;
+                this.unreadCount = this.notifications.filter((n) => !n.is_read).length;
             } catch (error) {
                 console.error('Error loading notifications:', error);
             }
@@ -147,7 +147,7 @@ window.desktopNotificationBell = function() {
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
                         'X-Requested-With': 'XMLHttpRequest',
-                    }
+                    },
                 });
             } catch (error) {
                 console.error('Error clearing notifications:', error);
@@ -163,12 +163,12 @@ window.desktopNotificationBell = function() {
 
         addNotification(notification) {
             this.notifications.unshift(notification);
-            this.unreadCount = this.notifications.filter(n => !n.is_read).length;
+            this.unreadCount = this.notifications.filter((n) => !n.is_read).length;
         },
 
         deleteNotification(id) {
-            this.notifications = this.notifications.filter(n => n.id !== id);
-            this.unreadCount = this.notifications.filter(n => !n.is_read).length;
+            this.notifications = this.notifications.filter((n) => n.id !== id);
+            this.unreadCount = this.notifications.filter((n) => !n.is_read).length;
 
             fetch(`/notifications/${id}`, {
                 method: 'DELETE',
@@ -176,8 +176,8 @@ window.desktopNotificationBell = function() {
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
                     'X-Requested-With': 'XMLHttpRequest',
-                }
-            }).catch(error => console.error('Error deleting notification:', error));
+                },
+            }).catch((error) => console.error('Error deleting notification:', error));
         },
 
         formatTime(dateString) {
@@ -212,27 +212,31 @@ window.desktopNotificationBell = function() {
 
             // Listen for real-time notifications - ONLY HERE to avoid duplication
             if (window.Echo) {
-                const userId = document.querySelector('body')?.getAttribute('data-user-id') || 
-                              (window.Laravel && window.Laravel.userId);
-                
+                const userId =
+                    document.querySelector('body')?.getAttribute('data-user-id') ||
+                    (window.Laravel && window.Laravel.userId);
+
                 if (userId) {
-                    window.Echo.private(`user.${userId}`)
-                        .listen('NotificationCreated', (data) => {
-                            // Prevent processing the same notification twice (Echo sometimes delivers duplicates)
-                            if (window.processedNotificationIds.has(data.notification.id)) {
-                                return;
-                            }
-                            
-                            window.processedNotificationIds.add(data.notification.id);
-                            
-                            this.addNotification(data.notification);
-                            // Trigger toast notification
-                            if (window.showToast) {
-                                window.showToast(data.notification.title, data.notification.message, data.notification.type || 'info');
-                            }
-                        });
+                    window.Echo.private(`user.${userId}`).listen('NotificationCreated', (data) => {
+                        // Prevent processing the same notification twice (Echo sometimes delivers duplicates)
+                        if (window.processedNotificationIds.has(data.notification.id)) {
+                            return;
+                        }
+
+                        window.processedNotificationIds.add(data.notification.id);
+
+                        this.addNotification(data.notification);
+                        // Trigger toast notification
+                        if (window.showToast) {
+                            window.showToast(
+                                data.notification.title,
+                                data.notification.message,
+                                data.notification.type || 'info'
+                            );
+                        }
+                    });
                 }
             }
-        }
+        },
     };
 };
