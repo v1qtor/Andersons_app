@@ -15,6 +15,10 @@ pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
     ->in('Feature');
 
+// Unit tests (e.g. Policies) work with in-memory model instances only —
+// no database needed, so RefreshDatabase is skipped for speed.
+pest()->extend(Tests\TestCase::class)->in('Unit');
+
 /*
 |--------------------------------------------------------------------------
 | Expectations
@@ -44,6 +48,21 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * Build an in-memory (unsaved) User with the given role name attached,
+ * for Policy unit tests that only need to check role-based logic.
+ */
+function userWithRole(?string $roleName): \App\Models\User
+{
+    $user = new \App\Models\User();
+
+    if ($roleName !== null) {
+        $user->setRelation('role', (new \App\Models\Role())->forceFill(['name' => $roleName]));
+    }
+
+    return $user;
 }
 
 /**
