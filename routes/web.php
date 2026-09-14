@@ -11,7 +11,6 @@ use App\Livewire\Meals\MealPlanning;
 use App\Livewire\Meals\MealSchedule;
 use App\Livewire\Schedule;
 use App\Livewire\Settings;
-use App\Livewire\Unavailability;
 use App\Livewire\Unavailability\UnavailabilityCalendar;
 use App\Livewire\Dashboard;
 use App\Http\Controllers\TripController;
@@ -46,13 +45,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('receipts/{path}', 'App\Http\Controllers\ReceiptController@show')->where('path', '.*')->name('receipts.show');
 
     // Notifications
-    Route::get('notifications/test', 'App\Http\Controllers\NotificationTestController@index')->name('notifications.test');
-    Route::post('notifications/send-test', 'App\Http\Controllers\NotificationTestController@sendTestNotification')->name('notifications.send-test');
-    Route::post('notifications/send-task-assignment', 'App\Http\Controllers\NotificationTestController@sendTaskAssignmentNotification')->name('notifications.send-task-assignment');
-    Route::post('notifications/send-collaboration-request', 'App\Http\Controllers\NotificationTestController@sendCollaborationRequestNotification')->name('notifications.send-collaboration-request');
-    Route::post('notifications/{id}/mark-as-read', 'App\Http\Controllers\NotificationTestController@markAsRead')->name('notifications.mark-as-read');
-    Route::delete('notifications/{id}', 'App\Http\Controllers\NotificationTestController@deleteNotification')->name('notifications.delete');
-    Route::post('notifications/clear-all', 'App\Http\Controllers\NotificationTestController@clearAll')->name('notifications.clear-all');
+    Route::post('notifications/{id}/mark-as-read', 'App\Http\Controllers\Api\NotificationController@markAsRead')->name('notifications.mark-as-read');
+    Route::delete('notifications/{id}', 'App\Http\Controllers\Api\NotificationController@destroy')->name('notifications.delete');
+    Route::post('notifications/clear-all', 'App\Http\Controllers\Api\NotificationController@clearAll')->name('notifications.clear-all');
 
     // API-style notification endpoint for AJAX calls (session auth)
     Route::get('api/notifications', 'App\Http\Controllers\Api\NotificationController@index')->name('notifications.list');
@@ -75,13 +70,6 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['chef'])->group(function () {
         Route::get('chef/meals', MealPlanning::class)->name('chef.meals.index');
     });
-
-    /*
-    // Unavailabilities
-    Route::middleware(['unavailability'])->group(function () {
-        Route::get('unavailabilities', Unavailability::class)->name('unavailabilities');
-    });
-    */
 
     // Meal Schedule (Family Member, The Andersons, Staff — and any authenticated user)
     Route::get('meals', MealSchedule::class)->name('meals.index');

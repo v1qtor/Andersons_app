@@ -43,8 +43,8 @@ class TripController extends Controller
 
     public function store(Request $request)
     {
-        // Check if user is authorized to create trips
-        $canCreateTrip = auth()->user()->email === 'laurien@andersons.com' || auth()->user()->email === 'andersons@andersons.com';
+        // Only Admin and The Andersons may create trips
+        $canCreateTrip = in_array(auth()->user()->role?->name, ['Admin', 'The Andersons'], true);
         if (!$canCreateTrip) {
             abort(403, 'You are not authorized to create trips.');
         }
