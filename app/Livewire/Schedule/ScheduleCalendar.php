@@ -2,9 +2,6 @@
 
 namespace App\Livewire\Schedule;
 
-use App\Livewire\Schedule\CollaborationSchedule;
-use App\Livewire\Schedule\CrudSchedule;
-use App\Livewire\Schedule\PrintSchedule;
 use App\Models\Birthdate;
 use App\Models\CollaborationRequest;
 use App\Models\Location;
@@ -17,18 +14,21 @@ use App\Models\UnavailabilityPeriod;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 #[Layout('components.layouts.app')]
 class ScheduleCalendar extends Component
 {
-    use PrintSchedule, CrudSchedule, CollaborationSchedule;
+    use CollaborationSchedule, CrudSchedule, PrintSchedule;
 
     public string $view = 'week'; // day, week, month
 
     public int $year;
+
     public int $month;
+
     public int $day;
 
     public array $selectedPeople = [];
@@ -182,7 +182,7 @@ class ScheduleCalendar extends Component
                 $start = Carbon::create($this->year, $this->month, $this->day)->startOfWeek(Carbon::MONDAY);
                 $end = $start->copy()->endOfWeek(Carbon::SUNDAY);
 
-                return $start->format('j M') . ' – ' . $end->format('j M Y');
+                return $start->format('j M').' – '.$end->format('j M Y');
             })(),
             'month' => Carbon::create($this->year, $this->month, 1)->format('F Y'),
         };
@@ -212,12 +212,12 @@ class ScheduleCalendar extends Component
             if ($this->myTaskOwnershipFilter === 'owner') {
                 $query->whereHas('users', function ($q) {
                     $q->where('users.id', Auth::id())
-                      ->where('user_tasks.is_owner', true);
+                        ->where('user_tasks.is_owner', true);
                 });
             } elseif ($this->myTaskOwnershipFilter === 'not-owned') {
                 $query->whereHas('users', function ($q) {
                     $q->where('users.id', Auth::id())
-                      ->where('user_tasks.is_owner', false);
+                        ->where('user_tasks.is_owner', false);
                 });
             }
         }
@@ -247,16 +247,20 @@ class ScheduleCalendar extends Component
             $current->addDay();
         }
 
-        // Only from birthdates table (includes user-synced entries via is_user = true)
-        foreach (Birthdate::all() as $entry) {
+        // Only from birthdates table (includes user-synced entries via is_user = true).
+        // Cached briefly: birthdates change rarely, but this runs on every
+        // calendar render (navigating periods, toggling filters, etc.).
+        $allBirthdates = Cache::remember('birthdates.all', 60, fn () => Birthdate::select('name', 'notes', 'birthdate')->get());
+
+        foreach ($allBirthdates as $entry) {
             $md = $entry->birthdate->format('m-d');
             if (in_array($md, $rangeDays)) {
                 foreach ([$start->year, $end->year] as $year) {
-                    $date = Carbon::createFromFormat('Y-m-d', $year . '-' . $md);
+                    $date = Carbon::createFromFormat('Y-m-d', $year.'-'.$md);
                     if ($date->between($start, $end)) {
                         $birthdays[] = [
-                            'name'  => $entry->name,
-                            'date'  => $date->format('Y-m-d'),
+                            'name' => $entry->name,
+                            'date' => $date->format('Y-m-d'),
                             'notes' => $entry->notes,
                         ];
                         break;
@@ -528,7 +532,7 @@ class ScheduleCalendar extends Component
         $unavailableUserIds = [];
         if ($this->startDate) {
             $taskStart = Carbon::parse($this->startDate);
-            $taskEnd   = $this->endDate ? Carbon::parse($this->endDate) : $taskStart->copy()->addHour();
+            $taskEnd = $this->endDate ? Carbon::parse($this->endDate) : $taskStart->copy()->addHour();
             $unavailableUserIds = UnavailabilityPeriod::where('start_date', '<', $taskEnd)
                 ->where('end_date', '>', $taskStart)
                 ->pluck('user_id')
@@ -566,4 +570,3 @@ class ScheduleCalendar extends Component
         ]);
     }
 }
-
