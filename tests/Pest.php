@@ -45,3 +45,21 @@ function something()
 {
     // ..
 }
+
+/**
+ * Create a Trip for tests, defaulting to dates that resolve to "upcoming"
+ * (matching Trip::resolveStatusFor's own logic) unless overridden.
+ */
+function makeTrip(array $overrides = []): \App\Models\Trip
+{
+    $start = $overrides['start_date'] ?? now()->addWeek();
+    $end = $overrides['end_date'] ?? now()->addWeek()->addDays(2);
+
+    return \App\Models\Trip::create(array_merge([
+        'name' => 'Test Trip',
+        'start_date' => $start,
+        'end_date' => $end,
+        'trip_category_id' => \App\Models\TripCategory::first()->id,
+        'status_id' => \App\Models\Trip::resolveStatusFor($start, $end)?->id,
+    ], $overrides));
+}

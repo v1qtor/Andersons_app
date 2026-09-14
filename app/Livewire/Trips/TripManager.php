@@ -46,7 +46,7 @@ class TripManager extends Component
         // re-render this component and re-run the query in render().
     }
 
-    public function render()
+    public function getTrips()
     {
         // Each TripCard loads its own full copy by ID, so this query only
         // needs enough to filter, sort and paginate.
@@ -61,8 +61,13 @@ class TripManager extends Component
             $query->where(fn ($q) => $q->where('name', 'like', $term)->orWhere('description', 'like', $term));
         }
 
+        return $query->orderBy('start_date', 'desc')->paginate(5);
+    }
+
+    public function render()
+    {
         return view('livewire.trips.manager', [
-            'trips' => $query->orderBy('start_date', 'desc')->paginate(5),
+            'trips' => $this->getTrips(),
             'statusOptions' => Status::where('type', 'trip')->orderBy('name')->pluck('name'),
             'canManageTrips' => auth()->user()->canManageTrips(),
         ]);

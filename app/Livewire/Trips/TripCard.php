@@ -110,6 +110,12 @@ class TripCard extends Component
 
         session()->flash('message', 'Trip deleted!');
         $this->dispatch('trip-changed');
+
+        // The trip (and this card) is gone — skip re-rendering this
+        // component, since render() would otherwise 404 loading it fresh.
+        // TripManager's own re-render (from the dispatched event above)
+        // removes this card from the list.
+        $this->skipRender();
     }
 
     public function openAddCheckpoint(): void
