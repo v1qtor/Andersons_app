@@ -26,3 +26,5 @@ yarn-error.log
 requirments.md
 /frontEndExample
 .DS_Store
+/fixes
+/context
