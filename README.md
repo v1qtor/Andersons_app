@@ -7,6 +7,13 @@ role-based access for family members, staff, and household admins.
 > [!NOTE]
 > Built with **Livewire 3** (via Flux UI) — not the newer Livewire 4.
 
+**Live demo:** [andersons.vcee.be](https://www.andersons.vcee.be/) — see
+[Demo credentials](#demo-credentials) below to log in.
+
+## Documentation
+
+Full project documentation (UML diagrams, etc.) lives in [`/docs`](docs).
+
 ## Features
 
 - **Trips** — plan trips with a route of checkpoints, live address/route
