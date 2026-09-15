@@ -2,8 +2,6 @@
 
 use Illuminate\Support\Facades\Broadcast;
 
-Log::info('📡 Loading routes/channels.php');
-
 /*
 |--------------------------------------------------------------------------
 | Broadcast Channels
@@ -21,21 +19,8 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
 });
 
-// Try matching with the "private-" prefix
-Broadcast::channel('private-user.{id}', function ($user, $id) {
-    Log::info('🔐 Matched private-user.{id}', ['user_id' => $user?->id, 'id' => $id]);
-
-    return (bool) $user;
-});
-
-// Also try without prefix
-Broadcast::channel('user.{id}', function ($user, $id) {
-    Log::info('🔐 Matched user.{id}', ['user_id' => $user?->id, 'id' => $id]);
-
-    return (bool) $user;
-});
-
-// Allow private user notifications channel
+// Private per-user notifications channel — subscribed to client-side as
+// Echo.private(`user.${userId}`) in resources/js/app.js.
 Broadcast::channel('user.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
 });
