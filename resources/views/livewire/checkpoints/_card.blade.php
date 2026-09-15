@@ -18,16 +18,17 @@
         @endif
         <p class="text-xs text-gray-500 dark:text-gray-400">By {{ $checkpoint->user?->name ?? 'System' }}</p>
     </div>
-    <div class="flex justify-between items-center gap-2 mt-4 pt-3 border-t border-gray-200 dark:border-neutral-700">
-        <button wire:click="openEdit({{ $checkpoint->id }})" class="flex-1 bg-indigo-100 dark:bg-indigo-900/30 hover:bg-indigo-200 dark:hover:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-sm font-semibold py-1.5 px-4 rounded-lg">
-            Edit
-        </button>
-        <button
-            wire:click="delete({{ $checkpoint->id }})"
-            wire:confirm="Delete the checkpoint &quot;{{ $checkpoint->location }}&quot;? This removes it from all trips and deletes any uploaded photos for it. This cannot be undone."
-            class="bg-red-100 dark:bg-red-900/20 hover:bg-red-200 dark:hover:bg-red-900/40 text-red-700 dark:text-red-400 text-sm font-semibold py-1.5 px-4 rounded-lg"
-        >
-            Delete
-        </button>
-    </div>
+    @if ($canManage)
+        <div class="flex justify-between items-center gap-2 mt-4 pt-3 border-t border-gray-200 dark:border-neutral-700">
+            <button wire:click="openEdit({{ $checkpoint->id }})" class="flex-1 bg-indigo-100 dark:bg-indigo-900/30 hover:bg-indigo-200 dark:hover:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-sm font-semibold py-1.5 px-4 rounded-lg">
+                Edit
+            </button>
+            <button
+                wire:click="confirmDelete({{ $checkpoint->id }})"
+                class="bg-red-100 dark:bg-red-900/20 hover:bg-red-200 dark:hover:bg-red-900/40 text-red-700 dark:text-red-400 text-sm font-semibold py-1.5 px-4 rounded-lg"
+            >
+                Delete
+            </button>
+        </div>
+    @endif
 </div>

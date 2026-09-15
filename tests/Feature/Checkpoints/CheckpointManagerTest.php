@@ -100,7 +100,8 @@ test('a checkpoint can be deleted', function () {
 
     Livewire::actingAs($this->user)
         ->test(CheckpointManager::class)
-        ->call('delete', $checkpoint->id);
+        ->call('confirmDelete', $checkpoint->id)
+        ->call('delete');
 
     expect(Checkpoint::find($checkpoint->id))->toBeNull();
 });
@@ -112,9 +113,33 @@ test('deleting a checkpoint detaches it from any trips', function () {
 
     Livewire::actingAs($this->user)
         ->test(CheckpointManager::class)
-        ->call('delete', $checkpoint->id);
+        ->call('confirmDelete', $checkpoint->id)
+        ->call('delete');
 
     expect($trip->fresh()->checkpoints)->toHaveCount(0);
+});
+
+test('a non-manager cannot create, edit or delete checkpoints', function () {
+    $staff = User::factory()->state([
+        'email' => 'checkpoints-staff@example.com',
+        'role_id' => Role::where('name', 'Staff')->first()->id,
+    ])->create();
+    $checkpoint = Checkpoint::factory()->create();
+
+    Livewire::actingAs($staff)
+        ->test(CheckpointManager::class)
+        ->call('openCreate')
+        ->assertStatus(403);
+
+    Livewire::actingAs($staff)
+        ->test(CheckpointManager::class)
+        ->call('openEdit', $checkpoint->id)
+        ->assertStatus(403);
+
+    Livewire::actingAs($staff)
+        ->test(CheckpointManager::class)
+        ->call('confirmDelete', $checkpoint->id)
+        ->assertStatus(403);
 });
 
 test('searching filters checkpoints by name, description and folder', function () {

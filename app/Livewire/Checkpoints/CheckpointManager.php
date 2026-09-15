@@ -37,8 +37,12 @@ class CheckpointManager extends Component
 
     public string $newFolderName = '';
 
+    public ?int $confirmingDeleteId = null;
+
     public function openCreate(): void
     {
+        $this->authorize('create', Checkpoint::class);
+
         $this->resetValidation();
         $this->reset(['checkpointId', 'location', 'description', 'address', 'latitude', 'longitude', 'folderId', 'newFolderName']);
         $this->showModal = true;
@@ -47,6 +51,7 @@ class CheckpointManager extends Component
     public function openEdit(int $checkpointId): void
     {
         $checkpoint = Checkpoint::findOrFail($checkpointId);
+        $this->authorize('update', $checkpoint);
 
         $this->resetValidation();
         $this->checkpointId = $checkpoint->id;
@@ -114,8 +119,11 @@ class CheckpointManager extends Component
         ];
 
         if ($this->checkpointId) {
-            Checkpoint::findOrFail($this->checkpointId)->update($attributes);
+            $checkpoint = Checkpoint::findOrFail($this->checkpointId);
+            $this->authorize('update', $checkpoint);
+            $checkpoint->update($attributes);
         } else {
+            $this->authorize('create', Checkpoint::class);
             $attributes['user_id'] = auth()->id();
             Checkpoint::create($attributes);
         }
@@ -124,9 +132,23 @@ class CheckpointManager extends Component
         session()->flash('message', $this->checkpointId ? 'Checkpoint updated!' : 'Checkpoint created!');
     }
 
-    public function delete(int $checkpointId): void
+    public function confirmDelete(int $checkpointId): void
     {
-        Checkpoint::findOrFail($checkpointId)->delete();
+        $this->authorize('delete', Checkpoint::findOrFail($checkpointId));
+        $this->confirmingDeleteId = $checkpointId;
+    }
+
+    public function closeDeleteConfirm(): void
+    {
+        $this->confirmingDeleteId = null;
+    }
+
+    public function delete(): void
+    {
+        $checkpoint = Checkpoint::findOrFail($this->confirmingDeleteId);
+        $this->authorize('delete', $checkpoint);
+        $checkpoint->delete();
+        $this->confirmingDeleteId = null;
         session()->flash('message', 'Checkpoint deleted!');
     }
 
@@ -147,9 +169,13 @@ class CheckpointManager extends Component
         $checkpoints = $this->getCheckpoints();
 
         return view('livewire.checkpoints.manager', [
+            'canManage' => auth()->user()->can('create', Checkpoint::class),
             'folders' => Folder::orderBy('name')->get(),
             'checkpointsByFolder' => $checkpoints->whereNotNull('folder_id')->groupBy('folder_id'),
             'unassignedCheckpoints' => $checkpoints->whereNull('folder_id'),
+            'confirmingDeleteCheckpoint' => $this->confirmingDeleteId
+                ? $checkpoints->firstWhere('id', $this->confirmingDeleteId)
+                : null,
         ]);
     }
 }

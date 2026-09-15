@@ -10,7 +10,9 @@
             <a href="{{ route('trips.index') }}" wire:navigate class="px-4 py-2.5 rounded-lg border border-gray-300 dark:border-neutral-600 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-neutral-700">
                 Back to Trips
             </a>
-            <x-flux.button variant="primary" wire:click="openCreate">+ Create Checkpoint</x-flux.button>
+            @if ($canManage)
+                <x-flux.button variant="primary" wire:click="openCreate">+ Create Checkpoint</x-flux.button>
+            @endif
         </div>
     </div>
 
@@ -50,6 +52,16 @@
             </x-ui.section-card>
         @endif
     @endif
+
+    <x-confirm-action-modal
+        :show="$confirmingDeleteCheckpoint !== null"
+        title="Delete Checkpoint"
+        message='Delete the checkpoint "{{ $confirmingDeleteCheckpoint?->location }}"? This removes it from all trips and deletes any uploaded photos for it. This cannot be undone.'
+        cancelAction="closeDeleteConfirm"
+        confirmAction="delete"
+        confirmLabel="Delete Checkpoint"
+        confirmTone="danger"
+    />
 
     <x-ui.detail-modal :show="$showModal" :title="$checkpointId ? 'Edit Checkpoint' : 'Create Checkpoint'" closeAction="close">
         <form wire:submit="save" class="space-y-4">
