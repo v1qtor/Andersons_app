@@ -159,7 +159,8 @@ test('a manager can upload and remove a trip document', function () {
 
     Livewire::actingAs($this->admin)
         ->test(TripCard::class, ['tripId' => $this->trip->id])
-        ->call('removeDocument', $attached->id);
+        ->call('confirmRemoveDocument', $attached->id)
+        ->call('removeDocument');
 
     Storage::disk('public')->assertMissing($attached->file_path);
     expect(AttachedFile::find($attached->id))->toBeNull();

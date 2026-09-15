@@ -55,6 +55,12 @@ class TripCard extends Component
 
     public ?string $viewingImageUrl = null;
 
+    public ?int $confirmingRemoveCheckpointId = null;
+
+    public ?int $confirmingRemoveImageId = null;
+
+    public ?int $confirmingRemoveDocumentId = null;
+
     private function loadTrip(): Trip
     {
         return Trip::with(['status', 'tripCategory', 'users', 'checkpoints', 'checkpointImages', 'attachedFiles', 'plusOnes'])
@@ -184,12 +190,26 @@ class TripCard extends Component
         $this->dispatch('trip-changed');
     }
 
-    public function removeCheckpoint(int $checkpointId): void
+    public function confirmRemoveCheckpoint(int $checkpointId): void
+    {
+        $this->authorize('update', $this->loadTrip());
+        $this->confirmingRemoveCheckpointId = $checkpointId;
+    }
+
+    public function closeRemoveCheckpointConfirm(): void
+    {
+        $this->confirmingRemoveCheckpointId = null;
+    }
+
+    public function removeCheckpoint(): void
     {
         $trip = $this->loadTrip();
         $this->authorize('update', $trip);
 
+        $checkpointId = $this->confirmingRemoveCheckpointId;
         $checkpoint = $trip->checkpoints()->find($checkpointId);
+        $this->confirmingRemoveCheckpointId = null;
+
         if (! $checkpoint) {
             return;
         }
@@ -285,9 +305,21 @@ class TripCard extends Component
         session()->flash('message', 'Image(s) uploaded successfully.');
     }
 
-    public function removeImage(int $imageId): void
+    public function confirmRemoveImage(int $imageId): void
     {
-        $image = CheckpointImage::findOrFail($imageId);
+        $this->confirmingRemoveImageId = $imageId;
+    }
+
+    public function closeRemoveImageConfirm(): void
+    {
+        $this->confirmingRemoveImageId = null;
+    }
+
+    public function removeImage(): void
+    {
+        $image = CheckpointImage::findOrFail($this->confirmingRemoveImageId);
+        $this->confirmingRemoveImageId = null;
+
         if ($image->image_path && Storage::disk('public')->exists($image->image_path)) {
             Storage::disk('public')->delete($image->image_path);
         }
@@ -308,7 +340,7 @@ class TripCard extends Component
     {
         $this->authorize('update', $this->loadTrip());
 
-        $this->validate(['newDocument' => 'required|file|max:10240']);
+        $this->validate(['newDocument' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240']);
 
         $path = $this->newDocument->store('trip-files', 'public');
         AttachedFile::create([
@@ -322,10 +354,22 @@ class TripCard extends Component
         session()->flash('message', 'File uploaded.');
     }
 
-    public function removeDocument(int $fileId): void
+    public function confirmRemoveDocument(int $fileId): void
     {
-        $file = AttachedFile::findOrFail($fileId);
+        $this->authorize('update', AttachedFile::findOrFail($fileId)->trip);
+        $this->confirmingRemoveDocumentId = $fileId;
+    }
+
+    public function closeRemoveDocumentConfirm(): void
+    {
+        $this->confirmingRemoveDocumentId = null;
+    }
+
+    public function removeDocument(): void
+    {
+        $file = AttachedFile::findOrFail($this->confirmingRemoveDocumentId);
         $this->authorize('update', $file->trip);
+        $this->confirmingRemoveDocumentId = null;
 
         if (Storage::disk('public')->exists($file->file_path)) {
             Storage::disk('public')->delete($file->file_path);
@@ -344,6 +388,12 @@ class TripCard extends Component
                 ->whereDoesntHave('trips', fn ($q) => $q->where('trips.id', $this->tripId))
                 ->orderBy('location')
                 ->get(),
+            'confirmingRemoveCheckpoint' => $this->confirmingRemoveCheckpointId
+                ? $trip->checkpoints->firstWhere('id', $this->confirmingRemoveCheckpointId)
+                : null,
+            'confirmingRemoveDocument' => $this->confirmingRemoveDocumentId
+                ? $trip->attachedFiles->firstWhere('id', $this->confirmingRemoveDocumentId)
+                : null,
         ]);
     }
 }

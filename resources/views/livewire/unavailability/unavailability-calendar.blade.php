@@ -58,7 +58,7 @@
                 {{-- Actions --}}
                 <div class="flex gap-1 flex-shrink-0">
                     <flux:button wire:click="openEdit({{ $period->id }})" size="sm" variant="ghost" icon="pencil" />
-                    <flux:button wire:click="delete({{ $period->id }})" wire:confirm="Remove this period?" size="sm" variant="ghost" icon="trash" />
+                    <flux:button wire:click="confirmDelete({{ $period->id }})" size="sm" variant="ghost" icon="trash" />
                 </div>
             </div>
         @empty
@@ -175,6 +175,21 @@
                 <flux:button wire:click="$set('showModal', false)" variant="ghost">
                     Cancel
                 </flux:button>
+            </div>
+        </div>
+    </flux:modal>
+
+    {{-- Delete Confirmation --}}
+    <flux:modal name="delete-period-modal" :show="$showDeleteConfirm" wire:model="showDeleteConfirm">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">Remove Period</flux:heading>
+                <flux:subheading>Remove this unavailability period? This cannot be undone.</flux:subheading>
+            </div>
+
+            <div class="flex gap-2 justify-end">
+                <flux:button variant="ghost" wire:click="closeDeleteConfirm">Cancel</flux:button>
+                <flux:button variant="danger" wire:click="delete">Remove</flux:button>
             </div>
         </div>
     </flux:modal>

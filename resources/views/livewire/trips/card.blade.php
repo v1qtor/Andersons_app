@@ -37,6 +37,33 @@
         confirmLabel="Delete"
         confirmTone="danger"
     />
+    <x-confirm-action-modal
+        :show="$confirmingRemoveCheckpoint !== null"
+        title="Remove Checkpoint"
+        message='Remove "{{ $confirmingRemoveCheckpoint?->location }}" from this trip?'
+        cancelAction="closeRemoveCheckpointConfirm"
+        confirmAction="removeCheckpoint"
+        confirmLabel="Remove"
+        confirmTone="danger"
+    />
+    <x-confirm-action-modal
+        :show="$confirmingRemoveImageId !== null"
+        title="Delete Image"
+        message="Delete this image? This cannot be undone."
+        cancelAction="closeRemoveImageConfirm"
+        confirmAction="removeImage"
+        confirmLabel="Delete"
+        confirmTone="danger"
+    />
+    <x-confirm-action-modal
+        :show="$confirmingRemoveDocument !== null"
+        title="Remove Document"
+        message='Remove "{{ $confirmingRemoveDocument?->name }}" from this trip?'
+        cancelAction="closeRemoveDocumentConfirm"
+        confirmAction="removeDocument"
+        confirmLabel="Remove"
+        confirmTone="danger"
+    />
 
     <x-ui.detail-modal :show="$viewingImageUrl !== null" title="Checkpoint Photo" closeAction="closeImageViewer">
         @if ($viewingImageUrl)
@@ -162,7 +189,7 @@
                             @endif
                             <button wire:click="openImageUpload({{ $checkpoint->id }})" class="bg-indigo-100 dark:bg-indigo-900/30 hover:bg-indigo-200 dark:hover:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-xs font-semibold py-1.5 px-3 rounded-lg">+ Photo</button>
                             @if ($isManager)
-                                <button wire:click="removeCheckpoint({{ $checkpoint->id }})" wire:confirm="Remove this checkpoint?" class="bg-red-100 dark:bg-red-900/20 hover:bg-red-200 dark:hover:bg-red-900/40 text-red-700 dark:text-red-400 text-xs font-semibold py-1.5 px-3 rounded-lg">Remove</button>
+                                <button wire:click="confirmRemoveCheckpoint({{ $checkpoint->id }})" class="bg-red-100 dark:bg-red-900/20 hover:bg-red-200 dark:hover:bg-red-900/40 text-red-700 dark:text-red-400 text-xs font-semibold py-1.5 px-3 rounded-lg">Remove</button>
                             @endif
                         </div>
 
@@ -181,7 +208,7 @@
                                     <div class="relative group">
                                         <img src="{{ Storage::url($image->image_path) }}" wire:click="viewImage('{{ Storage::url($image->image_path) }}')" class="w-full h-20 object-cover rounded cursor-pointer" />
                                         @if ($isManager)
-                                            <button wire:click="removeImage({{ $image->id }})" wire:confirm="Delete this image?" class="absolute top-1 right-1 hidden group-hover:flex w-5 h-5 items-center justify-center rounded-full bg-red-600 text-white text-xs">✕</button>
+                                            <button wire:click="confirmRemoveImage({{ $image->id }})" class="absolute top-1 right-1 hidden group-hover:flex w-5 h-5 items-center justify-center rounded-full bg-red-600 text-white text-xs">✕</button>
                                         @endif
                                     </div>
                                 @endforeach
@@ -206,7 +233,7 @@
                             <a href="{{ Storage::url($file->file_path) }}" target="_blank" class="text-indigo-600 dark:text-indigo-400 ml-2 text-xs underline">Download</a>
                         </div>
                         @if ($isManager)
-                            <button wire:click="removeDocument({{ $file->id }})" wire:confirm="Remove this file?" class="text-red-500 hover:text-red-700 text-sm font-bold">✕</button>
+                            <button wire:click="confirmRemoveDocument({{ $file->id }})" class="text-red-500 hover:text-red-700 text-sm font-bold">✕</button>
                         @endif
                     </div>
                 @endforeach

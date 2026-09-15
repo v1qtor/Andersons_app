@@ -33,6 +33,10 @@ class StaffAvailabilityCalendar extends Component
 
     public $filterDate = '';
 
+    public bool $showDeleteConfirm = false;
+
+    public ?int $confirmingDeleteId = null;
+
     public function mount()
     {
         if (Auth::user()->role?->name !== 'Admin') {
@@ -236,9 +240,24 @@ class StaffAvailabilityCalendar extends Component
         $this->reset(['editingId', 'startDate', 'startTime', 'endDate', 'endTime', 'description', 'selectedUserId']);
     }
 
-    public function delete($id)
+    public function confirmDelete($id)
     {
-        $period = UnavailabilityPeriod::findOrFail($id);
+        $this->confirmingDeleteId = $id;
+        $this->showDeleteConfirm = true;
+    }
+
+    public function closeDeleteConfirm()
+    {
+        $this->confirmingDeleteId = null;
+        $this->showDeleteConfirm = false;
+    }
+
+    public function delete()
+    {
+        $period = UnavailabilityPeriod::findOrFail($this->confirmingDeleteId);
+
+        $this->confirmingDeleteId = null;
+        $this->showDeleteConfirm = false;
 
         if ($period->end_date->isPast()) {
             $this->dispatch('toast', title: 'Read-only Period', message: 'Past unavailability periods cannot be deleted.', type: 'error');

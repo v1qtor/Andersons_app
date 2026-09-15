@@ -24,6 +24,10 @@ class UnavailabilityCalendar extends Component
 
     public $description = '';
 
+    public bool $showDeleteConfirm = false;
+
+    public ?int $confirmingDeleteId = null;
+
     public function getPeriodsProperty()
     {
         return Auth::user()
@@ -137,12 +141,27 @@ class UnavailabilityCalendar extends Component
         $this->reset(['editingId', 'startDate', 'startTime', 'endDate', 'endTime', 'description']);
     }
 
-    public function delete($id)
+    public function confirmDelete($id)
     {
-        $period = UnavailabilityPeriod::findOrFail($id);
+        $this->confirmingDeleteId = $id;
+        $this->showDeleteConfirm = true;
+    }
+
+    public function closeDeleteConfirm()
+    {
+        $this->confirmingDeleteId = null;
+        $this->showDeleteConfirm = false;
+    }
+
+    public function delete()
+    {
+        $period = UnavailabilityPeriod::findOrFail($this->confirmingDeleteId);
         if ($period->user_id !== Auth::id()) {
             abort(403);
         }
+
+        $this->confirmingDeleteId = null;
+        $this->showDeleteConfirm = false;
 
         if ($period->end_date->isPast()) {
             $this->dispatch('toast', title: 'Read-only Period', message: 'Past unavailability periods cannot be deleted.', type: 'error');

@@ -68,6 +68,10 @@ class AdminPanel extends Component
 
     public string $bdNotes = '';
 
+    public bool $showDeleteBirthdateConfirm = false;
+
+    public ?int $confirmingDeleteBirthdateId = null;
+
     // Tab management
     public function setTab(string $tab): void
     {
@@ -560,9 +564,23 @@ class AdminPanel extends Component
         $this->editingBirthdateId = null;
     }
 
-    public function deleteBirthdate(int $id): void
+    public function confirmDeleteBirthdate(int $id): void
     {
-        Birthdate::findOrFail($id)->delete();
+        $this->confirmingDeleteBirthdateId = $id;
+        $this->showDeleteBirthdateConfirm = true;
+    }
+
+    public function closeDeleteBirthdateConfirm(): void
+    {
+        $this->confirmingDeleteBirthdateId = null;
+        $this->showDeleteBirthdateConfirm = false;
+    }
+
+    public function deleteBirthdate(): void
+    {
+        Birthdate::findOrFail($this->confirmingDeleteBirthdateId)->delete();
+        $this->confirmingDeleteBirthdateId = null;
+        $this->showDeleteBirthdateConfirm = false;
         $this->dispatch('toast', message: __('Birthday deleted successfully.'), type: 'success');
     }
 
@@ -635,6 +653,9 @@ class AdminPanel extends Component
             'roles' => $roles,
             'birthdates' => $birthdates,
             'allUsers' => $allUsers,
+            'confirmingDeleteBirthdate' => $this->confirmingDeleteBirthdateId
+                ? Birthdate::find($this->confirmingDeleteBirthdateId)
+                : null,
         ]);
     }
 }
