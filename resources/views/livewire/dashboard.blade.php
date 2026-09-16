@@ -224,7 +224,7 @@
                                         </svg>
                                         {{ $trip->checkpoints->count() }} checkpoints
                                     </div>
-                                    <livewire:trip-acceptance :trip="$trip" />
+                                    <livewire:trip-acceptance :trip="$trip" :key="$trip->id" />
                                 </div>
                             </div>
                         @empty

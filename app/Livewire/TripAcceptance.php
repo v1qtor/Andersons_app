@@ -17,6 +17,8 @@ class TripAcceptance extends Component
 
     public $acceptTrip = false;
 
+    public bool $confirmingDecline = false;
+
     public function mount($trip)
     {
         $this->trip = $trip;
@@ -50,6 +52,16 @@ class TripAcceptance extends Component
         $this->dispatch('refresh-dashboard');
     }
 
+    public function confirmDecline(): void
+    {
+        $this->confirmingDecline = true;
+    }
+
+    public function closeDeclineConfirm(): void
+    {
+        $this->confirmingDecline = false;
+    }
+
     public function rejectTrip()
     {
         $user = auth()->user();
@@ -66,6 +78,7 @@ class TripAcceptance extends Component
 
         $this->acceptTrip = false;
         $this->plusOnes = [];
+        $this->confirmingDecline = false;
         $this->dispatch('toast', message: 'You declined the trip.', type: 'success');
         $this->dispatch('refresh-dashboard');
     }
