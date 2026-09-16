@@ -18,7 +18,7 @@ class AttachedFileFactory extends Factory
         return [
             'name' => fake()->word(),
             'file_path' => 'attachments/'.fake()->uuid().'.'.fake()->fileExtension(),
-            'trip_id' => Trip::factory(),
+            'trip_id' => Trip::inRandomOrder()->first()?->id ?? Trip::factory(),
         ];
     }
 }

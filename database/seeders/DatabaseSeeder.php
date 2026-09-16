@@ -34,7 +34,6 @@ class DatabaseSeeder extends Seeder
             TripCategorySeeder::class,
             StatusSeeder::class,
             TripStatusSeeder::class,
-            AttachedFileSeeder::class,
             FolderSeeder::class,
             NotificationSeeder::class,
         ]);
@@ -55,6 +54,7 @@ class DatabaseSeeder extends Seeder
             TripSeeder::class,
             PreferenceSeeder::class,
             TestInvoicesSeeder::class,
+            AttachedFileSeeder::class,
         ]);
 
         // Tier 4: Pivot / associative tables

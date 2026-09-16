@@ -201,9 +201,9 @@
                     
                     <div class="flex flex-col gap-3">
                         @forelse($upcomingTrips as $trip)
-                            <div class="bg-white dark:bg-neutral-800 border border-neutral-100 dark:border-neutral-700/50 rounded-xl p-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between shadow-sm">
-                                <div class="flex items-center gap-4 min-w-0 sm:flex-1">
-                                    <div class="bg-[#f2e6fb] dark:bg-purple-900/20 text-[#d87aff] size-[38px] rounded-full flex items-center justify-center">
+                            <div class="bg-white dark:bg-neutral-800 border border-neutral-100 dark:border-neutral-700/50 rounded-xl p-4 flex flex-col gap-3 shadow-sm">
+                                <div class="flex items-center gap-4 min-w-0">
+                                    <div class="bg-[#f2e6fb] dark:bg-purple-900/20 text-[#d87aff] size-[38px] shrink-0 rounded-full flex items-center justify-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
@@ -216,7 +216,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="flex flex-wrap items-center gap-3 sm:gap-4 sm:ml-auto w-full sm:w-auto">
+                                <div class="flex flex-wrap items-center gap-3 pl-[54px]">
                                     <div class="flex items-center gap-1 text-neutral-500 text-sm">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-[14px]">
                                           <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
